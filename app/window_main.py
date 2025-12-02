@@ -91,8 +91,13 @@ class MainWindow(QMainWindow):
             )
             return
 
+        settings = self.ui.settingsPanel.to_dict()
+        limit_pages = settings.get("limit_pages", False)
+
         # 4. Generate tailored resume
-        tailored = self.tailor.generate(self.resume_text, self.job_text)
+        tailored = self.tailor.generate(
+            self.resume_text, self.job_text, limit_pages=limit_pages
+        )
         self.tailored_text = tailored
         self.ui.outputPreview.setPlainText(tailored)
 

@@ -71,9 +71,29 @@ class ResumeTailor:
     def __init__(self):
         self.client = OpenAIClient()
 
-    def generate(self, resume_text: str, job_text: str) -> str:
+    def generate(
+        self, resume_text: str, job_text: str, limit_pages: bool = False
+    ) -> str:
         resume_text = clean_resume_text(resume_text)
 
-        prompt = TAILOR_ENGINE_PROMPT.format(resume_text=resume_text, job_text=job_text)
+        rules = ""
+        if limit_pages:
+            rules = dedent(
+                """
+            ---------------------------------
+            ### LENGTH ENFORCEMENT (ENABLED)
+            ---------------------------------
+            - The rewritten resume MUST fit within 1-2 pages.
+            - Target length: **450-650 words**.
+            - Remove redundent, outdated, or weak bullets.
+            - Merge repetitive content.
+            - Tighten overly long sections.
+            """
+            )
+
+        prompt = (
+            TAILOR_ENGINE_PROMPT.format(resume_text=resume_text, job_text=job_text)
+            + rules
+        )
 
         return self.client.generate(prompt)

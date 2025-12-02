@@ -18,11 +18,13 @@ class SettingsPanel(QWidget):
 
         self.chk_focus_keywords = QCheckBox("Emphsize job keywords", group)
         self.chk_keep_length = QCheckBox("Keep similar length", group)
+        self.chk_limit_pages = QCheckBox("Limit resume to 1-2 pages", group)
         self.chk_ats_friendly = QCheckBox("ATS-friendly formatting", group)
         self.chk_ats_friendly.setChecked(True)
 
         inner.addWidget(self.chk_focus_keywords)
         inner.addWidget(self.chk_keep_length)
+        inner.addWidget(self.chk_limit_pages)
         inner.addWidget(self.chk_ats_friendly)
         inner.addStretch()
 
@@ -35,5 +37,6 @@ class SettingsPanel(QWidget):
         return {
             "focus_keywords": self.chk_focus_keywords.isChecked(),
             "keep_length": self.chk_keep_length.isChecked(),
+            "limit_pages": self.chk_limit_pages.isChecked(),
             "ats_friendly": self.chk_ats_friendly.isChecked(),
         }
