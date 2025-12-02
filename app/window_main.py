@@ -3,20 +3,26 @@ UI logic controller for the application
 """
 
 import os
+import json
 from PyQt6.QtWidgets import (
     QMainWindow,
     QFileDialog,
     QMessageBox,
     QLabel,
     QApplication,
+    QMenuBar,
+    QMenu,
 )
 from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtGui import QAction
 
 from core.extractor.pdf_parser import extract_pdf
 from core.extractor.docx_parser import extract_docx
 from core.extractor.job_parser import fetch_job_description
 from core.exporter.docx_builder import export_to_docx
 from core.processor.tailor_engine import ResumeTailor
+
+from app.ui.tailoring_history_window import HISTORY_FILE
 
 
 class MainWindow(QMainWindow):
@@ -29,28 +35,41 @@ class MainWindow(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
-        # -------------------------------
+        # --------------------------
         # Event Bindings
-        # -------------------------------
+        # --------------------------
         self.ui.btnFetchJob.clicked.connect(self.fetch_job)
         self.ui.btnTailor.clicked.connect(self.tailor_resume)
         self.ui.btnExport.clicked.connect(self.export_output)
         self.ui.btnUseManualJob.clicked.connect(self.use_manual_job_description)
         self.ui.resumePicker.fileSelected.connect(self.load_resume_from_picker)
 
-        # -------------------------------
-        # State
-        # -------------------------------
+        # --------------------------
+        # Internal State
+        # --------------------------
         self.resume_text = ""
         self.job_text = ""
         self.tailored_text = ""
 
-        # Resume Tailor Engine
         self.tailor = ResumeTailor()
 
-        # -------------------------------
+        # --------------------------
+        # Menu Bar
+        # --------------------------
+        menubar = QMenuBar(self)
+        self.setMenuBar(menubar)
+
+        tools_menu = QMenu("Tools", self)
+        menubar.addMenu(tools_menu)
+
+        # Tailoring History
+        self.action_history = QAction("Tailoring History", self)
+        tools_menu.addAction(self.action_history)
+        self.action_history.triggered.connect(self.open_tailoring_history)
+
+        # --------------------------
         # Loading Overlay (Text Only)
-        # -------------------------------
+        # --------------------------
         self._loading_base_text = "Tailoring in progress"
         self._loading_dots = 0
 
@@ -59,8 +78,8 @@ class MainWindow(QMainWindow):
         self.loadingLabel.setStyleSheet(
             """
             QLabel {
-                background-color: rgba(15, 23, 42, 220); /* slate-900 w/ alpha */
-                color: #E5E7EB;                          /* text-slate-200 */
+                background-color: rgba(15, 23, 42, 220);
+                color: #E5E7EB;
                 font-size: 18pt;
                 font-weight: 600;
                 border-radius: 16px;
@@ -70,32 +89,27 @@ class MainWindow(QMainWindow):
         )
         self.loadingLabel.hide()
 
-        # Timer to animate "..." at the end of the text
         self.loadingTimer = QTimer(self)
-        self.loadingTimer.setInterval(400)  # ms
+        self.loadingTimer.setInterval(400)
         self.loadingTimer.timeout.connect(self._update_loading_text)
 
-        # Initial placement
         self._center_loading_label()
 
-    # ----------------------------------------------------------------------
-    # Utility: Center loading label in the window
-    # ----------------------------------------------------------------------
+    # ============================================================
+    # Loading Overlay
+    # ============================================================
+
     def _center_loading_label(self):
-        # We'll make the label a reasonable width portion of the window
-        w = int(self.width() * 0.4)
-        h = 80
-        if w < 320:
-            w = 320
-        x = self.width() // 2 - w // 2
-        y = self.height() // 2 - h // 2
+        """Centers the loading overlay label."""
+        width = max(320, int(self.width() * 0.4))
+        height = 80
+        x = self.width() // 2 - width // 2
+        y = self.height() // 2 - height // 2
 
-        self.loadingLabel.setGeometry(x, y, w, h)
+        self.loadingLabel.setGeometry(x, y, width, height)
 
-    # ----------------------------------------------------------------------
-    # Utility: Show / hide loading overlay
-    # ----------------------------------------------------------------------
     def _set_loading_visible(self, visible: bool):
+        """Shows or hides the loading overlay."""
         if visible:
             self._loading_dots = 0
             self._update_loading_text()
@@ -107,17 +121,16 @@ class MainWindow(QMainWindow):
             self.loadingTimer.stop()
             self.loadingLabel.hide()
 
-    # ----------------------------------------------------------------------
-    # Update "Tailoring in progress..." text with animated dots
-    # ----------------------------------------------------------------------
     def _update_loading_text(self):
-        self._loading_dots = (self._loading_dots + 1) % 4  # 0..3
+        """Animates the dots at the end of 'Tailoring in progress'."""
+        self._loading_dots = (self._loading_dots + 1) % 4
         dots = "." * self._loading_dots
         self.loadingLabel.setText(f"{self._loading_base_text}{dots}")
 
-    # ----------------------------------------------------------------------
-    # File Picker → Load Resume
-    # ----------------------------------------------------------------------
+    # ============================================================
+    # Resume Loading
+    # ============================================================
+
     def load_resume_from_picker(self, fname: str):
         if not fname:
             return
@@ -129,9 +142,10 @@ class MainWindow(QMainWindow):
 
         self.ui.resumePreview.setPlainText(self.resume_text)
 
-    # ----------------------------------------------------------------------
-    # Fetch Job From URL
-    # ----------------------------------------------------------------------
+    # ============================================================
+    # Fetch Job Description
+    # ============================================================
+
     def fetch_job(self):
         url = self.ui.inputJobURL.text().strip()
 
@@ -147,11 +161,11 @@ class MainWindow(QMainWindow):
 
         self.ui.jobPreview.setPlainText(self.job_text)
 
-    # ----------------------------------------------------------------------
+    # ============================================================
     # Tailor Resume
-    # ----------------------------------------------------------------------
+    # ============================================================
+
     def tailor_resume(self):
-        # Ensure resume is loaded
         if not self.resume_text:
             QMessageBox.warning(self, "Error", "Load your resume first.")
             return
@@ -161,14 +175,10 @@ class MainWindow(QMainWindow):
             self.job_text = pasted_text
 
         if not self.job_text:
-            QMessageBox.warning(
-                self,
-                "Error",
-                "Please fetch or paste the job description before tailoring.",
-            )
+            QMessageBox.warning(self, "Error", "Paste or fetch a job description.")
             return
 
-        # Show loading overlay
+        # Start animated loading overlay
         self._set_loading_visible(True)
 
         try:
@@ -185,12 +195,14 @@ class MainWindow(QMainWindow):
             self.ui.outputPreview.setPlainText(tailored)
 
         finally:
-            # Hide loading overlay
+            # Hide overlay and save history entry
             self._set_loading_visible(False)
+            self.save_tailoring_history()
 
-    # ----------------------------------------------------------------------
-    # Export Tailored Resume
-    # ----------------------------------------------------------------------
+    # ============================================================
+    # Export
+    # ============================================================
+
     def export_output(self):
         if not self.tailored_text:
             QMessageBox.warning(self, "Error", "Nothing to export.")
@@ -209,26 +221,74 @@ class MainWindow(QMainWindow):
         export_to_docx(self.tailored_text, fname)
         QMessageBox.information(self, "Success", "Resume exported successfully!")
 
-    # ----------------------------------------------------------------------
-    # Manual Job Description Mode
-    # ----------------------------------------------------------------------
+    # ============================================================
+    # Manual Job Apply
+    # ============================================================
+
     def use_manual_job_description(self):
         text = self.ui.jobPreview.toPlainText().strip()
 
         if not text:
-            QMessageBox.warning(
-                self,
-                "Error",
-                "Please paste the job description into the Job Description box first.",
-            )
+            QMessageBox.warning(self, "Error", "Paste a job description first.")
             return
 
         self.job_text = text
         QMessageBox.information(self, "Success", "Using pasted job description.")
 
-    # ----------------------------------------------------------------------
-    # Keep loading label centered on resize
-    # ----------------------------------------------------------------------
+    # ============================================================
+    # History Window
+    # ============================================================
+
+    def open_tailoring_history(self):
+        from app.ui.tailoring_history_window import TailoringHistoryWindow
+
+        self.history_window = TailoringHistoryWindow(self)
+        self.history_window.show()
+
+    # ============================================================
+    # Save History Entry
+    # ============================================================
+
+    def save_tailoring_history(self):
+        company = "Unknown"
+        role = "Unknown"
+
+        text = self.job_text.lower()
+        if "company" in text:
+            try:
+                company = text.split("company")[1].split("\n")[0].strip(": .")
+            except:
+                pass
+
+        # Auto-save tailored resume for history tracking
+        auto_file = os.path.join(os.getcwd(), "last_tailored_resume.docx")
+        export_to_docx(self.tailored_text, auto_file)
+
+        entry = {
+            "company": company,
+            "role": role,
+            "file": auto_file,
+        }
+
+        # Load or create history
+        if os.path.exists(HISTORY_FILE):
+            try:
+                with open(HISTORY_FILE, "r") as f:
+                    history = json.load(f)
+            except:
+                history = []
+        else:
+            history = []
+
+        history.append(entry)
+
+        with open(HISTORY_FILE, "w") as f:
+            json.dump(history, f, indent=4)
+
+    # ============================================================
+    # Resize
+    # ============================================================
+
     def resizeEvent(self, event):
         self._center_loading_label()
         super().resizeEvent(event)

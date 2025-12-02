@@ -141,3 +141,47 @@ QMessageBox QPushButton {
 QMessageBox QPushButton:hover {
     background-color: #16A34A;
 }
+
+/* MENU BAR */
+QMenuBar {
+    background-color: #1E293B;      /* slate-800 (contrast) */
+    color: #E2E8F0;                 /* slate-200 */
+    padding: 4px 8px;
+    font-size: 12pt;
+}
+
+/* Menu Bar Items */
+QMenuBar::item {
+    background: transparent;
+    padding: 6px 12px;
+    margin: 2px;
+    color: #E2E8F0;
+}
+
+/* Hovered Menu Item */
+QMenuBar::item:selected {
+    background-color: #334155;      /* slate-700 */
+    border-radius: 6px;
+}
+
+/* PRESSED menu item */
+QMenuBar::item:pressed {
+    background-color: #475569;      /* slate-600 */
+}
+
+/* DROPDOWN MENU */
+QMenu {
+    background-color: #1E293B;
+    color: #E2E8F0;
+    border: 1px solid #334155;
+    padding: 6px;
+}
+
+QMenu::item {
+    padding: 6px 18px;
+}
+
+QMenu::item:selected {
+    background-color: #334155;
+    border-radius: 4px;
+}
