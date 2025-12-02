@@ -142,20 +142,20 @@ git clone https://github.com/<your-username>/JobFit-Pro.git
 cd JobFit-Pro
 ```
 
-### \*\*2. Create a virtual environment
+### **2. Create a virtual environment**
 
 ```bash
 python -m venv .venv
 .\.venv\Scripts\activate
 ```
 
-### \*\*3. Install dependencies
+### **3. Install dependencies**
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### \*\*4. Configure OpenAI
+### **4. Configure OpenAI**
 
 Create a .env file in the project root.
 
@@ -163,7 +163,7 @@ Create a .env file in the project root.
 OPENAI_API_KEY=your_api_key_here
 ```
 
-### \*\*5. Run the application
+### **5. Run the application**
 
 ```bash
 python -m app.main
