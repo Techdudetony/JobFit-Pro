@@ -1,0 +1,143 @@
+/* Global styling for JobFit Pro application */
+
+QMainWindow {
+    background-color: #020617;
+    color: #E5E7EB;
+    font-family: "Segoe UI", sans-serif;
+    font-size: 10pt;
+}
+
+QLabel {
+    color: #E5E7EB;
+}
+
+/* Panel titles */
+QLabel[panelTitle="true"] {
+    font-weight: 600;
+    font-size: 11pt;
+}
+
+/* Text Inputs */
+QLineEdit,
+QPlainTextEdit {
+    background-color: #020617;
+    border: 1px solid #1F2937;
+    border-radius: 6px;
+    padding: 6px;
+    color: #E5E7EB;
+}
+
+QLineEdit:focus,
+QPlainTextEdit:focus {
+    border-color: #22C55E;
+}
+
+/* Buttons */
+QPushButton {
+    background-color: #22C55E;
+    color: #020617;
+    border-radius: 6px;
+    border: none;
+    padding: 6px 14px;
+    font-weight: 600;
+} 
+
+QPushButton:hover {
+    background-color: #16A34A;
+}
+
+QPushButton:disabled {
+    background-color: #4B5563;
+    color: #9CA3AF;
+}
+
+/* Group Boxes */
+QGroupBox {
+    border: 1px solid #1F2937;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 10px;
+    padding: 0 4px;
+    color: #9CA3AF;
+}
+
+QGroupBox QCheckBox {
+    color: #f9fafb;          /* almost white */
+    font-weight: 500;
+}
+
+/* Checkbox indicator styling */
+QGroupBox QCheckBox::indicator {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 1px solid #4b5563;
+    background-color: #020617;
+}
+
+QGroupBox QCheckBox::indicator:hover {
+    border-color: #22c55e;
+}
+
+QGroupBox QCheckBox::indicator:checked {
+    background-color: #22c55e;
+    border-color: #22c55e;
+}
+
+/* Checkboxes */
+QCheckBox {
+    color: #E5E7EB;
+    spacing: 8px;
+}
+
+QCheckBox::indicator {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 1px solid #4B5563;
+    background-color: #020617;
+}
+
+QCheckBox::indicator:hover {
+    border-color: #22C22E
+}
+
+QCheckBox::indicator:checked {
+    background-color: #22C55E;
+    border-color: #22C55E;
+}
+
+/* Message boxes */
+QMessageBox {
+    background-color: #020617;   /* dark background */
+    color: #E5E7EB;              /* default text color */
+}
+
+/* Message box labels (main text) */
+QMessageBox QLabel {
+    color: #E5E7EB;
+    font-size: 10pt;
+}
+
+/* Optional: icon label spacing */
+QMessageBox QLabel#qt_msgbox_label {
+    padding-right: 8px;
+}
+
+/* Keep using our green buttons inside message boxes */
+QMessageBox QPushButton {
+    background-color: #22C55E;
+    color: #020617;
+    border-radius: 6px;
+    border: none;
+    padding: 4px 14px;
+    font-weight: 600;
+}
+
+QMessageBox QPushButton:hover {
+    background-color: #16A34A;
+}
