@@ -192,6 +192,7 @@ Contribution guidelines and issue templates will be added as multi-user developm
 ---
 
 ## License
+
 This project is proprietary and all rights are reserved.  
 You may not copy, modify, or redistribute this software without explicit permission from the author.
 
@@ -202,4 +203,3 @@ You may not copy, modify, or redistribute this software without explicit permiss
 For questions or feature suggestions:  
 Antonio Lee
 GitHub: https://github.com/Techdudetony
-

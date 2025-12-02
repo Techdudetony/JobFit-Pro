@@ -2,7 +2,16 @@
 UI logic controller for the application
 """
 
-from PyQt6.QtWidgets import QMainWindow, QFileDialog, QMessageBox
+import os
+from PyQt6.QtWidgets import (
+    QMainWindow,
+    QFileDialog,
+    QMessageBox,
+    QLabel,
+    QApplication,
+)
+from PyQt6.QtCore import Qt, QTimer
+
 from core.extractor.pdf_parser import extract_pdf
 from core.extractor.docx_parser import extract_docx
 from core.extractor.job_parser import fetch_job_description
@@ -20,28 +29,96 @@ class MainWindow(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
+        # -------------------------------
         # Event Bindings
-        self.ui.btnLoadResume.clicked.connect(self.load_resume)
+        # -------------------------------
         self.ui.btnFetchJob.clicked.connect(self.fetch_job)
         self.ui.btnTailor.clicked.connect(self.tailor_resume)
         self.ui.btnExport.clicked.connect(self.export_output)
         self.ui.btnUseManualJob.clicked.connect(self.use_manual_job_description)
+        self.ui.resumePicker.fileSelected.connect(self.load_resume_from_picker)
 
-        # Initialize State Variables
+        # -------------------------------
+        # State
+        # -------------------------------
         self.resume_text = ""
         self.job_text = ""
         self.tailored_text = ""
 
-        # Initialize the Tailoring Engine
+        # Resume Tailor Engine
         self.tailor = ResumeTailor()
 
-    # --------------------------------------------------------------------------
+        # -------------------------------
+        # Loading Overlay (Text Only)
+        # -------------------------------
+        self._loading_base_text = "Tailoring in progress"
+        self._loading_dots = 0
 
-    def load_resume(self):
-        fname, _ = QFileDialog.getOpenFileName(
-            self, "Select Resume", "", "PDF Files (*.pdf);;Word Files (*.docx)"
+        self.loadingLabel = QLabel(self)
+        self.loadingLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.loadingLabel.setStyleSheet(
+            """
+            QLabel {
+                background-color: rgba(15, 23, 42, 220); /* slate-900 w/ alpha */
+                color: #E5E7EB;                          /* text-slate-200 */
+                font-size: 18pt;
+                font-weight: 600;
+                border-radius: 16px;
+                padding: 20px 32px;
+            }
+            """
         )
+        self.loadingLabel.hide()
 
+        # Timer to animate "..." at the end of the text
+        self.loadingTimer = QTimer(self)
+        self.loadingTimer.setInterval(400)  # ms
+        self.loadingTimer.timeout.connect(self._update_loading_text)
+
+        # Initial placement
+        self._center_loading_label()
+
+    # ----------------------------------------------------------------------
+    # Utility: Center loading label in the window
+    # ----------------------------------------------------------------------
+    def _center_loading_label(self):
+        # We'll make the label a reasonable width portion of the window
+        w = int(self.width() * 0.4)
+        h = 80
+        if w < 320:
+            w = 320
+        x = self.width() // 2 - w // 2
+        y = self.height() // 2 - h // 2
+
+        self.loadingLabel.setGeometry(x, y, w, h)
+
+    # ----------------------------------------------------------------------
+    # Utility: Show / hide loading overlay
+    # ----------------------------------------------------------------------
+    def _set_loading_visible(self, visible: bool):
+        if visible:
+            self._loading_dots = 0
+            self._update_loading_text()
+            self._center_loading_label()
+            self.loadingLabel.show()
+            self.loadingTimer.start()
+            QApplication.processEvents()
+        else:
+            self.loadingTimer.stop()
+            self.loadingLabel.hide()
+
+    # ----------------------------------------------------------------------
+    # Update "Tailoring in progress..." text with animated dots
+    # ----------------------------------------------------------------------
+    def _update_loading_text(self):
+        self._loading_dots = (self._loading_dots + 1) % 4  # 0..3
+        dots = "." * self._loading_dots
+        self.loadingLabel.setText(f"{self._loading_base_text}{dots}")
+
+    # ----------------------------------------------------------------------
+    # File Picker → Load Resume
+    # ----------------------------------------------------------------------
+    def load_resume_from_picker(self, fname: str):
         if not fname:
             return
 
@@ -52,8 +129,9 @@ class MainWindow(QMainWindow):
 
         self.ui.resumePreview.setPlainText(self.resume_text)
 
-    # --------------------------------------------------------------------------
-
+    # ----------------------------------------------------------------------
+    # Fetch Job From URL
+    # ----------------------------------------------------------------------
     def fetch_job(self):
         url = self.ui.inputJobURL.text().strip()
 
@@ -69,20 +147,19 @@ class MainWindow(QMainWindow):
 
         self.ui.jobPreview.setPlainText(self.job_text)
 
-    # --------------------------------------------------------------------------
-
+    # ----------------------------------------------------------------------
+    # Tailor Resume
+    # ----------------------------------------------------------------------
     def tailor_resume(self):
-        # 1. Check resume loaded
+        # Ensure resume is loaded
         if not self.resume_text:
             QMessageBox.warning(self, "Error", "Load your resume first.")
             return
 
-        # 2. Use typed job description if present
         pasted_text = self.ui.jobPreview.toPlainText().strip()
         if pasted_text:
             self.job_text = pasted_text
 
-        # 3. If no typed text AND no fetched text → error
         if not self.job_text:
             QMessageBox.warning(
                 self,
@@ -91,18 +168,29 @@ class MainWindow(QMainWindow):
             )
             return
 
-        settings = self.ui.settingsPanel.to_dict()
-        limit_pages = settings.get("limit_pages", False)
+        # Show loading overlay
+        self._set_loading_visible(True)
 
-        # 4. Generate tailored resume
-        tailored = self.tailor.generate(
-            self.resume_text, self.job_text, limit_pages=limit_pages
-        )
-        self.tailored_text = tailored
-        self.ui.outputPreview.setPlainText(tailored)
+        try:
+            settings = self.ui.settingsPanel.to_dict()
+            limit_pages = settings.get("limit_pages", False)
 
-    # --------------------------------------------------------------------------
+            tailored = self.tailor.generate(
+                self.resume_text,
+                self.job_text,
+                limit_pages=limit_pages,
+            )
 
+            self.tailored_text = tailored
+            self.ui.outputPreview.setPlainText(tailored)
+
+        finally:
+            # Hide loading overlay
+            self._set_loading_visible(False)
+
+    # ----------------------------------------------------------------------
+    # Export Tailored Resume
+    # ----------------------------------------------------------------------
     def export_output(self):
         if not self.tailored_text:
             QMessageBox.warning(self, "Error", "Nothing to export.")
@@ -121,11 +209,12 @@ class MainWindow(QMainWindow):
         export_to_docx(self.tailored_text, fname)
         QMessageBox.information(self, "Success", "Resume exported successfully!")
 
-    # --------------------------------------------------------------------------
-
+    # ----------------------------------------------------------------------
+    # Manual Job Description Mode
+    # ----------------------------------------------------------------------
     def use_manual_job_description(self):
-        # Skip URL fetching and use whatever text the user typed into jobPreview.
         text = self.ui.jobPreview.toPlainText().strip()
+
         if not text:
             QMessageBox.warning(
                 self,
@@ -136,3 +225,10 @@ class MainWindow(QMainWindow):
 
         self.job_text = text
         QMessageBox.information(self, "Success", "Using pasted job description.")
+
+    # ----------------------------------------------------------------------
+    # Keep loading label centered on resize
+    # ----------------------------------------------------------------------
+    def resizeEvent(self, event):
+        self._center_loading_label()
+        super().resizeEvent(event)
