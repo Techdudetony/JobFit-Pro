@@ -192,8 +192,8 @@ Contribution guidelines and issue templates will be added as multi-user developm
 ---
 
 ## License
-
-MIT License
+This project is proprietary and all rights are reserved.  
+You may not copy, modify, or redistribute this software without explicit permission from the author.
 
 ---
 
@@ -202,3 +202,4 @@ MIT License
 For questions or feature suggestions:  
 Antonio Lee
 GitHub: https://github.com/Techdudetony
+
