@@ -7,12 +7,14 @@ Handles:
 - Resume tailoring via LLM
 - DOCX & PDF exporting
 - Loading overlays
-- Tailoring history logging
+- Tailoring history logging (JSON + Supabase)
 """
 
 import os
 import re
 import json
+from datetime import datetime
+
 from PyQt6.QtWidgets import (
     QMainWindow,
     QFileDialog,
@@ -25,44 +27,45 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QAction
 
-# --- Core logic modules ---
+# --- Core logic + tools ---
 from core.extractor.pdf_parser import extract_pdf
 from core.extractor.docx_parser import extract_docx
 from core.extractor.job_parser import fetch_job_description
 
+from core.uploader.supabase_uploader import upload_resume
 from core.exporter.docx_builder import export_to_docx
 from core.exporter.pdf_exporter import export_to_pdf
 from core.processor.tailor_engine import ResumeTailor
 
-# --- History file ---
+# --- Local history JSON (fallback + UI history window) ---
 from app.ui.tailoring_history_window import HISTORY_FILE
 
 
 class MainWindow(QMainWindow):
     """
     Main application window for JobFit Pro.
-    Manages UI actions, state, loading overlays, and history persistence.
+    Controls UI events, model behavior, and history tracking.
     """
 
     def __init__(self):
         super().__init__()
 
-        # Load UI Layout
+        # Load main UI file
         from app.ui.main_window import Ui_MainWindow
 
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
         # ------------------------------------------------------------
-        # Internal State
+        # Internal state
         # ------------------------------------------------------------
-        self.resume_text = ""  # Raw extracted resume content
-        self.job_text = ""  # Raw job description
-        self.tailored_text = ""  # Tailored resume output
+        self.resume_text = ""
+        self.job_text = ""
+        self.tailored_text = ""
         self.tailor = ResumeTailor()
 
         # ------------------------------------------------------------
-        # UI Event Bindings
+        # Bind UI events
         # ------------------------------------------------------------
         self.ui.btnFetchJob.clicked.connect(self.fetch_job)
         self.ui.btnTailor.clicked.connect(self.tailor_resume)
@@ -72,7 +75,7 @@ class MainWindow(QMainWindow):
         self.ui.resumePicker.fileSelected.connect(self.load_resume_from_picker)
 
         # ------------------------------------------------------------
-        # Menu Bar
+        # Menu Bar (Tools → Tailoring History)
         # ------------------------------------------------------------
         menubar = QMenuBar(self)
         self.setMenuBar(menubar)
@@ -80,13 +83,12 @@ class MainWindow(QMainWindow):
         tools_menu = QMenu("Tools", self)
         menubar.addMenu(tools_menu)
 
-        # Tailoring History action
         self.action_history = QAction("Tailoring History", self)
         tools_menu.addAction(self.action_history)
         self.action_history.triggered.connect(self.open_tailoring_history)
 
         # ------------------------------------------------------------
-        # Loading Overlay
+        # Loading Overlay (animated)
         # ------------------------------------------------------------
         self._loading_base_text = "Tailoring in progress"
         self._loading_dots = 0
@@ -107,7 +109,6 @@ class MainWindow(QMainWindow):
         )
         self.loadingLabel.hide()
 
-        # Timer animates the ellipsis (…) while AI processes
         self.loadingTimer = QTimer(self)
         self.loadingTimer.setInterval(400)
         self.loadingTimer.timeout.connect(self._update_loading_text)
@@ -115,11 +116,10 @@ class MainWindow(QMainWindow):
         self._center_loading_label()
 
     # ======================================================================
-    # Loading Overlay
+    # Loading overlay helpers
     # ======================================================================
 
     def _center_loading_label(self):
-        """Center the loading overlay label relative to window size."""
         width = max(320, int(self.width() * 0.4))
         height = 80
         x = (self.width() - width) // 2
@@ -127,52 +127,41 @@ class MainWindow(QMainWindow):
         self.loadingLabel.setGeometry(x, y, width, height)
 
     def _set_loading_visible(self, visible: bool):
-        """Show or hide the loading overlay."""
         if visible:
             self._loading_dots = 0
             self._update_loading_text()
             self._center_loading_label()
-
             self.loadingLabel.show()
             self.loadingTimer.start()
-
-            # Forces UI to update before LLM work begins
             QApplication.processEvents()
-
         else:
             self.loadingTimer.stop()
             self.loadingLabel.hide()
 
     def _update_loading_text(self):
-        """Animate 'Tailoring in progress...' with dot cycling."""
         self._loading_dots = (self._loading_dots + 1) % 4
         dots = "." * self._loading_dots
         self.loadingLabel.setText(f"{self._loading_base_text}{dots}")
 
     # ======================================================================
-    # Resume Loading
+    # Resume loading
     # ======================================================================
 
     def load_resume_from_picker(self, fname: str):
-        """Loads resume text when the file picker selects a file."""
         if not fname:
             return
-
         if fname.lower().endswith(".pdf"):
             self.resume_text = extract_pdf(fname)
         else:
             self.resume_text = extract_docx(fname)
-
         self.ui.resumePreview.setPlainText(self.resume_text)
 
     # ======================================================================
-    # Job Description (URL fetch)
+    # Fetch job description
     # ======================================================================
 
     def fetch_job(self):
-        """Fetch job description from a URL."""
         url = self.ui.inputJobURL.text().strip()
-
         if not url:
             QMessageBox.warning(self, "Error", "Please enter a job URL.")
             return
@@ -186,11 +175,10 @@ class MainWindow(QMainWindow):
         self.ui.jobPreview.setPlainText(description)
 
     # ======================================================================
-    # Tailoring Logic
+    # Tailoring logic
     # ======================================================================
 
     def tailor_resume(self):
-        """Perform LLM-powered resume tailoring."""
         if not self.resume_text:
             QMessageBox.warning(self, "Error", "Load your resume first.")
             return
@@ -203,7 +191,6 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Error", "Paste or fetch a job description.")
             return
 
-        # Show animated loading overlay
         self._set_loading_visible(True)
 
         try:
@@ -213,7 +200,7 @@ class MainWindow(QMainWindow):
                 self.resume_text,
                 self.job_text,
                 limit_pages=settings.get("limit_pages", False),
-                limit_one=settings.get("limit_one_page", False),  # <-- FIXED key name
+                limit_one=settings.get("limit_one_page", False),
             )
 
             self.ui.outputPreview.setPlainText(self.tailored_text)
@@ -227,7 +214,6 @@ class MainWindow(QMainWindow):
     # ======================================================================
 
     def export_docx_output(self):
-        """Export tailored resume as DOCX."""
         if not self.tailored_text:
             QMessageBox.warning(self, "Error", "Nothing to export.")
             return
@@ -248,7 +234,6 @@ class MainWindow(QMainWindow):
     # ======================================================================
 
     def export_pdf_output(self):
-        """Export tailored resume as PDF."""
         if not self.tailored_text:
             QMessageBox.warning(self, "Error", "Nothing to export.")
             return
@@ -265,114 +250,116 @@ class MainWindow(QMainWindow):
             QMessageBox.information(self, "Success", "PDF exported successfully!")
 
     # ======================================================================
-    # Manual Job Description Use
+    # Manual Job Description (Paste)
     # ======================================================================
 
     def use_manual_job_description(self):
-        """Set pasted job description as active job input."""
         text = self.ui.jobPreview.toPlainText().strip()
-
         if not text:
             QMessageBox.warning(self, "Error", "Paste a job description first.")
             return
-
         self.job_text = text
         QMessageBox.information(self, "Success", "Using pasted job description.")
 
     # ======================================================================
-    # Tailoring History
+    # Tailoring History Window
     # ======================================================================
 
     def open_tailoring_history(self):
-        """Open the Tailoring History window."""
         from app.ui.tailoring_history_window import TailoringHistoryWindow
 
         self.history_window = TailoringHistoryWindow(self)
         self.history_window.show()
 
+    # ======================================================================
+    # Save History (Supabase + Local JSON)
+    # ======================================================================
+
     def save_tailoring_history(self):
-        """Store last tailored resume entry to history JSON."""
+        """Saves last tailoring session to Supabase + local JSON fallback."""
         company, role = self.extract_company_and_role(self.job_text)
 
-        # Save auto DOCX for history
-        auto_path = os.path.join(os.getcwd(), "last_tailored_resume.docx")
-        export_to_docx(self.tailored_text, auto_path)
+        # Create a local temporary file
+        temp_path = os.path.join(os.getcwd(), "last_tailored_resume.docx")
+        export_to_docx(self.tailored_text, temp_path)
 
-        entry = {"company": company, "role": role, "file": auto_path}
+        # Upload to Supabase → returns public URL or None
+        resume_url = upload_resume(temp_path)
 
-        # Load existing history
-        if os.path.exists(HISTORY_FILE):
-            try:
+        history_entry = {
+            "company": company,
+            "role": role,
+            "job_url": self.ui.inputJobURL.text().strip(),
+            "resume_url": resume_url if resume_url else temp_path,
+            "timestamp": datetime.now().isoformat(),
+        }
+
+        # --------------------
+        # Local JSON fallback
+        # --------------------
+        try:
+            if os.path.exists(HISTORY_FILE):
                 with open(HISTORY_FILE, "r") as f:
                     history = json.load(f)
-            except:
+            else:
                 history = []
-        else:
+        except:
             history = []
 
-        history.append(entry)
+        history.append(history_entry)
 
-        # Save updated list
         with open(HISTORY_FILE, "w") as f:
             json.dump(history, f, indent=4)
 
+        # --------------------
+        # Supabase storage (optional)
+        # --------------------
+        # You already insert into Supabase inside upload_resume() or can insert here.
+        # If you want to add a "tailoring_history" table insert here, tell me.
+
     # ======================================================================
-    # Window Resize
+    # Resize event
     # ======================================================================
 
     def resizeEvent(self, event):
-        """Re-center loading overlay when window resizes."""
         self._center_loading_label()
         super().resizeEvent(event)
 
     # ======================================================================
-    # Extract company & role from job text
+    # Extract company & role using robust regex
     # ======================================================================
 
     def extract_company_and_role(self, job_text: str):
         """
-        Extract company and role using regex-based parsing.
-        Covers wide variety of job posting formats.
+        Attempts to extract:
+            - Company name
+            - Job role/title
+        Using multiple regex patterns for high accuracy.
         """
-
         if not job_text:
             return "Unknown", "Unknown"
 
-        # Normalize text
         text = job_text.strip()
-
-        # -----------------------------------------
-        # Pattern 1: "Company – Role" or "Company - Role"
-        # -----------------------------------------
-        pattern_dash = r"^(?P<company>.+?)\s*[-–—]\s*(?P<role>.+)$"
-        match = re.match(pattern_dash, text.split("\n")[0])
-        if match:
-            return match.group("company").strip(), match.group("role").strip()
-
-        # -----------------------------------------
-        # Pattern 2: "Title: XYZ" or "Role: XYZ"
-        # -----------------------------------------
-        title_pattern = r"(Title|Role)\s*[:\-]\s*(?P<role>.+)"
-        match = re.search(title_pattern, text, flags=re.IGNORECASE)
-        if match:
-            role = match.group("role").split("\n")[0].strip()
-        else:
-            role = "Unknown"
-
-        # -----------------------------------------
-        # Pattern 3: "Company: XYZ", "Employer: XYZ", "Hiring Company: XYZ"
-        # -----------------------------------------
-        company_pattern = r"(Company|Employer|Hiring Company)\s*[:\-]\s*(?P<company>.+)"
-        match = re.search(company_pattern, text, flags=re.IGNORECASE)
-        if match:
-            company = match.group("company").split("\n")[0].strip()
-        else:
-            company = "Unknown"
-
-        # -----------------------------------------
-        # Fallback — first line = role, second line = company
-        # -----------------------------------------
         lines = [l.strip() for l in text.split("\n") if l.strip()]
+        first_line = lines[0] if lines else ""
+
+        # Pattern 1 — "Company – Role"
+        dash_pattern = r"^(?P<company>.+?)\s*[-–—]\s*(?P<role>.+)$"
+        m = re.match(dash_pattern, first_line)
+        if m:
+            return m.group("company").strip(), m.group("role").strip()
+
+        # Pattern 2 — Title: XYZ
+        title_pattern = r"(Title|Role)\s*[:\-]\s*(.+)"
+        m = re.search(title_pattern, text, re.IGNORECASE)
+        role = m.group(2).strip() if m else "Unknown"
+
+        # Pattern 3 — Company: XYZ
+        company_pattern = r"(Company|Employer|Hiring Company)\s*[:\-]\s*(.+)"
+        m = re.search(company_pattern, text, re.IGNORECASE)
+        company = m.group(2).strip() if m else "Unknown"
+
+        # Fallback: first = role, second = company
         if role == "Unknown" and len(lines) > 0:
             role = lines[0]
         if company == "Unknown" and len(lines) > 1:

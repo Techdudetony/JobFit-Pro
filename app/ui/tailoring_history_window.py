@@ -11,7 +11,7 @@ from PyQt6.QtWidgets import (
     QMessageBox,
 )
 from PyQt6.QtCore import Qt, QUrl
-from PyQt6.QtGui import QDesktopServices, QIcon
+from PyQt6.QtGui import QDesktopServices, QIcon, QColor
 
 # ----------------------------------------------------------------------
 # Constants
@@ -25,10 +25,10 @@ HISTORY_FILE = os.path.join(DATA_DIR, "tailoring_history.json")
 class TailoringHistoryWindow(QDialog):
     """
     Displays the user's past tailored resumes:
-    - Company
-    - Role
-    - File path (clickable)
-    - Delete (trash icon)
+      - Company
+      - Role
+      - File (local path or Supabase URL)
+      - Delete (trash icon)
     """
 
     def __init__(self, parent=None):
@@ -39,10 +39,9 @@ class TailoringHistoryWindow(QDialog):
 
         layout = QVBoxLayout(self)
 
-        # ------------------------------------------------------------------
-        #  TABLE SETUP
-        # ------------------------------------------------------------------
-        # Add 4 columns: Company | Role | File | Delete
+        # --------------------------------------------------------------
+        #  TABLE: Company | Role | File | [Delete]
+        # --------------------------------------------------------------
         self.table = QTableWidget(0, 4)
         self.table.setHorizontalHeaderLabels(["Company", "Role", "File", ""])
         self.table.horizontalHeader().setStretchLastSection(False)
@@ -53,11 +52,13 @@ class TailoringHistoryWindow(QDialog):
 
         layout.addWidget(self.table)
 
-        # ------------------------------------------------------------------
-        #  Bottom buttons
-        # ------------------------------------------------------------------
-        btn_row = QHBoxLayout()
+        # Click handler for "File" column
+        self.table.cellClicked.connect(self._handle_cell_click)
 
+        # --------------------------------------------------------------
+        #  Bottom buttons
+        # --------------------------------------------------------------
+        btn_row = QHBoxLayout()
         self.btn_refresh = QPushButton("Refresh")
         self.btn_close = QPushButton("Close")
 
@@ -78,21 +79,18 @@ class TailoringHistoryWindow(QDialog):
     #  Load tailoring history from JSON
     # ==================================================================
     def load_history(self):
-        """Loads tailoring history into the table."""
-
+        """Loads tailoring history into the table from HISTORY_FILE."""
         self.table.setRowCount(0)
 
         if not os.path.exists(HISTORY_FILE):
             return
 
-        # Load JSON
         try:
             with open(HISTORY_FILE, "r") as f:
                 history = json.load(f)
-        except:
+        except Exception:
             history = []
 
-        # Populate table
         for entry in history:
             self._add_row(entry)
 
@@ -105,7 +103,9 @@ class TailoringHistoryWindow(QDialog):
 
         company = entry.get("company", "Unknown")
         role = entry.get("role", "Unknown")
-        file_path = entry.get("file", "")
+
+        # Prefer Supabase URL → fallback to local "file" key
+        file_value = entry.get("resume_url") or entry.get("file") or ""
 
         # ---- Company ----
         self.table.setItem(row, 0, QTableWidgetItem(company))
@@ -114,14 +114,12 @@ class TailoringHistoryWindow(QDialog):
         self.table.setItem(row, 1, QTableWidgetItem(role))
 
         # ---- Clickable File Link ----
-        item = QTableWidgetItem(file_path)
-        item.setForeground(Qt.blue)
-        item.setToolTip("Click to open this resume file")
-        item.setFlags(Qt.ItemFlag.ItemIsEnabled)  # uneditable
-        self.table.setItem(row, 2, item)
-
-        # Connect click event
-        self.table.cellClicked.connect(self._handle_cell_click)
+        display_text = "Open Resume" if file_value else ""
+        link_item = QTableWidgetItem(display_text)
+        link_item.setData(Qt.ItemDataRole.UserRole, file_value)
+        link_item.setForeground(QColor("#38bdf8"))  # nice link-ish color
+        link_item.setFlags(Qt.ItemFlag.ItemIsEnabled)  # not editable/select-only
+        self.table.setItem(row, 2, link_item)
 
         # ---- Trash Button ----
         btn_delete = QPushButton()
@@ -139,51 +137,61 @@ class TailoringHistoryWindow(QDialog):
         self.table.setCellWidget(row, 3, delete_widget)
 
     # ==================================================================
-    #  Handle clicking on the File cell → open document
+    #  Handle clicking on the File cell → open URL or file
     # ==================================================================
-    def _handle_cell_click(self, row, col):
+    def _handle_cell_click(self, row: int, col: int):
+        """Opens the resume when the File column is clicked."""
         if col != 2:
             return
 
-        file_path = self.table.item(row, 2).text()
+        item = self.table.item(row, col)
+        if not item:
+            return
 
-        if not os.path.exists(file_path):
+        value = item.data(Qt.ItemDataRole.UserRole)
+        if not value:
+            return
+
+        # If it looks like a URL → open in browser
+        if value.startswith("http://") or value.startswith("https://"):
+            QDesktopServices.openUrl(QUrl(value))
+            return
+
+        # Otherwise treat as local file path
+        if not os.path.exists(value):
             QMessageBox.warning(self, "File Missing", "This file no longer exists.")
             return
 
-        QDesktopServices.openUrl(QUrl.fromLocalFile(file_path))
+        QDesktopServices.openUrl(QUrl.fromLocalFile(value))
 
     # ==================================================================
     #  Delete entry from JSON + table
     # ==================================================================
-    def delete_row(self, row):
-        """Deletes an entry from the JSON history file."""
+    def delete_row(self, row: int):
+        """Deletes an entry from the JSON history file and refreshes the table."""
         reply = QMessageBox.question(
             self,
             "Delete Entry",
             "Are you sure you want to delete this entry?",
-            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
 
-        if reply != QMessageBox.Yes:
+        if reply != QMessageBox.StandardButton.Yes:
             return
 
-        # Load JSON
         try:
             with open(HISTORY_FILE, "r") as f:
                 history = json.load(f)
-        except:
+        except Exception:
             history = []
 
         if row >= len(history):
             return
 
-        # Remove entry
+        # Remove entry, save, and reload UI
         del history[row]
 
-        # Save updated file
         with open(HISTORY_FILE, "w") as f:
             json.dump(history, f, indent=4)
 
-        # Refresh table
         self.load_history()
