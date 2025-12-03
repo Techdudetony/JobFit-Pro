@@ -115,8 +115,10 @@ class Ui_MainWindow(object):
         actions_row.addStretch()
         self.btnTailor = QPushButton("Tailor Resume", self.central_widget)
         self.btnExport = QPushButton("Export DOCX", self.central_widget)
+        self.btnExportPDF = QPushButton("Export PDF", self.central_widget)
         actions_row.addWidget(self.btnTailor)
         actions_row.addWidget(self.btnExport)
+        actions_row.addWidget(self.btnExportPDF)
 
         self.central_layout.addLayout(actions_row)
 
