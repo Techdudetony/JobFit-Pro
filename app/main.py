@@ -1,41 +1,30 @@
+# app/main.py
 """
-Application entry point.
+Application entry point for JobFit Pro (desktop).
+
+Usage:
+    python -m app.main
 """
 
 import sys
 from PyQt6.QtWidgets import QApplication
 from app.window_main import MainWindow
-from app.ui.auth_modal import AuthModal
-from services.auth_manager import AuthManager
 
 
-def main():
+def main() -> None:
     app = QApplication(sys.argv)
 
-    # Load stylesheet if exists
-    try:
-        with open("app/styles/app.qss", "r", encoding="utf-8") as f:
-            app.setStyleSheet(f.read())
-    except:
-        pass
-
-    auth = AuthManager()
-
-    # -----------------------------
-    # AUTH REQUIRED BEFORE UI OPENS
-    # -----------------------------
-    if not auth.user:  # No session → show login modal
-        modal = AuthModal()
-        result = modal.exec()
-
-        if result != modal.Accepted:
-            print("User exited before signing in. Closing app.")
-            sys.exit(0)
-
-    # If we reach here → user is authenticated
+    print("Creating MainWindow...")
     window = MainWindow()
-    window.show()
+    print("MainWindow created, auth_ok:", getattr(window, "auth_ok", False))
 
+    # If authentication failed or was cancelled, just exit cleanly
+    if not getattr(window, "auth_ok", False):
+        print("No authenticated user; application will exit.")
+        sys.exit(0)
+
+    # Otherwise, show the main window
+    window.show()
     sys.exit(app.exec())
 
 

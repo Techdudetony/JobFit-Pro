@@ -1,126 +1,103 @@
+# services/auth_manager.py
 """
 AuthManager
 -----------
-Handles:
-- Sign up
-- Sign in
-- Sign out
-- Session persistence (local file)
-- Auto-login using refresh tokens
+Thin wrapper around Supabase auth for the desktop app.
+
+- Keeps track of the current session and user in this process
+- Provides sign_up / sign_in / sign_out helpers
+- Exposes a shared singleton: `auth`
 """
 
-import os
-import json
-from supabase import create_client
+from typing import Optional
+from supabase import Client
 from services.supabase_client import supabase
 
 
-SESSION_FILE = ".auth_session.json"
-
-
 class AuthManager:
-    def __init__(self):
+    """
+    Small stateful wrapper around `supabase.auth`.
+
+    Important:
+    - We rely on a single global instance `auth` (see bottom of file).
+    - All parts of the app (AuthModal, MainWindow, etc.) must import
+      and use this SAME instance for sign-in state to be shared.
+    """
+
+    def __init__(self) -> None:
+        # Current Supabase session + user for this running app
         self.session = None
         self.user = None
 
-        # Attempt auto-login
-        self.load_session_from_disk()
-
-    # ----------------------------------------------------------------------
-    # Session Persistence
-    # ----------------------------------------------------------------------
-    def save_session_to_disk(self, session):
-        """Store refresh session locally."""
-        try:
-            with open(SESSION_FILE, "w") as f:
-                json.dump(
-                    {
-                        "access_token": session.access_token,
-                        "refresh_token": session.refresh_token,
-                    },
-                    f,
-                    indent=4,
-                )
-        except Exception as e:
-            print("[AUTH] Could not save session:", e)
-
-    def load_session_from_disk(self):
-        """Load previous session and validate/refresh."""
-        if not os.path.exists(SESSION_FILE):
-            return None
-
-        try:
-            with open(SESSION_FILE, "r") as f:
-                data = json.load(f)
-
-            refresh_token = data.get("refresh_token")
-            if not refresh_token:
-                return None
-
-            # Attempt refresh
-            resp = supabase.auth.refresh_session(refresh_token)
-            if resp and resp.user:
-                self.session = resp.session
-                self.user = resp.user
-                print("[AUTH] Auto-login successful.")
-                return resp.user
-
-        except Exception as e:
-            print("[AUTH] Auto-login failed:", e)
-
-        return None
-
-    def clear_session_on_disk(self):
-        if os.path.exists(SESSION_FILE):
-            try:
-                os.remove(SESSION_FILE)
-            except:
-                pass
-
-    # ----------------------------------------------------------------------
-    #  AUTH ACTIONS
-    # ----------------------------------------------------------------------
+    # ------------------------------------------------------------------
+    # Sign Up
+    # ------------------------------------------------------------------
     def sign_up(self, email: str, password: str):
-        try:
-            response = supabase.auth.sign_up({"email": email, "password": password})
-            return response
-        except Exception as e:
-            print("[AUTH] Sign up failed:", e)
-            return None
+        """
+        Registers a new Supabase user account.
 
+        Returns:
+            The Supabase response object (with `.user`, `.session`, etc).
+        """
+        response = supabase.auth.sign_up({"email": email, "password": password})
+
+        # We typically do NOT store session on sign-up because some
+        # projects require email verification before login.
+        return response
+
+    # ------------------------------------------------------------------
+    # Sign In
+    # ------------------------------------------------------------------
     def sign_in(self, email: str, password: str):
-        try:
-            response = supabase.auth.sign_in_with_password(
-                {"email": email, "password": password}
-            )
-            if response and response.user:
-                self.session = response.session
-                self.user = response.user
-                self.save_session_to_disk(response.session)
-            return response
-        except Exception as e:
-            print("[AUTH] Sign in failed:", e)
-            return None
+        """
+        Logs in an existing user via email + password.
 
+        On success:
+            - self.session is set
+            - self.user is set
+        Returns:
+            The Supabase response object.
+        """
+        response = supabase.auth.sign_in_with_password(
+            {"email": email, "password": password}
+        )
+
+        # New supabase-py returns objects with .user and .session properties
+        self.session = getattr(response, "session", None)
+        self.user = getattr(response, "user", None)
+
+
+        return response
+
+    # ------------------------------------------------------------------
+    # Current user
+    # ------------------------------------------------------------------
+    def get_user(self):
+        """
+        Returns the currently authenticated Supabase user object, or None.
+        We keep this in memory only for this app run.
+        """
+        return self.user
+
+    # ------------------------------------------------------------------
+    # Sign out
+    # ------------------------------------------------------------------
     def sign_out(self):
+        """
+        Clears Supabase session on the server side (if supported) and
+        wipes our local session/user state.
+        """
         try:
             supabase.auth.sign_out()
-        except:
-            pass
+        except Exception as e:
+            # Not fatal; just log it and clear local state
+            print("Supabase sign_out error:", e)
 
         self.session = None
         self.user = None
-        self.clear_session_on_disk()
 
-    # ----------------------------------------------------------------------
-    def get_user(self):
-        """Return authenticated user or None."""
-        if not self.session:
-            return None
 
-        try:
-            resp = supabase.auth.get_user(self.session.access_token)
-            self.user = resp.user
-            return resp.user
-        except:
-            return None
+# ----------------------------------------------------------------------
+# Shared singleton instance used across the app
+# ----------------------------------------------------------------------
+auth = AuthManager()

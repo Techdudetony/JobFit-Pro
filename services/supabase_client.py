@@ -1,19 +1,32 @@
 # services/supabase_client.py
+"""
+Supabase client singleton
+
+Responsible only for:
+- Reading Supabase URL + KEY from environment variables
+- Creating a single `supabase` client to be reused across the app
+"""
 
 import os
-from supabase import create_client, Client
 from dotenv import load_dotenv
+from supabase import create_client, Client
 
-# --- LOAD .env from project root ---
 load_dotenv()
 
-# --- Fetch env vars AFTER loading env file ---
+# -------------------------------------------------------------------
+# Read config from environment
+# -------------------------------------------------------------------
 SUPABASE_URL = os.getenv("SUPABASE_URL")
+# Prefer SERVICE_ROLE if you use it; otherwise fall back to ANON
 SUPABASE_KEY = os.getenv("SUPABASE_ANON_KEY")
 
-# --- Safety check instead of crashing ---
 if not SUPABASE_URL or not SUPABASE_KEY:
-    print("\n[SUPABASE INIT ERROR] Missing SUPABASE_URL or SUPABASE_ANON_KEY in .env\n")
-    supabase = None
-else:
-    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+    raise RuntimeError(
+        "Supabase configuration missing. "
+        "Set SUPABASE_URL and SUPABASE_ANON_KEY (or SUPABASE_SERVICE_ROLE_KEY)."
+    )
+
+# -------------------------------------------------------------------
+# Create a single shared client
+# -------------------------------------------------------------------
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)

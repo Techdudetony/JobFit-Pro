@@ -185,3 +185,72 @@ QMenu::item:selected {
     background-color: #334155;
     border-radius: 4px;
 }
+
+/* ===========================================================
+   AUTHENTICATION MODAL STYLING
+   Used by AuthModal (Sign In / Sign Up)
+   =========================================================== */
+
+/* Modal container */
+QDialog#AuthModal {
+    background-color: #0F172A;
+    border-radius: 16px;
+}
+
+/* Title */
+QLabel#auth-title {
+    color: #F1F5F9;
+    font-size: 22px;
+    font-weight: 600;
+}
+
+/* Text Inputs */
+QLineEdit[authField="true"] {
+    background-color: #1E293B;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 10px;
+    color: #F8FAFC;
+    font-size: 15px;
+}
+
+QLineEdit[authField="true"]:focus {
+    border-color: #4F46E5;
+}
+
+/* Primary button */
+QPushButton[authPrimary="true"] {
+    background-color: #4F46E5;
+    color: #ffffff;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+QPushButton[authPrimary="true"]:hover {
+    background-color: #6366F1;
+}
+
+/* Link-style button */
+QPushButton[authLink="true"] {
+    background: transparent;
+    color: #93C5FD;
+    font-size: 14px;
+}
+
+QPushButton[authLink="true"]:hover {
+    color: #BFDBFE;
+    text-decoration: underline;
+}
+
+/* Password reveal buttons */
+QPushButton[authIcon="true"] {
+    background-color: #4F46E5;
+    border-radius: 6px;
+    padding: 6px;
+}
+
+QPushButton[authIcon="true"]:hover {
+    background-color: #6366F1;
+}
