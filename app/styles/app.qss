@@ -1,4 +1,6 @@
-/* Global styling for JobFit Pro application */
+/* ===========================================================
+   GLOBAL APPLICATION STYLING — JOBFIT PRO
+   =========================================================== */
 
 QMainWindow {
     background-color: #020617;
@@ -17,7 +19,9 @@ QLabel[panelTitle="true"] {
     font-size: 11pt;
 }
 
-/* Text Inputs */
+/* ===========================================================
+   TEXT INPUTS
+   =========================================================== */
 QLineEdit,
 QPlainTextEdit {
     background-color: #020617;
@@ -29,10 +33,12 @@ QPlainTextEdit {
 
 QLineEdit:focus,
 QPlainTextEdit:focus {
-    border-color: #22C55E;
+    border-color: 2px solid #22C55E;
 }
 
-/* Buttons */
+/* ===========================================================
+   BUTTONS
+   =========================================================== */
 QPushButton {
     background-color: #22C55E;
     color: #020617;
@@ -40,7 +46,7 @@ QPushButton {
     border: none;
     padding: 6px 14px;
     font-weight: 600;
-} 
+}
 
 QPushButton:hover {
     background-color: #16A34A;
@@ -51,7 +57,9 @@ QPushButton:disabled {
     color: #9CA3AF;
 }
 
-/* Group Boxes */
+/* ===========================================================
+   GROUP BOXES
+   =========================================================== */
 QGroupBox {
     border: 1px solid #1F2937;
     border-radius: 8px;
@@ -65,30 +73,33 @@ QGroupBox::title {
     color: #9CA3AF;
 }
 
+/* GroupBox-contained checkboxes */
 QGroupBox QCheckBox {
-    color: #f9fafb;          /* almost white */
+    color: #F9FAFB;
     font-weight: 500;
 }
 
-/* Checkbox indicator styling */
+/* Checkbox indicator INSIDE group box */
 QGroupBox QCheckBox::indicator {
     width: 16px;
     height: 16px;
     border-radius: 4px;
-    border: 1px solid #4b5563;
+    border: 1px solid #4B5563;
     background-color: #020617;
 }
 
 QGroupBox QCheckBox::indicator:hover {
-    border-color: #22c55e;
+    border-color: #22C55E;
 }
 
 QGroupBox QCheckBox::indicator:checked {
-    background-color: #22c55e;
-    border-color: #22c55e;
+    background-color: #22C55E;
+    border-color: #22C55E;
 }
 
-/* Checkboxes */
+/* ===========================================================
+   GLOBAL CHECKBOXES (outside group boxes)
+   =========================================================== */
 QCheckBox {
     color: #E5E7EB;
     spacing: 8px;
@@ -103,7 +114,7 @@ QCheckBox::indicator {
 }
 
 QCheckBox::indicator:hover {
-    border-color: #22C22E
+    border-color: #22C55E;
 }
 
 QCheckBox::indicator:checked {
@@ -111,29 +122,27 @@ QCheckBox::indicator:checked {
     border-color: #22C55E;
 }
 
-/* Message boxes */
+/* ===========================================================
+   MESSAGE BOXES
+   =========================================================== */
 QMessageBox {
-    background-color: #020617;   /* dark background */
-    color: #E5E7EB;              /* default text color */
+    background-color: #020617;
+    color: #E5E7EB;
 }
 
-/* Message box labels (main text) */
 QMessageBox QLabel {
     color: #E5E7EB;
     font-size: 10pt;
 }
 
-/* Optional: icon label spacing */
 QMessageBox QLabel#qt_msgbox_label {
     padding-right: 8px;
 }
 
-/* Keep using our green buttons inside message boxes */
 QMessageBox QPushButton {
     background-color: #22C55E;
     color: #020617;
     border-radius: 6px;
-    border: none;
     padding: 4px 14px;
     font-weight: 600;
 }
@@ -142,15 +151,16 @@ QMessageBox QPushButton:hover {
     background-color: #16A34A;
 }
 
-/* MENU BAR */
+/* ===========================================================
+   MENU BAR
+   =========================================================== */
 QMenuBar {
-    background-color: #1E293B;      /* slate-800 (contrast) */
-    color: #E2E8F0;                 /* slate-200 */
+    background-color: #1E293B;
+    color: #E2E8F0;
     padding: 4px 8px;
     font-size: 12pt;
 }
 
-/* Menu Bar Items */
 QMenuBar::item {
     background: transparent;
     padding: 6px 12px;
@@ -158,18 +168,16 @@ QMenuBar::item {
     color: #E2E8F0;
 }
 
-/* Hovered Menu Item */
 QMenuBar::item:selected {
-    background-color: #334155;      /* slate-700 */
+    background-color: #334155;
     border-radius: 6px;
 }
 
-/* PRESSED menu item */
 QMenuBar::item:pressed {
-    background-color: #475569;      /* slate-600 */
+    background-color: #475569;
 }
 
-/* DROPDOWN MENU */
+/* Dropdown menus */
 QMenu {
     background-color: #1E293B;
     color: #E2E8F0;
@@ -187,11 +195,8 @@ QMenu::item:selected {
 }
 
 /* ===========================================================
-   AUTHENTICATION MODAL STYLING
-   Used by AuthModal (Sign In / Sign Up)
+   AUTH MODAL
    =========================================================== */
-
-/* Modal container */
 QDialog#AuthModal {
     background-color: #0F172A;
     border-radius: 16px;
@@ -204,7 +209,7 @@ QLabel#auth-title {
     font-weight: 600;
 }
 
-/* Text Inputs */
+/* Auth fields */
 QLineEdit[authField="true"] {
     background-color: #1E293B;
     border: 1px solid #334155;
@@ -215,13 +220,13 @@ QLineEdit[authField="true"] {
 }
 
 QLineEdit[authField="true"]:focus {
-    border-color: #4F46E5;
+    border-color: 2px solid #4F46E5;
 }
 
-/* Primary button */
+/* Auth primary button */
 QPushButton[authPrimary="true"] {
     background-color: #4F46E5;
-    color: #ffffff;
+    color: #FFFFFF;
     border-radius: 8px;
     padding: 10px 16px;
     font-size: 15px;
@@ -232,7 +237,7 @@ QPushButton[authPrimary="true"]:hover {
     background-color: #6366F1;
 }
 
-/* Link-style button */
+/* Auth link button */
 QPushButton[authLink="true"] {
     background: transparent;
     color: #93C5FD;
@@ -244,7 +249,7 @@ QPushButton[authLink="true"]:hover {
     text-decoration: underline;
 }
 
-/* Password reveal buttons */
+/* Auth reveal/hide icon buttons */
 QPushButton[authIcon="true"] {
     background-color: #4F46E5;
     border-radius: 6px;
