@@ -31,6 +31,7 @@ def upload_resume(file_path: str) -> str | None:
         return None
 
     user_id = user.id
+    print(f"[DEBUG] Authenticated User ID: {user_id}")  #### DEBUGGING
 
     # 2. Validate the file
     if not os.path.isfile(file_path):
@@ -40,6 +41,9 @@ def upload_resume(file_path: str) -> str | None:
     ext = os.path.splitext(file_path)[1].lower()
     uuid_name = f"{uuid4()}{ext}"
     storage_key = f"users/{user_id}/{uuid_name}"
+
+    print(f"[DEBUG] Storage key: {storage_key}")  #### DEBUGGING
+    print(f"[DEBUG] Supabase client auth: {supabase.auth.get_user()}")  #### DEBUGGING
 
     mime_type = (
         "application/pdf"
@@ -65,7 +69,7 @@ def upload_resume(file_path: str) -> str | None:
             return None
 
         # 5. Create a signed URL (valid 7 days)
-        signed = supabase.storage.from_(BUCKET_NAME).creat_signed_url(
+        signed = supabase.storage.from_(BUCKET_NAME).create_signed_url(
             storage_key,
             expires_in=60 * 60 * 24 * 7,
         )

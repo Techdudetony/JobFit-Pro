@@ -72,7 +72,7 @@ def _clean_job_text(text: str) -> str:
 
     # Remove very short lines that are likely navigation elements
     lines = text.splitlines()
-    useful_lines = [line.strip for line in lines if len(line.strip()) > 3]
+    useful_lines = [line.strip() for line in lines if len(line.strip()) > 3]
 
     # Remove common boilerplate patterns
     filtered = []

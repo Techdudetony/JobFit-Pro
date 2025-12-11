@@ -15,7 +15,7 @@ load_dotenv()
 # ---------------------------------------------------------
 
 API_KEY = os.getenv("OPENAI_API_KEY", "")
-MODEL_NAME = ("OPENAI_MODEL_NAME", "gpt-5.1")
+MODEL_NAME = os.getenv("OPENAI_MODEL_NAME", "gpt-5.2")
 
 if not API_KEY:
     raise ValueError(" OPENAI_API_KEY is missing. Add it to your .env file.")

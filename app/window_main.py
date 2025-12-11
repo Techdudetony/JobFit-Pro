@@ -20,6 +20,7 @@ from app.state.session_state import SessionState
 from core.history.history_manager import HistoryManager
 from app.ui.tailoring_history_window import TailoringHistoryWindow, HISTORY_FILE
 from app.ui.main_window_ui import Ui_MainWindow
+from services.auth_manager import auth
 
 # EXTRACTORS
 from core.extractor.job_parser import fetch_job_description
@@ -53,6 +54,8 @@ class MainWindow(QMainWindow):
         # -----------------------------------------------------------
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+
+        self.user = auth.get_user()
 
         # -----------------------------------------------------------
         # MENUS + EVENTS
@@ -131,7 +134,7 @@ class MainWindow(QMainWindow):
         toggle_job_panel = QAction("Show Job Description Panel", self, checkable=True)
         toggle_job_panel.setChecked(True)
         toggle_job_panel.triggered.connect(
-            lambda checked: self.ui.leftPane.setVisible(checked)
+            lambda checked: self.ui.jobPreview.setVisible(checked)
         )
         view_menu.addAction(toggle_job_panel)
 
@@ -140,7 +143,7 @@ class MainWindow(QMainWindow):
         )
         toggle_output_panel.setChecked(True)
         toggle_output_panel.triggered.connect(
-            lambda checked: self.ui.rightPane.setVisible(checked)
+            lambda checked: self.ui.outputPanel.setVisible(checked)
         )
         view_menu.addAction(toggle_output_panel)
 
@@ -306,6 +309,7 @@ class MainWindow(QMainWindow):
         company, role = extract_company_role(self.state.job_text)
 
         entry = {
+            "user_id": self.user.id,
             "company": company,
             "role": role,
             "timestamp": datetime.now().isoformat(),
@@ -331,7 +335,7 @@ class MainWindow(QMainWindow):
             self,
             "Clear All?",
             "Start a new blank workspace?\nUnsaved progress will be lost.",
-            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
 
         if confirm != QMessageBox.Yes:

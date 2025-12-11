@@ -111,7 +111,12 @@ class ResumeTailor:
         job_text: str,
         limit_pages: bool = False,
         limit_one: bool = False,
+        limit_one_page=None,
     ) -> str:
+        # Allow limit_one_page as an alias
+        if limit_one_page is not None:
+            limit_one = limit_one_page
+
         resume_text = clean_resume_text(resume_text)
         extra_rules = self._build_length_rules(limit_pages, limit_one)
 

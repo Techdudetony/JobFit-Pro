@@ -54,7 +54,6 @@ def main():
         if result != QDialog.DialogCode.Accepted:
             print("Authentication failed or canceled — closing app.")
             sys.exit(0)
-
     # --------------------------------------------------------------
     # Launch Main Window
     # --------------------------------------------------------------

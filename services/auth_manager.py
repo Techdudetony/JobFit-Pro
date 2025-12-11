@@ -87,12 +87,22 @@ class AuthManager:
         self.session = session
         self.user = user
 
+        # CRITICAL FIX: Set the session token on the Supabase client
+        # This ensures storage operations use the authenticated user's credentials
+        if session and hasattr(session, "access_token"):
+            supabase.auth.set_session(session.access_token, session.refresh_token)
+
         return user, error
 
     # ==================================================================
     def get_user(self):
         """Returns the currently authenticated user (or None)."""
         return self.user
+
+    # ==================================================================
+    def get_session(self):
+        """Returns the current session (or None)."""
+        return self.session
 
     # ==================================================================
     def sign_out(self):
