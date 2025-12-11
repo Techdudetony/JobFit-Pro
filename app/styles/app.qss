@@ -1,187 +1,155 @@
 /* ===========================================================
-   GLOBAL APPLICATION STYLING — JOBFIT PRO
+   JOBFIT PRO – NEW THEME (PRIMARY: #54AED5, WHITE UI)
    =========================================================== */
 
 QMainWindow {
-    background-color: #020617;
-    color: #E5E7EB;
+    background-color: #0C1117;
+    color: #FFFFFF;
     font-family: "Segoe UI", sans-serif;
     font-size: 10pt;
 }
 
 QLabel {
-    color: #E5E7EB;
+    color: #FFFFFF;
 }
 
-/* Panel titles */
+/* Panel Headers */
 QLabel[panelTitle="true"] {
     font-weight: 600;
     font-size: 11pt;
+    color: #54AED5;
 }
 
 /* ===========================================================
    TEXT INPUTS
    =========================================================== */
+
 QLineEdit,
 QPlainTextEdit {
-    background-color: #020617;
-    border: 1px solid #1F2937;
+    background-color: #11171F;
+    border: 1px solid #2A313C;
     border-radius: 6px;
     padding: 6px;
-    color: #E5E7EB;
+    color: #FFFFFF;
+}
+
+QLineEdit:hover,
+QPlainTextEdit:hover {
+    border: 1px solid #54AED5;
 }
 
 QLineEdit:focus,
 QPlainTextEdit:focus {
-    border-color: 2px solid #22C55E;
+    border: 2px solid #54AED5;
 }
 
 /* ===========================================================
-   BUTTONS
+   PRIMARY BUTTONS
    =========================================================== */
+
 QPushButton {
-    background-color: #22C55E;
-    color: #020617;
+    background-color: #54AED5;
+    color: #0C1117;
     border-radius: 6px;
-    border: none;
     padding: 6px 14px;
     font-weight: 600;
 }
 
 QPushButton:hover {
-    background-color: #16A34A;
+    background-color: #3D93BB;
+}
+
+QPushButton:pressed {
+    background-color: #2C7392;
 }
 
 QPushButton:disabled {
-    background-color: #4B5563;
-    color: #9CA3AF;
+    background-color: #2A313C;
+    color: #D7DDA8;
+}
+
+/* Variant buttons (panel buttons) */
+QPushButton[panelButton="true"] {
+    background-color: #11171F;
+    color: #FFFFFF;
+    border: 1px solid #2A313C;
+}
+
+QPushButton[panelButton="true"]:hover {
+    border-color: #54AED5;
 }
 
 /* ===========================================================
    GROUP BOXES
    =========================================================== */
+
 QGroupBox {
-    border: 1px solid #1F2937;
+    border: 1px solid #2A313C;
     border-radius: 8px;
     margin-top: 10px;
+    padding-top: 18px;
 }
 
 QGroupBox::title {
     subcontrol-origin: margin;
     left: 10px;
     padding: 0 4px;
-    color: #9CA3AF;
+    color: #D7DDA8;
 }
 
-/* GroupBox-contained checkboxes */
+/* GroupBox Checkboxes */
 QGroupBox QCheckBox {
-    color: #F9FAFB;
+    color: #FFFFFF;
     font-weight: 500;
 }
 
-/* Checkbox indicator INSIDE group box */
-QGroupBox QCheckBox::indicator {
-    width: 16px;
-    height: 16px;
-    border-radius: 4px;
-    border: 1px solid #4B5563;
-    background-color: #020617;
-}
-
-QGroupBox QCheckBox::indicator:hover {
-    border-color: #22C55E;
-}
-
-QGroupBox QCheckBox::indicator:checked {
-    background-color: #22C55E;
-    border-color: #22C55E;
-}
-
-/* ===========================================================
-   GLOBAL CHECKBOXES (outside group boxes)
-   =========================================================== */
-QCheckBox {
-    color: #E5E7EB;
-    spacing: 8px;
-}
-
+QGroupBox QCheckBox::indicator,
 QCheckBox::indicator {
     width: 16px;
     height: 16px;
     border-radius: 4px;
-    border: 1px solid #4B5563;
-    background-color: #020617;
+    border: 1px solid #2A313C;
+    background-color: #11171F;
 }
 
+QGroupBox QCheckBox::indicator:hover,
 QCheckBox::indicator:hover {
-    border-color: #22C55E;
+    border-color: #54AED5;
 }
 
+QGroupBox QCheckBox::indicator:checked,
 QCheckBox::indicator:checked {
-    background-color: #22C55E;
-    border-color: #22C55E;
-}
-
-/* ===========================================================
-   MESSAGE BOXES
-   =========================================================== */
-QMessageBox {
-    background-color: #020617;
-    color: #E5E7EB;
-}
-
-QMessageBox QLabel {
-    color: #E5E7EB;
-    font-size: 10pt;
-}
-
-QMessageBox QLabel#qt_msgbox_label {
-    padding-right: 8px;
-}
-
-QMessageBox QPushButton {
-    background-color: #22C55E;
-    color: #020617;
-    border-radius: 6px;
-    padding: 4px 14px;
-    font-weight: 600;
-}
-
-QMessageBox QPushButton:hover {
-    background-color: #16A34A;
+    background-color: #54AED5;
+    border-color: #54AED5;
 }
 
 /* ===========================================================
    MENU BAR
    =========================================================== */
+
 QMenuBar {
-    background-color: #1E293B;
-    color: #E2E8F0;
+    background-color: #11171F;
+    color: #FFFFFF;
     padding: 4px 8px;
     font-size: 12pt;
 }
 
 QMenuBar::item {
-    background: transparent;
     padding: 6px 12px;
     margin: 2px;
-    color: #E2E8F0;
+    color: #FFFFFF;
 }
 
 QMenuBar::item:selected {
-    background-color: #334155;
+    background-color: #2A313C;
     border-radius: 6px;
 }
 
-QMenuBar::item:pressed {
-    background-color: #475569;
-}
-
-/* Dropdown menus */
+/* Menu dropdowns */
 QMenu {
-    background-color: #1E293B;
-    color: #E2E8F0;
-    border: 1px solid #334155;
+    background-color: #11171F;
+    color: #FFFFFF;
+    border: 1px solid #2A313C;
     padding: 6px;
 }
 
@@ -190,72 +158,76 @@ QMenu::item {
 }
 
 QMenu::item:selected {
-    background-color: #334155;
+    background-color: #2A313C;
     border-radius: 4px;
+}
+
+/* ===========================================================
+   FILE PICKER
+   =========================================================== */
+
+QLineEdit[filePicker="true"] {
+    background-color: #11171F;
+    border: 1px solid #2A313C;
 }
 
 /* ===========================================================
    AUTH MODAL
    =========================================================== */
+
 QDialog#AuthModal {
-    background-color: #0F172A;
+    background-color: #11171F;
     border-radius: 16px;
 }
 
-/* Title */
 QLabel#auth-title {
-    color: #F1F5F9;
+    color: #FFFFFF;
     font-size: 22px;
     font-weight: 600;
 }
 
-/* Auth fields */
+/* Auth Fields */
 QLineEdit[authField="true"] {
-    background-color: #1E293B;
-    border: 1px solid #334155;
+    background-color: #0C1117;
+    border: 1px solid #2A313C;
     border-radius: 8px;
     padding: 10px;
-    color: #F8FAFC;
-    font-size: 15px;
+    color: #FFFFFF;
 }
 
 QLineEdit[authField="true"]:focus {
-    border-color: 2px solid #4F46E5;
+    border: 2px solid #54AED5;
 }
 
-/* Auth primary button */
+/* Auth Buttons */
 QPushButton[authPrimary="true"] {
-    background-color: #4F46E5;
-    color: #FFFFFF;
+    background-color: #54AED5;
+    color: #0C1117;
     border-radius: 8px;
     padding: 10px 16px;
     font-size: 15px;
-    font-weight: 500;
 }
 
 QPushButton[authPrimary="true"]:hover {
-    background-color: #6366F1;
+    background-color: #3D93BB;
 }
 
-/* Auth link button */
 QPushButton[authLink="true"] {
     background: transparent;
-    color: #93C5FD;
-    font-size: 14px;
+    color: #EFA8B8;
 }
 
 QPushButton[authLink="true"]:hover {
-    color: #BFDBFE;
+    color: #FFFFFF;
     text-decoration: underline;
 }
 
-/* Auth reveal/hide icon buttons */
 QPushButton[authIcon="true"] {
-    background-color: #4F46E5;
+    background-color: #54AED5;
     border-radius: 6px;
     padding: 6px;
 }
 
 QPushButton[authIcon="true"]:hover {
-    background-color: #6366F1;
+    background-color: #3D93BB;
 }

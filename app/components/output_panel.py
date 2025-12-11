@@ -1,5 +1,9 @@
 """
-Panel that displays the tailored resume text and allows easy copying.
+OutputPanel
+----------------------------------------------
+
+Displays LLM-generated resume output and provides a simple copy-to-clipboard action.
+Can be used anywhere as a reusable widget.
 """
 
 from PyQt6.QtWidgets import (
@@ -14,42 +18,52 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 
 
-class OutPutPanel(QWidget):
-    # Tailored resume output panel with a header and 'Copy' button.
+class OutputPanel(QWidget):
+
     def __init__(self, title: str = "Tailored Resume", parent=None):
         super().__init__(parent)
 
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
 
-        # Header Row
+        # -----------------------------------------------------------
+        # HEADER ROW
+        # -----------------------------------------------------------
         header_layout = QHBoxLayout()
+
         label = QLabel(title, self)
         label.setProperty("panelTitle", True)
         header_layout.addWidget(label)
         header_layout.addStretch()
 
         self.btnCopy = QPushButton("Copy", self)
+        self.btnCopy.setProperty("panelButton", True)
         header_layout.addWidget(self.btnCopy)
 
         main_layout.addLayout(header_layout)
 
-        # Text Area
+        # -----------------------------------------------------------
+        # TEXT AREA (OUTPUT ONLY)
+        # -----------------------------------------------------------
         self.text_edit = QPlainTextEdit(self)
+        self.text_edit.setReadOnly(True)
         self.text_edit.setPlaceholderText("Your tailored resume will appear here...")
+
         main_layout.addWidget(self.text_edit)
 
+        # Connect copy behavior
         self.btnCopy.clicked.connect(self._copy_to_clipboard)
 
-    # --------------------------------------------------------------------------
-
-    def _copy_to_clipboard(self) -> None:
-        # Copy the current text to the clipboard.
+    # -----------------------------------------------------------------------------------
+    def _copy_to_clipboard(self):
+        """Copy the displayed text to the clipboard."""
         text = self.text_edit.toPlainText()
         if text:
             QApplication.clipboard().setText(text)
 
-    # Convenience helpers used from MainWindow
+    # -----------------------------------------------------------
+    # Public API
+    # -----------------------------------------------------------
     def setText(self, text: str) -> None:
         self.text_edit.setPlainText(text)
 
