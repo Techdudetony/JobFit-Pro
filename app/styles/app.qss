@@ -231,3 +231,33 @@ QPushButton[authIcon="true"] {
 QPushButton[authIcon="true"]:hover {
     background-color: #3D93BB;
 }
+
+QTableWidget#historyTable {
+    background-color: #11171F;
+    alternate-background-color: #0C1117;
+    color: #FFFFFF;
+    border: 1px solid #2A313C;
+    gridline-color: #2A313C;
+}
+
+QTableWidget#historyTable::item:selected {
+    background-color: #2A313C;
+}
+
+QMessageBox {
+    background-color: #0F172A;
+}
+
+QMessageBox QLabel {
+    color: #FFFFFF;        /* BRIGHT text */
+    background: transparent;
+}
+
+QMessageBox QPushButton {
+    background-color: #54AED5;
+    color: #000000;
+}
+
+QMessageBox QPushButton:hover {
+    background-color: #3A93B6;
+}

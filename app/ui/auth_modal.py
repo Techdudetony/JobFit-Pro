@@ -1,158 +1,159 @@
-# app/ui/auth_modal.py
 """
-Authentication Modal (Sign In / Sign Up)
-----------------------------------------
+AuthModal
+----------------------
 
-A frameless authentication modal that:
-- Connects to Supabase through the global `auth` singleton.
-- Provides Sign In and Sign Up modes.
-- Exposes QSS objectNames + properties so global styles apply correctly.
+Handles all user-facing authentication:
+- Sign In
+- Sign Up
+- Password visibility toggles
+- Validation
+- Modal gating of application startup
+
+This file only handles UI + validation.
+Actual authentication calls are delegated to AuthManager.
 """
 
 import os
-
 from PyQt6.QtWidgets import (
     QDialog,
-    QVBoxLayout,
-    QHBoxLayout,
     QLabel,
     QLineEdit,
     QPushButton,
     QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
     QMessageBox,
-    QApplication,
 )
-from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QIcon
 
-# Import global auth singleton (NOT the class)
 from services.auth_manager import auth
 
-# Utility for icon path
+
 ICON = lambda name: os.path.join(os.getcwd(), "assets", "icons", name)
 
 
 class AuthModal(QDialog):
-    """
-    Modal authentication dialog.
-    Blocks access to the main app until user signs in.
-    Supports QSS styling through objectNames + dynamic properties.
-    """
 
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        # ---- QSS HOOK ----
+        # Window setup
         self.setObjectName("AuthModal")
-        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
-
         self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
         self.setModal(True)
-        self.setFixedSize(420, 430)
+        self.setFixedSize(420, 440)
 
+        # Current mode: "signin" or "signup"
         self.mode = "signin"
-        self.build_ui()
+
+        # Build UI + initialize behavior
+        self._build_ui()
+        self._setup_enter_key()
         self.switch_mode("signin")
 
     # ==================================================================
-    # UI BUILD
+    # UI Construction
     # ==================================================================
-    def build_ui(self):
+    def _build_ui(self):
         outer = QVBoxLayout(self)
-        outer.setAlignment(Qt.AlignmentFlag.AlignCenter)
         outer.setContentsMargins(0, 0, 0, 0)
+        outer.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        # Card wrapper
         card = QWidget()
-        card.setObjectName("authCard")  # <-- QSS hook
-        card.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        card.setObjectName("authCard")
 
         layout = QVBoxLayout(card)
-        layout.setContentsMargins(28, 28, 28, 28)
-        layout.setSpacing(16)
+        layout.setContentsMargins(32, 32, 32, 32)
+        layout.setSpacing(20)
 
-        # ---------------- TITLE ROW ----------------
-        title_row = QHBoxLayout()
+        # ---------------- TITLE + CLOSE BUTTON ----------------
+        header = QHBoxLayout()
         self.lbl_title = QLabel("Sign In")
-        self.lbl_title.setObjectName("authTitle")  # <-- QSS hook
+        self.lbl_title.setObjectName("authTitle")
 
         self.btn_close = QPushButton()
         self.btn_close.setIcon(QIcon(ICON("close.svg")))
         self.btn_close.setFixedSize(32, 32)
-        self.btn_close.setProperty("variant", "icon")  # <-- QSS hook
-        self.btn_close.clicked.connect(self.confirm_exit)
+        self.btn_close.setProperty("variant", "icon")
+        self.btn_close.clicked.connect(self._close_app)
 
-        title_row.addWidget(self.lbl_title)
-        title_row.addStretch()
-        title_row.addWidget(self.btn_close)
+        header.addWidget(self.lbl_title)
+        header.addStretch()
+        header.addWidget(self.btn_close)
 
-        layout.addLayout(title_row)
+        layout.addLayout(header)
 
         # ---------------- EMAIL ----------------
         self.input_email = QLineEdit()
         self.input_email.setPlaceholderText("Email address")
-        self.input_email.setObjectName("authField")  # <-- QSS hook
+        self.input_email.setObjectName("authField")
         layout.addWidget(self.input_email)
 
         # ---------------- PASSWORD ----------------
         self.input_password = QLineEdit()
-        self.input_password.setEchoMode(QLineEdit.EchoMode.Password)
         self.input_password.setPlaceholderText("Password")
+        self.input_password.setEchoMode(QLineEdit.EchoMode.Password)
         self.input_password.setObjectName("authField")
 
         self.btn_toggle_pw = QPushButton()
         self.btn_toggle_pw.setIcon(QIcon(ICON("not_visible.svg")))
         self.btn_toggle_pw.setFixedSize(32, 32)
         self.btn_toggle_pw.setProperty("variant", "icon")
-        self.btn_toggle_pw.clicked.connect(self.toggle_password)
+        self.btn_toggle_pw.clicked.connect(self._toggle_password)
 
         pw_row = QHBoxLayout()
-        pw_row.setSpacing(8)
         pw_row.addWidget(self.input_password)
         pw_row.addWidget(self.btn_toggle_pw)
         layout.addLayout(pw_row)
 
-        # ---------------- CONFIRM PASSWORD (SIGN-UP ONLY) ----------------
+        # ---------------- CONFIRM PASSWORD (SIGN UP ONLY) ----------------
         self.input_password_confirm = QLineEdit()
-        self.input_password_confirm.setEchoMode(QLineEdit.EchoMode.Password)
         self.input_password_confirm.setPlaceholderText("Confirm password")
+        self.input_password_confirm.setEchoMode(QLineEdit.EchoMode.Password)
         self.input_password_confirm.setObjectName("authField")
 
         self.btn_toggle_confirm = QPushButton()
         self.btn_toggle_confirm.setIcon(QIcon(ICON("not_visible.svg")))
         self.btn_toggle_confirm.setFixedSize(32, 32)
         self.btn_toggle_confirm.setProperty("variant", "icon")
-        self.btn_toggle_confirm.clicked.connect(self.toggle_password_confirm)
+        self.btn_toggle_confirm.clicked.connect(self._toggle_password_confirm)
 
         confirm_row = QHBoxLayout()
-        confirm_row.setSpacing(8)
         confirm_row.addWidget(self.input_password_confirm)
         confirm_row.addWidget(self.btn_toggle_confirm)
 
         self.confirm_row_widget = QWidget()
         self.confirm_row_widget.setLayout(confirm_row)
-        self.confirm_row_widget.setObjectName("confirmRow")  # optional hook
         layout.addWidget(self.confirm_row_widget)
 
         # ---------------- SUBMIT BUTTON ----------------
         self.btn_submit = QPushButton("Sign In")
-        self.btn_submit.setProperty("variant", "primary")  # <-- QSS hook
+        self.btn_submit.setProperty("variant", "primary")
         self.btn_submit.clicked.connect(self.submit)
         layout.addWidget(self.btn_submit)
 
         # ---------------- SWITCH MODE LINK ----------------
         self.btn_switch_mode = QPushButton("Create an account")
-        self.btn_switch_mode.setFlat(True)
-        self.btn_switch_mode.setObjectName("authLink")  # <-- QSS hook
-        self.btn_switch_mode.clicked.connect(self.switch_modes_clicked)
+        self.btn_switch_mode.setObjectName("authLink")
+        self.btn_switch_mode.clicked.connect(self._switch_modes_clicked)
         layout.addWidget(self.btn_switch_mode, alignment=Qt.AlignmentFlag.AlignCenter)
 
         outer.addWidget(card)
 
     # ==================================================================
-    # MODE SWITCHING
+    # Enter Key Behavior
+    # ==================================================================
+    def _setup_enter_key(self):
+        """Pressing ENTER submits the form."""
+        for w in (self.input_email, self.input_password, self.input_password_confirm):
+            w.returnPressed.connect(self.submit)
+
+    # ==================================================================
+    # Mode Switching
     # ==================================================================
     def switch_mode(self, mode: str):
+        """Switch between Sign In and Sign Up modes."""
         self.mode = mode
 
         if mode == "signin":
@@ -166,89 +167,108 @@ class AuthModal(QDialog):
             self.btn_switch_mode.setText("Already have an account? Sign In")
             self.confirm_row_widget.show()
 
-    def switch_modes_clicked(self):
+    def _switch_modes_clicked(self):
         self.switch_mode("signup" if self.mode == "signin" else "signin")
 
     # ==================================================================
-    # PASSWORD VISIBILITY
+    # Password Toggle Behavior
     # ==================================================================
-    def toggle_password(self):
-        if self.input_password.echoMode() == QLineEdit.EchoMode.Password:
-            self.input_password.setEchoMode(QLineEdit.EchoMode.Normal)
-            self.btn_toggle_pw.setIcon(QIcon(ICON("visible.svg")))
-        else:
-            self.input_password.setEchoMode(QLineEdit.EchoMode.Password)
-            self.btn_toggle_pw.setIcon(QIcon(ICON("not_visible.svg")))
-
-    def toggle_password_confirm(self):
-        if self.input_password_confirm.echoMode() == QLineEdit.EchoMode.Password:
-            self.input_password_confirm.setEchoMode(QLineEdit.EchoMode.Normal)
-            self.btn_toggle_confirm.setIcon(QIcon(ICON("visible.svg")))
-        else:
-            self.input_password_confirm.setEchoMode(QLineEdit.EchoMode.Password)
-            self.btn_toggle_confirm.setIcon(QIcon(ICON("not_visible.svg")))
-
-    # ==================================================================
-    # EXIT BEHAVIOR
-    # ==================================================================
-    def confirm_exit(self):
-        msg = QMessageBox(self)
-        msg.setWindowTitle("Exit Application?")
-        msg.setText("Closing authentication will exit JobFit Pro.")
-        msg.setIcon(QMessageBox.Icon.Warning)
-        msg.setStandardButtons(
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+    def _toggle_password(self):
+        mode = self.input_password.echoMode()
+        is_hidden = mode == QLineEdit.EchoMode.Password
+        self.input_password.setEchoMode(
+            QLineEdit.EchoMode.Normal if is_hidden else QLineEdit.EchoMode.Password
+        )
+        self.btn_toggle_pw.setIcon(
+            QIcon(ICON("visible.svg" if is_hidden else "not_visible.svg"))
         )
 
-        if msg.exec() == QMessageBox.StandardButton.Yes:
-            self.reject()
-            app = QApplication.instance()
-            if app:
-                app.quit()
+    def _toggle_password_confirm(self):
+        mode = self.input_password_confirm.echoMode()
+        is_hidden = mode == QLineEdit.EchoMode.Password
+        self.input_password_confirm.setEchoMode(
+            QLineEdit.EchoMode.Normal if is_hidden else QLineEdit.EchoMode.Password
+        )
+        self.btn_toggle_confirm.setIcon(
+            QIcon(ICON("visible.svg" if is_hidden else "not_visible.svg"))
+        )
 
     # ==================================================================
-    # SUPABASE AUTH
+    # Close App
+    # ==================================================================
+    def _close_app(self):
+        """User clicked the X button — Exit entire app."""
+        QMessageBox.warning(
+            self,
+            "Exit Application?",
+            "Authentication is required to use JobFit Pro.\nClosing this window will exit the app.",
+        )
+        self.reject()
+
+    # ==================================================================
+    # Password Strength Validation
+    # ==================================================================
+    def validate_password_strength(self, pw: str) -> str | None:
+        """Return a string describing the problem, or None if strong."""
+        if len(pw) < 8:
+            return "Password must be at least 8 characters long."
+        if not any(c.islower() for c in pw):
+            return "Password must contain at least one lowercase letter."
+        if not any(c.isupper() for c in pw):
+            return "Password must contain at least one uppercase letter."
+        if not any(c.isdigit() for c in pw):
+            return "Password must contain at least one number."
+        if not any(c in "!@#$%^&*()-_=+[]{};:,<.>/?\\|" for c in pw):
+            return "Password must contain at least one symbol."
+        return None
+
+    # ==================================================================
+    # Submit Logic (Sign In / Sign Up)
     # ==================================================================
     def submit(self):
         email = self.input_email.text().strip()
         pw = self.input_password.text().strip()
 
-        if not email or not pw:
-            QMessageBox.warning(self, "Error", "Email and password are required.")
+        if "@" not in email or "." not in email:
+            QMessageBox.warning(self, "Invalid Email", "Please enter a valid email.")
             return
 
-        # SIGN-UP FLOW
+        # ---------------- SIGN UP ----------------
         if self.mode == "signup":
             confirm = self.input_password_confirm.text().strip()
-            if pw != confirm:
-                QMessageBox.warning(self, "Error", "Passwords do not match.")
+
+            pw_error = self.validate_password_strength(pw)
+            if pw_error:
+                QMessageBox.warning(self, "Weak Password", pw_error)
                 return
 
-            try:
-                auth.sign_up(email, pw)
-            except Exception as e:
-                QMessageBox.critical(self, "Sign Up Failed", str(e))
+            if pw != confirm:
+                QMessageBox.warning(self, "Mismatch", "Passwords do not match.")
+                return
+
+            user, error = auth.sign_up(email, pw)
+
+            if error:
+                QMessageBox.warning(self, "Sign Up Failed", str(error))
                 return
 
             QMessageBox.information(
                 self,
                 "Account Created",
-                "Your account has been created.\n"
-                "If email verification is required, please check your inbox.",
+                "Your account has been created successfully.\nPlease sign in.",
             )
+
             self.switch_mode("signin")
             return
 
-        # SIGN-IN FLOW
-        try:
-            auth.sign_in(email, pw)
-        except Exception as e:
-            QMessageBox.critical(self, "Sign In Failed", str(e))
+        # ---------------- SIGN IN ----------------
+        user, error = auth.sign_in(email, pw)
+
+        if error or not user:
+            QMessageBox.warning(
+                self, "Incorrect Credentials", "Email or password is incorrect."
+            )
             return
 
-        if not auth.get_user():
-            QMessageBox.warning(self, "Error", "Incorrect email or password.")
-            return
-
-        # SUCCESS → close and return Accepted status
+        # Continue into app
         self.accept()
