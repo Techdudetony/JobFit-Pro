@@ -12,10 +12,24 @@ class OpenAIClient:
     def __init__(self):
         self.client = OpenAI(api_key=API_KEY)
 
-    def generate(self, prompt: str) -> str:
-        """Send user prompt to the LLM model and return the output text."""
-        response = self.client.chat.completions.create(
-            model=MODEL_NAME,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        return response.choices[0].message.content
+    def generate(self, prompt: str, **kwargs) -> str:
+        """
+        Send user prompt to the LLM model and return the output text.
+
+        kwargs allow optional tuning parameters such as:
+        - temperature
+        - max_tokens
+        - frequency_penalty
+        - presence_penalty
+        """
+        try:
+            response = self.client.chat.completions.create(
+                model=MODEL_NAME,
+                messages=[{"role": "user", "content": prompt}],
+                **kwargs
+            )
+
+            return response.choices[0].message.content
+        except Exception as e:
+            print("[OpenAI Error]", e)
+            return "OpenAI request failed. Please try again."

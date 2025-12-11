@@ -1,409 +1,254 @@
-# app/window_main.py
 """
-Main Window Controller for JobFit Pro
--------------------------------------
+Main Application Window Controller
+----------------------------------
 
-This file contains ALL logic and event binding for the main desktop app.
+Controls the primary user interface and high-level workflow for JobFit Pro.
 
 Responsibilities:
-- Block app startup until authentication succeeds
-- Load resume (PDF/DOCX) and job descriptions (URL or manual)
-- Trigger LLM-powered resume tailoring
-- Manage loading overlay animation
-- Handle export to DOCX/PDF
-- Save tailoring history (local JSON + Supabase upload)
+- Initialize and manage the main UI (Ui_MainWindow)
+- Coordinate user actions such as loading resumes, fetching job descriptions,
+  tailoring, exporting, and viewing history
+- Delegate all business logic to core modules (extractor, processor, exporter,
+  uploader) and centralize session data through SessionState
+- Use HistoryManager for persistent storage of tailoring records
+
+This controller focuses on orchestration and UI interaction while keeping
+logic, I/O, and external service calls in dedicated modules to maintain a
+clean, scalable architecture.
 """
 
-import os
-import re
-import json
 from datetime import datetime
 
 from PyQt6.QtWidgets import (
-    QDialog,
     QMainWindow,
     QFileDialog,
     QMessageBox,
-    QLabel,
-    QApplication,
-    QMenuBar,
-    QMenu,
 )
-from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QAction
 
-# ---------------- CORE LOGIC MODULES ----------------
+# -------------------- INTERNAL APP MODULES --------------------
+from app.state.session_state import SessionState
+from core.history.history_manager import HistoryManager
+from app.ui.tailoring_history_window import TailoringHistoryWindow, HISTORY_FILE
+from app.ui.main_window_ui import Ui_MainWindow
+
+from core.extractor.job_parser import fetch_job_description
 from core.extractor.pdf_parser import extract_pdf
 from core.extractor.docx_parser import extract_docx
-from core.extractor.job_parser import fetch_job_description
 
-from core.uploader.supabase_uploader import upload_resume
-from core.exporter.docx_builder import export_to_docx
-from core.exporter.pdf_exporter import export_to_pdf
 from core.processor.tailor_engine import ResumeTailor
-
-# ---------------- AUTH SYSTEM -----------------------
-from services.auth_manager import auth          # Shared singleton
-from app.ui.auth_modal import AuthModal         # Login modal
-
-# ---------------- HISTORY --------------------------
-from app.ui.tailoring_history_window import HISTORY_FILE
+from core.uploader.supabase_uploader import upload_resume
 
 
 class MainWindow(QMainWindow):
-    """
-    Main application window (logic layer).
-    UI widgets are constructed in ui/main_window.py and attached here.
-    """
 
-    def __init__(self) -> None:
+    def __init__(self):
         super().__init__()
 
-        print("Creating MainWindow...")
+        # ------------------------------
+        # Initialize app state
+        # ------------------------------
+        self.state = SessionState()
+        self.history_manager = HistoryManager(HISTORY_FILE)
+        self.tailor_engine = ResumeTailor()
 
-        # Track authenticated state
-        self.auth_ok: bool = False
-        self.auth = auth
-        self.user = self.auth.get_user()
-
-        # ============================================================
-        # 1. AUTHENTICATION BLOCKER
-        # ============================================================
-        if not self.user:
-            modal = AuthModal(self)
-            result = modal.exec()
-
-            # If declined → app closes in main.py
-            if result != QDialog.DialogCode.Accepted:
-                return
-
-            self.user = self.auth.get_user()
-
-        if not self.user:
-            print("AUTH FAILED: No valid Supabase session returned.")
-            return
-
-        self.auth_ok = True
-        print("MainWindow created, user:", self.user.email if self.user else None)
-
-        # ============================================================
-        # 2. LOADING OVERLAY SETUP
-        # ============================================================
-        self._loading_base_text = "Tailoring in progress"
-        self._loading_dots = 0
-
-        self.loadingLabel = QLabel(self)
-        self.loadingLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.loadingLabel.setStyleSheet("""
-            QLabel {
-                background-color: rgba(15, 23, 42, 220);
-                color: #E5E7EB;
-                font-size: 18pt;
-                font-weight: 600;
-                border-radius: 16px;
-                padding: 20px 32px;
-            }
-        """)
-        self.loadingLabel.hide()
-
-        # Dot animation timer
-        self.loadingTimer = QTimer(self)
-        self.loadingTimer.setInterval(400)
-        self.loadingTimer.timeout.connect(self._update_loading_text)
-
-        self._center_loading_label()
-
-        # ============================================================
-        # 3. LOAD UI FROM PURE LAYOUT CLASS
-        # ============================================================
-        from app.ui.main_window import Ui_MainWindow
+        # ------------------------------
+        # Load UI
+        # ------------------------------
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
-        # ============================================================
-        # 4. INTERNAL STATE
-        # ============================================================
-        self.resume_text = ""
-        self.job_text = ""
-        self.tailored_text = ""
+        # ------------------------------
+        # Menus + Events
+        # ------------------------------
+        self._setup_menus()
+        self._setup_events()
 
-        self.tailor = ResumeTailor()
+        # Window title
+        self.setWindowTitle("JobFit Pro")
 
-        # ============================================================
-        # 5. CONNECT UI EVENTS
-        # ============================================================
-        self.ui.btnFetchJob.clicked.connect(self.fetch_job)
-        self.ui.btnTailor.clicked.connect(self.tailor_resume)
-        self.ui.btnExport.clicked.connect(self.export_docx_output)
-        self.ui.btnExportPDF.clicked.connect(self.export_pdf_output)
-        self.ui.btnUseManualJob.clicked.connect(self.use_manual_job_description)
-
-        # File picker emits → load resume
-        self.ui.resumePicker.fileSelected.connect(self.load_resume_from_picker)
-
-        # ============================================================
-        # 6. MENU BAR SETUP
-        # ============================================================
-        menubar = QMenuBar(self)
-        self.setMenuBar(menubar)
-
-        # Tools menu
-        tools_menu = QMenu("Tools", self)
-        menubar.addMenu(tools_menu)
-
-        action_hist = QAction("Tailoring History", self)
-        tools_menu.addAction(action_hist)
-        action_hist.triggered.connect(self.open_tailoring_history)
-
-        # Right-aligned account menu
-        self._setup_user_menu()
-
-    # ==================================================================
-    # USER MENU (TOP RIGHT)
-    # ==================================================================
-    def _setup_user_menu(self) -> None:
+    # =====================================================================
+    # MENU SETUP
+    # =====================================================================
+    def _setup_menus(self):
         menubar = self.menuBar()
 
-        # Spacer to push account menu right
-        spacer = menubar.addMenu(" " * 200)
-        spacer.setDisabled(True)
+        # ----- FILE MENU -----
+        file_menu = menubar.addMenu("File")
 
-        email = getattr(self.user, "email", "Account")
-        account_menu = menubar.addMenu(email)
+        action_new = QAction("New Resume", self)
+        action_new.triggered.connect(self.new_resume)
+        file_menu.addAction(action_new)
 
-        logout_action = QAction("Sign Out", self)
-        logout_action.triggered.connect(self._sign_out)
-        account_menu.addAction(logout_action)
+        action_load = QAction("Load Resume", self)
+        action_load.triggered.connect(self.load_resume_dialog)
+        file_menu.addAction(action_load)
 
-    def _sign_out(self) -> None:
-        """Log out user and close app."""
-        self.auth.sign_out()
-        QMessageBox.information(self, "Signed Out", "You have been signed out.")
-        QApplication.instance().quit()
+        file_menu.addSeparator()
 
-    # ==================================================================
-    # LOADING OVERLAY HELPERS
-    # ==================================================================
-    def _center_loading_label(self):
-        w = max(320, int(self.width() * 0.4))
-        h = 80
-        x = (self.width() - w) // 2
-        y = (self.height() - h) // 2
-        self.loadingLabel.setGeometry(x, y, w, h)
+        action_save_pdf = QAction("Export as PDF", self)
+        action_save_pdf.triggered.connect(lambda: self.export_resume("pdf"))
+        file_menu.addAction(action_save_pdf)
 
-    def _set_loading_visible(self, visible: bool):
-        if visible:
-            self._loading_dots = 0
-            self._update_loading_text()
-            self._center_loading_label()
-            self.loadingLabel.show()
-            self.loadingTimer.start()
-            QApplication.processEvents()
-        else:
-            self.loadingTimer.stop()
-            self.loadingLabel.hide()
+        action_save_docx = QAction("Export as DOCX", self)
+        action_save_docx.triggered.connect(lambda: self.export_resume("docx"))
+        file_menu.addAction(action_save_docx)
 
-    def _update_loading_text(self):
-        """Cycle dots in loading text."""
-        self._loading_dots = (self._loading_dots + 1) % 4
-        dots = "." * self._loading_dots
-        self.loadingLabel.setText(f"{self._loading_base_text}{dots}")
+        file_menu.addSeparator()
 
-    # ==================================================================
+        exit_action = QAction("Exit", self)
+        exit_action.triggered.connect(self.close)
+        file_menu.addAction(exit_action)
+
+        # ----- TOOLS MENU -----
+        tools_menu = menubar.addMenu("Tools")
+
+        action_history = QAction("Tailoring History", self)
+        action_history.triggered.connect(self.open_history)
+        tools_menu.addAction(action_history)
+
+    # =====================================================================
+    # EVENT SETUP
+    # =====================================================================
+    def _setup_events(self):
+        self.ui.btnTailor.clicked.connect(self.tailor_resume)
+        self.ui.btnFetchJob.clicked.connect(self.fetch_job_description)
+
+        # File picker
+        self.ui.resumePicker.fileSelected.connect(self.load_resume_from_picker)
+
+    # =====================================================================
     # RESUME LOADING
-    # ==================================================================
-    def load_resume_from_picker(self, fname: str):
-        if not fname:
-            return
+    # =====================================================================
+    def load_resume_dialog(self):
+        path, _ = QFileDialog.getOpenFileName(
+            self, "Select Resume", "", "Documents (*.pdf *.docx)"
+        )
 
-        if fname.lower().endswith(".pdf"):
-            self.resume_text = extract_pdf(fname)
+        if path:
+            self.load_resume(path)
+
+    def load_resume(self, path):
+        """Loads resume text from DOCX or PDF."""
+        if path.lower().endswith(".pdf"):
+            text = extract_pdf(path)
         else:
-            self.resume_text = extract_docx(fname)
+            text = extract_docx(path)
 
-        self.ui.resumePreview.setPlainText(self.resume_text)
+        self.state.resume_text = text
+        self.state.loaded_resume_path = path
+        self.ui.resumePreview.setPlainText(text)
 
-    # ==================================================================
-    # JOB DESCRIPTION FETCH
-    # ==================================================================
-    def fetch_job(self):
+    def load_resume_from_picker(self, path):
+        if path:
+            self.load_resume(path)
+
+    # =====================================================================
+    # JOB DESCRIPTION
+    # =====================================================================
+    def fetch_job_description(self):
         url = self.ui.inputJobURL.text().strip()
         if not url:
-            QMessageBox.warning(self, "Error", "Please enter a job URL.")
+            QMessageBox.warning(self, "Error", "Enter a job URL.")
             return
 
-        desc = fetch_job_description(url)
-        if not desc:
+        text = fetch_job_description(url)
+        if not text:
             QMessageBox.warning(self, "Error", "Could not fetch job description.")
             return
 
-        self.job_text = desc
-        self.ui.jobPreview.setPlainText(desc)
+        self.state.job_text = text
+        self.ui.jobPreview.setPlainText(text)
 
-    # ==================================================================
-    # MANUAL JOB DESCRIPTION
-    # ==================================================================
-    def use_manual_job_description(self):
-        txt = self.ui.jobPreview.toPlainText().strip()
-        if not txt:
-            QMessageBox.warning(self, "Error", "Paste a job description first.")
-            return
-
-        self.job_text = txt
-        QMessageBox.information(self, "Success", "Using pasted job description.")
-
-    # ==================================================================
-    # TAILORING LOGIC
-    # ==================================================================
+    # =====================================================================
+    # TAILORING
+    # =====================================================================
     def tailor_resume(self):
-        if not self.resume_text:
-            QMessageBox.warning(self, "Error", "Load your resume first.")
+        if not self.state.resume_text:
+            QMessageBox.warning(self, "Error", "Load a resume first.")
             return
 
-        # Prefer what's CURRENTLY in UI job box
-        pasted = self.ui.jobPreview.toPlainText().strip()
-        if pasted:
-            self.job_text = pasted
+        job_text = self.ui.jobPreview.toPlainText().strip()
+        if job_text:
+            self.state.job_text = job_text
 
-        if not self.job_text:
-            QMessageBox.warning(self, "Error", "Paste or fetch a job description.")
+        if not self.state.job_text:
+            QMessageBox.warning(self, "Error", "Provide a job description.")
             return
 
-        # --- Start overlay ---
-        self._set_loading_visible(True)
+        settings = self.ui.settingsPanel.to_dict()
 
-        try:
-            settings = self.ui.settingsPanel.to_dict()
+        tailored = self.tailor_engine.generate(
+            self.state.resume_text,
+            self.state.job_text,
+            limit_pages=settings.get("limit_pages", False),
+            limit_one=settings.get("limit_one_page", False),
+        )
 
-            self.tailored_text = self.tailor.generate(
-                self.resume_text,
-                self.job_text,
-                limit_pages=settings.get("limit_pages", False),
-                limit_one=settings.get("limit_one_page", False),
-            )
+        self.state.tailored_text = tailored
+        self.ui.outputPreview.setPlainText(tailored)
 
-            self.ui.outputPreview.setPlainText(self.tailored_text)
+        self.save_history()
 
-        finally:
-            self._set_loading_visible(False)
-            self.save_tailoring_history()
-
-    # ==================================================================
-    # EXPORT: DOCX
-    # ==================================================================
-    def export_docx_output(self):
-        if not self.tailored_text:
+    # =====================================================================
+    # EXPORT
+    # =====================================================================
+    def export_resume(self, format_type):
+        if not self.state.tailored_text:
             QMessageBox.warning(self, "Error", "Nothing to export.")
             return
 
+        if format_type == "pdf":
+            from core.exporter.pdf_exporter import export_to_pdf
+
+            ext = "pdf"
+        else:
+            from core.exporter.docx_builder import export_to_docx
+
+            ext = "docx"
+
         path, _ = QFileDialog.getSaveFileName(
-            self,
-            "Save Tailored Resume",
-            "Tailored_Resume.docx",
-            "Word Document (*.docx)",
+            self, f"Export Resume ({ext.upper()})", f"Tailored_Resume.{ext}", f"*{ext}"
         )
 
-        if path:
-            export_to_docx(self.tailored_text, path)
-            QMessageBox.information(self, "Success", "Resume exported successfully!")
-
-    # ==================================================================
-    # EXPORT: PDF
-    # ==================================================================
-    def export_pdf_output(self):
-        if not self.tailored_text:
-            QMessageBox.warning(self, "Error", "Nothing to export.")
+        if not path:
             return
 
-        path, _ = QFileDialog.getSaveFileName(
-            self,
-            "Save Tailored Resume",
-            "Tailored_Resume.pdf",
-            "PDF Files (*.pdf)",
-        )
+        if format_type == "pdf":
+            export_to_pdf(self.state.tailored_text, path)
+        else:
+            export_to_docx(self.state.tailored_text, path)
 
-        if path:
-            export_to_pdf(self.tailored_text, path)
-            QMessageBox.information(self, "Success", "PDF exported successfully!")
+        QMessageBox.information(self, "Success", f"Exported as {ext.upper()}!")
 
-    # ==================================================================
-    # HISTORY WINDOW
-    # ==================================================================
-    def open_tailoring_history(self):
-        from app.ui.tailoring_history_window import TailoringHistoryWindow
+    # =====================================================================
+    # HISTORY
+    # =====================================================================
+    def save_history(self):
+        """Builds and saves a history record using HistoryManager."""
+        entry = {
+            "company": "",
+            "role": "",
+            "timestamp": datetime.now().isoformat(),
+            "resume_url": (
+                upload_resume(self.state.loaded_resume_path)
+                if self.state.loaded_resume_path
+                else None
+            ),
+            "job_url": self.ui.inputJobURL.text().strip(),
+        }
+
+        self.history_manager.add_entry(entry)
+
+    def open_history(self):
         self.history_window = TailoringHistoryWindow(self)
         self.history_window.show()
 
-    # ==================================================================
-    # SAVE HISTORY (LOCAL + SUPABASE UPLOAD)
-    # ==================================================================
-    def save_tailoring_history(self):
-        company, role = self.extract_company_and_role(self.job_text)
-
-        temp_path = os.path.join(os.getcwd(), "last_tailored_resume.docx")
-        export_to_docx(self.tailored_text, temp_path)
-
-        resume_url = upload_resume(temp_path) or temp_path
-
-        entry = {
-            "company": company,
-            "role": role,
-            "job_url": self.ui.inputJobURL.text().strip(),
-            "resume_url": resume_url,
-            "timestamp": datetime.now().isoformat(),
-        }
-
-        try:
-            if os.path.exists(HISTORY_FILE):
-                with open(HISTORY_FILE, "r", encoding="utf-8") as f:
-                    history = json.load(f)
-            else:
-                history = []
-        except Exception:
-            history = []
-
-        history.append(entry)
-
-        with open(HISTORY_FILE, "w", encoding="utf-8") as f:
-            json.dump(history, f, indent=4)
-
-    # ==================================================================
-    # WINDOW RESIZE → RECENTER OVERLAY
-    # ==================================================================
-    def resizeEvent(self, event):
-        self._center_loading_label()
-        super().resizeEvent(event)
-
-    # ==================================================================
-    # COMPANY & ROLE EXTRACTION
-    # ==================================================================
-    def extract_company_and_role(self, job_text: str):
-        if not job_text:
-            return "Unknown", "Unknown"
-
-        text = job_text.strip()
-        lines = [l.strip() for l in text.split("\n") if l.strip()]
-        first = lines[0] if lines else ""
-
-        # Pattern A — "Company — Role"
-        pat = r"^(?P<company>.+?)\s*[-–—]\s*(?P<role>.+)$"
-        m = re.match(pat, first)
-        if m:
-            return m.group("company").strip(), m.group("role").strip()
-
-        # Pattern B — "Role: X"
-        m = re.search(r"(Title|Role)\s*[:\-]\s*(.+)", text, re.IGNORECASE)
-        role = m.group(2).strip() if m else "Unknown"
-
-        # Pattern C — "Company: X"
-        m = re.search(r"(Company|Employer|Hiring Company)\s*[:\-]\s*(.+)", text, re.IGNORECASE)
-        company = m.group(2).strip() if m else "Unknown"
-
-        # Fallbacks
-        if role == "Unknown" and lines:
-            role = lines[0]
-
-        if company == "Unknown" and len(lines) > 1:
-            company = lines[1]
-
-        return company, role
+    # =====================================================================
+    # NEW RESUME RESET
+    # =====================================================================
+    def new_resume(self):
+        self.state = SessionState()
+        self.ui.resumePreview.clear()
+        self.ui.jobPreview.clear()
+        self.ui.outputPreview.clear()
