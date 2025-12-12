@@ -61,7 +61,11 @@ def export_to_docx(text: str, output_path: str):
     # Bullet Style
     # -------------------------------------------
     bullet_style_name = "List Bullet"
-    bullet_style = styles.get(bullet_style_name, normal_style)
+    # FIXED: Use try/except instead of .get()
+    try:
+        bullet_style = styles[bullet_style_name]
+    except KeyError:
+        bullet_style = normal_style
 
     # -------------------------------------------
     # Helper Functions
@@ -87,7 +91,7 @@ def export_to_docx(text: str, output_path: str):
         if not cleaned or len(cleaned) > 60:
             return False
 
-        # Exact mathces or close matches with common headings
+        # Exact matches or close matches with common headings
         if cleaned.lower() in COMMON_SECTION_NAMES:
             return True
 
@@ -146,17 +150,23 @@ def export_to_docx(text: str, output_path: str):
         # Bullet
         if is_bullet(stripped):
             bullet_text = clean_bullet_text(stripped)
-            para = doc.add_paragraph(
-                bullet_text,
-                style=bullet_style_name if bullet_style_name in styles else None,
-            )
+            # FIXED: Check if style exists before using
+            try:
+                para = doc.add_paragraph(bullet_text, style=bullet_style_name)
+            except KeyError:
+                para = doc.add_paragraph(bullet_text)
+                # Manually format as bullet if style doesn't exist
+                para.style = normal_style
             last_was_bullet = True
             continue
 
         # Continuation of bullet?
         if last_was_bullet:
-            para = doc.add_paragraph(stripped)
-            para.style = bullet_style_name
+            try:
+                para = doc.add_paragraph(stripped, style=bullet_style_name)
+            except KeyError:
+                para = doc.add_paragraph(stripped)
+                para.style = normal_style
             continue
 
         # Normal text

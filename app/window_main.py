@@ -275,6 +275,7 @@ class MainWindow(QMainWindow):
     # EXPORT
     # =====================================================================
     def export_resume(self, format_type):
+
         if not self.state.tailored_text:
             QMessageBox.warning(self, "Error", "Nothing to export.")
             return
@@ -286,27 +287,62 @@ class MainWindow(QMainWindow):
         dialog_name = f"Export Resume ({ext.upper()})"
 
         path, _ = QFileDialog.getSaveFileName(
-            self, dialog_name, f"Tailored_Resume.{ext}", f"*{ext}"
+            self, dialog_name, f"Tailored_Resume.{ext}", f"*.{ext}"
         )
 
         if not path:
             return
 
-        if ext == "pdf":
-            export_to_pdf(self.state.tailored_text, path)
-        else:
-            export_to_docx(self.state.tailored_text, path)
+        try:
+            if ext == "pdf":
+                export_to_pdf(self.state.tailored_text, path)
+            else:
+                export_to_docx(self.state.tailored_text, path)
 
-        QMessageBox.information(self, "Success", f"Exported as {ext.upper()}!")
+            QMessageBox.information(self, "Success", f"Exported as {ext.upper()}!")
+        except Exception as e:
+            print(f"[EXPORT ERROR] {e}")
+            QMessageBox.critical(self, "Export Failed", f"Failed to export: {str(e)}")
 
     # =====================================================================
     # HISTORY
     # =====================================================================
     def save_history(self):
         """Builds and saves a history record using HistoryManager."""
+        import tempfile
+        import os
+        from core.exporter.pdf_exporter import export_to_pdf
 
         # Automatically extract company + role from job text
         company, role = extract_company_role(self.state.job_text)
+
+        # Create a temporary file for the tailored resume
+        resume_url = None
+        if self.state.tailored_text:
+            try:
+                # Create temp file with proper extension
+                with tempfile.NamedTemporaryFile(
+                    mode="w", suffix=".pdf", delete=False, encoding="utf-8"
+                ) as tmp:
+                    temp_path = tmp.name
+
+                # Export tailored resume to temp PDF
+                export_to_pdf(self.state.tailored_text, temp_path)
+
+                # Upload the tailored resume
+                resume_url = upload_resume(temp_path)
+
+                # Clean up temp file
+                try:
+                    os.unlink(temp_path)
+                except:
+                    pass
+
+            except Exception as e:
+                print(f"[HISTORY] Failed to save tailored resume: {e}")
+                # Fall back to original resume if tailored save fails
+                if self.state.loaded_resume_path:
+                    resume_url = upload_resume(self.state.loaded_resume_path)
 
         entry = {
             "user_id": self.user.id,
@@ -314,11 +350,7 @@ class MainWindow(QMainWindow):
             "role": role,
             "timestamp": datetime.now().isoformat(),
             "job_url": self.ui.inputJobURL.text().strip(),
-            "resume_url": (
-                upload_resume(self.state.loaded_resume_path)
-                if self.state.loaded_resume_path
-                else None
-            ),
+            "resume_url": resume_url,
         }
 
         self.history_manager.add_entry(entry)
