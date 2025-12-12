@@ -14,10 +14,17 @@ Handles:
 - Sign In
 - Sign Out
 - Session tracking
+- Remember Me (secure token storage)
 """
 
 from typing import Optional, Tuple
+import keyring
+import json
 from services.supabase_client import supabase
+
+# Keyring service name for secure storage
+SERVICE_NAME = "JobFitPro"
+CREDENTIALS_KEY = "saved_session"
 
 
 class AuthManager:
@@ -57,10 +64,15 @@ class AuthManager:
     # SIGN IN
     # ==================================================================
     def sign_in(
-        self, email: str, password: str
+        self, email: str, password: str, remember_me: bool = False
     ) -> Tuple[Optional[object], Optional[str]]:
         """
         Logs in using email/password.
+
+        Args:
+            email: User's email
+            password: User's password
+            remember_me: If True, saves session tokens for auto-login
 
         Returns:
             (user, None) on success
@@ -92,7 +104,92 @@ class AuthManager:
         if session and hasattr(session, "access_token"):
             supabase.auth.set_session(session.access_token, session.refresh_token)
 
+            # Save session if "Remember Me" is enabled
+            if remember_me:
+                self._save_session(session)
+
         return user, error
+
+    # ==================================================================
+    # REMEMBER ME - Session Storage
+    # ==================================================================
+    def _save_session(self, session):
+        """Securely save session tokens using keyring."""
+        try:
+            session_data = {
+                "access_token": session.access_token,
+                "refresh_token": session.refresh_token,
+            }
+            keyring.set_password(
+                SERVICE_NAME, CREDENTIALS_KEY, json.dumps(session_data)
+            )
+            print("[AUTH] Session saved for Remember Me")
+        except Exception as e:
+            print(f"[AUTH] Failed to save session: {e}")
+
+    def load_saved_session(self) -> Tuple[Optional[object], Optional[str]]:
+        """
+        Attempt to restore a saved session.
+
+        Returns:
+            (user, None) on success
+            (None, error_message) on failure
+        """
+        try:
+            # Retrieve saved session data
+            saved_data = keyring.get_password(SERVICE_NAME, CREDENTIALS_KEY)
+            if not saved_data:
+                return None, "No saved session found"
+
+            session_data = json.loads(saved_data)
+            access_token = session_data.get("access_token")
+            refresh_token = session_data.get("refresh_token")
+
+            if not access_token or not refresh_token:
+                return None, "Invalid session data"
+
+            # Restore session with Supabase
+            supabase.auth.set_session(access_token, refresh_token)
+
+            # Get current user
+            response = supabase.auth.get_user()
+            user = getattr(response, "user", None)
+
+            if not user:
+                # Session expired or invalid
+                self.clear_saved_session()
+                return None, "Session expired"
+
+            # Update internal state
+            self.user = user
+            self.session = response
+
+            print(f"[AUTH] Successfully restored session for {user.email}")
+            return user, None
+
+        except Exception as e:
+            print(f"[AUTH] Failed to restore session: {e}")
+            self.clear_saved_session()
+            return None, str(e)
+
+    def clear_saved_session(self):
+        """Remove saved session credentials."""
+        try:
+            keyring.delete_password(SERVICE_NAME, CREDENTIALS_KEY)
+            print("[AUTH] Saved session cleared")
+        except keyring.errors.PasswordDeleteError:
+            # No saved session to delete
+            pass
+        except Exception as e:
+            print(f"[AUTH] Error clearing session: {e}")
+
+    def has_saved_session(self) -> bool:
+        """Check if there's a saved session available."""
+        try:
+            saved_data = keyring.get_password(SERVICE_NAME, CREDENTIALS_KEY)
+            return saved_data is not None
+        except:
+            return False
 
     # ==================================================================
     def get_user(self):
@@ -105,8 +202,13 @@ class AuthManager:
         return self.session
 
     # ==================================================================
-    def sign_out(self):
-        """Logs out and clears local session tracking."""
+    def sign_out(self, clear_remember_me: bool = True):
+        """
+        Logs out and clears local session tracking.
+
+        Args:
+            clear_remember_me: If True, also clears saved session
+        """
         try:
             supabase.auth.sign_out()
         except Exception as e:
@@ -114,6 +216,9 @@ class AuthManager:
 
         self.session = None
         self.user = None
+
+        if clear_remember_me:
+            self.clear_saved_session()
 
 
 # Singleton instance used throughout the application

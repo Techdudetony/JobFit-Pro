@@ -5,6 +5,7 @@ AuthModal
 Handles all user-facing authentication:
 - Sign In
 - Sign Up
+- Remember Me functionality
 - Password visibility toggles
 - Validation
 - Modal gating of application startup
@@ -23,6 +24,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QHBoxLayout,
     QMessageBox,
+    QCheckBox,
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon
@@ -42,7 +44,7 @@ class AuthModal(QDialog):
         self.setObjectName("AuthModal")
         self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
         self.setModal(True)
-        self.setFixedSize(420, 440)
+        self.setFixedSize(420, 480)
 
         # Current mode: "signin" or "signup"
         self.mode = "signin"
@@ -51,6 +53,22 @@ class AuthModal(QDialog):
         self._build_ui()
         self._setup_enter_key()
         self.switch_mode("signin")
+
+    # ==================================================================
+    # Auto-Login from Saved Session
+    # ==================================================================
+    def showEvent(self, event):
+        """Override showEvent to try auto-login when modal is about to show."""
+        super().showEvent(event)
+        # Try auto-login after the dialog is set up
+        if auth.has_saved_session():
+            user, error = auth.load_saved_session()
+            if user and not error:
+                print(f"[AUTH MODAL] Auto-login successful for {user.email}")
+                # Close the modal immediately - user is authenticated
+                self.accept()
+            else:
+                print(f"[AUTH MODAL] Auto-login failed: {error}")
 
     # ==================================================================
     # UI Construction
@@ -127,6 +145,11 @@ class AuthModal(QDialog):
         self.confirm_row_widget.setLayout(confirm_row)
         layout.addWidget(self.confirm_row_widget)
 
+        # ---------------- REMEMBER ME CHECKBOX (SIGN IN ONLY) ----------------
+        self.remember_me_checkbox = QCheckBox("Remember me")
+        self.remember_me_checkbox.setObjectName("rememberMeCheckbox")
+        layout.addWidget(self.remember_me_checkbox)
+
         # ---------------- SUBMIT BUTTON ----------------
         self.btn_submit = QPushButton("Sign In")
         self.btn_submit.setProperty("variant", "primary")
@@ -161,11 +184,13 @@ class AuthModal(QDialog):
             self.btn_submit.setText("Sign In")
             self.btn_switch_mode.setText("Create an account")
             self.confirm_row_widget.hide()
+            self.remember_me_checkbox.show()
         else:
             self.lbl_title.setText("Create Account")
             self.btn_submit.setText("Sign Up")
             self.btn_switch_mode.setText("Already have an account? Sign In")
             self.confirm_row_widget.show()
+            self.remember_me_checkbox.hide()
 
     def _switch_modes_clicked(self):
         self.switch_mode("signup" if self.mode == "signin" else "signin")
@@ -197,13 +222,16 @@ class AuthModal(QDialog):
     # Close App
     # ==================================================================
     def _close_app(self):
-        """User clicked the X button — Exit entire app."""
-        QMessageBox.warning(
+        """User clicked the X button – Exit entire app."""
+        result = QMessageBox.question(
             self,
             "Exit Application?",
-            "Authentication is required to use JobFit Pro.\nClosing this window will exit the app.",
+            "Authentication is required to use JobFit Pro.\nAre you sure you want to exit?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
-        self.reject()
+
+        if result == QMessageBox.StandardButton.Yes:
+            self.reject()
 
     # ==================================================================
     # Password Strength Validation
@@ -262,7 +290,8 @@ class AuthModal(QDialog):
             return
 
         # ---------------- SIGN IN ----------------
-        user, error = auth.sign_in(email, pw)
+        remember_me = self.remember_me_checkbox.isChecked()
+        user, error = auth.sign_in(email, pw, remember_me=remember_me)
 
         if error or not user:
             QMessageBox.warning(

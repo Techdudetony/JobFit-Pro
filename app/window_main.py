@@ -12,7 +12,7 @@ Coordinates all high-level interactions between the UI, state, and business logi
 
 from datetime import datetime
 
-from PyQt6.QtWidgets import QMainWindow, QFileDialog, QMessageBox
+from PyQt6.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QCheckBox
 from PyQt6.QtGui import QAction
 
 # ----------------------------- APP MODULES ---------------------------------------
@@ -21,6 +21,7 @@ from core.history.history_manager import HistoryManager
 from app.ui.tailoring_history_window import TailoringHistoryWindow, HISTORY_FILE
 from app.ui.main_window_ui import Ui_MainWindow
 from services.auth_manager import auth
+import services.theme_manager as tm_module
 
 # EXTRACTORS
 from core.extractor.job_parser import fetch_job_description
@@ -149,9 +150,11 @@ class MainWindow(QMainWindow):
 
         view_menu.addSeparator()
 
-        dark_mode_toggle = QAction("Dark Mode", self, checkable=True)
-        dark_mode_toggle.setChecked(True)
-        view_menu.addAction(dark_mode_toggle)
+        # Theme toggle action
+        self.theme_toggle = QAction("Dark Mode", self, checkable=True)
+        self.theme_toggle.setChecked(tm_module.theme_manager.is_dark_mode())
+        self.theme_toggle.triggered.connect(self.toggle_theme)
+        view_menu.addAction(self.theme_toggle)
 
         # ------------------------------------------------------
         # HELP MENU
@@ -182,11 +185,7 @@ class MainWindow(QMainWindow):
         self.menu_account = menubar.addMenu("Account")
 
         logout_action = QAction("Sign Out", self)
-        logout_action.triggered.connect(
-            lambda: QMessageBox.information(
-                self, "Sign Out", "Authentication system coming soon."
-            )
-        )
+        logout_action.triggered.connect(self.handle_sign_out)
         self.menu_account.addAction(logout_action)
 
     # =====================================================================
@@ -377,3 +376,50 @@ class MainWindow(QMainWindow):
         self.ui.resumePreview.clear()
         self.ui.jobPreview.clear()
         self.ui.outputPreview.clear()
+
+    # Add this method to your MainWindow class in window_main.py
+
+    def handle_sign_out(self):
+        """Handle user sign out with Remember Me option."""
+        msg = QMessageBox(self)
+        msg.setIcon(QMessageBox.Icon.Question)
+        msg.setWindowTitle("Sign Out")
+        msg.setText("Are you sure you want to sign out?")
+
+        # Add checkbox for "Forget this device"
+        forget_checkbox = QCheckBox("Forget this device (clear Remember Me)")
+        msg.setCheckBox(forget_checkbox)
+
+        msg.setStandardButtons(
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        msg.setDefaultButton(QMessageBox.StandardButton.No)
+
+        result = msg.exec()
+
+        if result == QMessageBox.StandardButton.Yes:
+            clear_remember_me = forget_checkbox.isChecked()
+            auth.sign_out(clear_remember_me=clear_remember_me)
+
+            QMessageBox.information(
+                self, "Signed Out", "You have been signed out successfully."
+            )
+
+            # Close the main window and restart auth flow
+            self.close()
+
+    def toggle_theme(self, checked):
+        """Toggle between light and dark themes."""
+        import services.theme_manager as tm_module
+
+        # Toggle the theme
+        tm_module.theme_manager.toggle_theme()
+
+        # Update the checkbox to reflect current state
+        self.theme_toggle.setChecked(tm_module.theme_manager.is_dark_mode())
+
+        # Update the action text
+        if tm_module.theme_manager.is_dark_mode():
+            self.theme_toggle.setText("Dark Mode")
+        else:
+            self.theme_toggle.setText("Light Mode")

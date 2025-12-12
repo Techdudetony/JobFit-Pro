@@ -6,7 +6,7 @@ Application entry point.
 
 Responsibilities:
 - Create QApplication
-- Load global stylesheet
+- Load global stylesheet with theme support
 - Enforce authentication before launching main window
 - Start MainWindow only after successful login
 """
@@ -16,22 +16,9 @@ import os
 from PyQt6.QtWidgets import QApplication, QDialog
 
 from services.auth_manager import auth
+from services.theme_manager import ThemeManager, theme_manager as tm
 from app.ui.auth_modal import AuthModal
 from app.window_main import MainWindow
-
-
-# ==================================================================
-# Load Stylesheet
-# ==================================================================
-def load_styles(app: QApplication):
-    """Load the global QSS stylesheet for JobFit Pro."""
-    try:
-        qss_path = os.path.join(os.path.dirname(__file__), "styles", "app.qss")
-        with open(qss_path, "r", encoding="utf-8") as f:
-            app.setStyleSheet(f.read())
-        print("Stylesheet loaded successfully.")
-    except Exception as e:
-        print("Failed to load QSS stylesheet:", e)
 
 
 # ==================================================================
@@ -40,20 +27,42 @@ def load_styles(app: QApplication):
 def main():
     app = QApplication(sys.argv)
 
-    # Global stylesheet
-    load_styles(app)
+    # Initialize theme manager
+    global theme_manager
+    from services import theme_manager as tm_module
+
+    tm_module.theme_manager = ThemeManager(app)
+
+    # Apply saved theme preference
+    saved_theme = tm_module.theme_manager.load_preference()
+    tm_module.theme_manager.apply_theme(saved_theme)
 
     # --------------------------------------------------------------
     # Authentication Gate
     # --------------------------------------------------------------
-    if auth.get_user() is None:
+    # Try to restore saved session first
+    if auth.has_saved_session():
+        print("[AUTH] Found saved session, attempting auto-login...")
+        user, error = auth.load_saved_session()
+        if user and not error:
+            print(f"[AUTH] Auto-login successful for {user.email}")
+            # Skip modal, proceed directly to main window
+        else:
+            print(f"[AUTH] Auto-login failed: {error}")
+            # Show modal for manual login
+            modal = AuthModal()
+            result = modal.exec()
+            if result != QDialog.DialogCode.Accepted:
+                print("Authentication failed or canceled – closing app.")
+                sys.exit(0)
+    elif auth.get_user() is None:
+        # No saved session, show login modal
         modal = AuthModal()
         result = modal.exec()
-
-        # User closed modal or failed authentication
         if result != QDialog.DialogCode.Accepted:
-            print("Authentication failed or canceled — closing app.")
+            print("Authentication failed or canceled – closing app.")
             sys.exit(0)
+
     # --------------------------------------------------------------
     # Launch Main Window
     # --------------------------------------------------------------
