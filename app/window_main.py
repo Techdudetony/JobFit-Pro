@@ -14,12 +14,14 @@ from datetime import datetime
 
 from PyQt6.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QCheckBox
 from PyQt6.QtGui import QAction
+from PyQt6.QtCore import QThread, pyqtSignal
 
 # ----------------------------- APP MODULES ---------------------------------------
 from app.state.session_state import SessionState
 from core.history.history_manager import HistoryManager
 from app.ui.tailoring_history_window import TailoringHistoryWindow, HISTORY_FILE
 from app.ui.main_window_ui import Ui_MainWindow
+from app.ui.dialogs.loading_dialog import LoadingDialog
 from services.auth_manager import auth
 import services.theme_manager as tm_module
 
@@ -36,6 +38,33 @@ from core.uploader.supabase_uploader import upload_resume
 
 # UTILS
 from core.history.utils import extract_company_role
+
+
+class TailoringWorker(QThread):
+    """Worker thread for AI tailoring to avoid freezing the UI."""
+
+    finished = pyqtSignal(str)  # Emits the tailored resume text
+    error = pyqtSignal(str)  # Emits error message if something fails
+
+    def __init__(self, tailor_engine, resume_text, job_text, settings):
+        super().__init__()
+        self.tailor_engine = tailor_engine
+        self.resume_text = resume_text
+        self.job_text = job_text
+        self.settings = settings
+
+    def run(self):
+        """Run the tailoring in a background thread."""
+        try:
+            tailored = self.tailor_engine.generate(
+                self.resume_text,
+                self.job_text,
+                limit_pages=self.settings.limit_pages,
+                limit_one_page=self.settings.limit_one_page,
+            )
+            self.finished.emit(tailored)
+        except Exception as e:
+            self.error.emit(str(e))
 
 
 class MainWindow(QMainWindow):
@@ -195,6 +224,8 @@ class MainWindow(QMainWindow):
         self.ui.btnTailor.clicked.connect(self.tailor_resume)
         self.ui.btnFetchJob.clicked.connect(self.fetch_job_description)
         self.ui.resumePicker.fileSelected.connect(self.load_resume_from_picker)
+        self.ui.btnExport.clicked.connect(lambda: self.export_resume("docx"))
+        self.ui.btnExportPDF.clicked.connect(lambda: self.export_resume("pdf"))
 
     # =====================================================================
     # RESUME LOADING
@@ -255,27 +286,62 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Error", "Provide a job description.")
             return
 
-        # Settings from panel
-        settings = self.ui.settingsPanel.get_settings()  # more explicit method
+        # Get settings
+        settings = self.ui.settingsPanel.get_settings()
 
-        tailored = self.tailor_engine.generate(
-            self.state.resume_text,
-            self.state.job_text,
-            limit_pages=settings.limit_pages,
-            limit_one_page=settings.limit_one_page,
+        # Show loading dialog
+        self.loading_dialog = LoadingDialog("Tailoring your resume with AI", self)
+
+        # Create worker thread
+        self.worker = TailoringWorker(
+            self.tailor_engine, self.state.resume_text, self.state.job_text, settings
         )
 
-        self.state.tailored_text = tailored
-        self.ui.outputPreview.setPlainText(tailored)
+        # Connect signals
+        self.worker.finished.connect(self._on_tailoring_finished)
+        self.worker.error.connect(self._on_tailoring_error)
 
+        # Start the worker and show loading
+        self.worker.start()
+        self.loading_dialog.exec()
+
+    def _on_tailoring_finished(self, tailored_text):
+        """Called when tailoring completes successfully."""
+        self.state.tailored_text = tailored_text
+
+        # Update both outputs
+        self.ui.outputPanel.setText(tailored_text)
+        self.ui.outputPreview.setPlainText(tailored_text)
+
+        # Close loading dialog
+        self.loading_dialog.close()
+
+        # Save to history
         self.save_history()
+
+        # Show success message
+        QMessageBox.information(
+            self, "Success", "Your resume has been tailored successfully!"
+        )
+
+    def _on_tailoring_error(self, error_message):
+        """Called if tailoring fails."""
+        self.loading_dialog.close()
+
+        QMessageBox.critical(
+            self,
+            "Tailoring Failed",
+            f"An error occurred while tailoring your resume:\n\n{error_message}",
+        )
 
     # =====================================================================
     # EXPORT
     # =====================================================================
     def export_resume(self, format_type):
+        # Get text from the raw editor (bottom), not the formatted preview
+        tailored_text = self.ui.outputPreview.toPlainText().strip()
 
-        if not self.state.tailored_text:
+        if not tailored_text:
             QMessageBox.warning(self, "Error", "Nothing to export.")
             return
 
@@ -294,9 +360,9 @@ class MainWindow(QMainWindow):
 
         try:
             if ext == "pdf":
-                export_to_pdf(self.state.tailored_text, path)
+                export_to_pdf(tailored_text, path)
             else:
-                export_to_docx(self.state.tailored_text, path)
+                export_to_docx(tailored_text, path)
 
             QMessageBox.information(self, "Success", f"Exported as {ext.upper()}!")
         except Exception as e:
@@ -369,7 +435,7 @@ class MainWindow(QMainWindow):
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
 
-        if confirm != QMessageBox.Yes:
+        if confirm != QMessageBox.StandardButton.Yes:
             return
 
         self.state = SessionState()
