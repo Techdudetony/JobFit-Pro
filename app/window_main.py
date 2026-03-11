@@ -438,9 +438,8 @@ class MainWindow(QMainWindow):
         self.ui.outputPreview.setPlainText(self.tailored_text)
 
         # ATS score
-        overlap = keyword_overlap(self.job_text, self.tailored_text)
-        score = min(100, len(overlap) * 2)
-        self.ui.outputPanel.setScore(score)
+        ats_result = keyword_overlap(self.job_text, self.tailored_text)
+        self.ui.outputPanel.setScore(int(ats_result["match_rate"]))
 
         self._set_loading_visible(False)
         self.ui.btnTailor.setEnabled(True)
