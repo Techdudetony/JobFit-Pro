@@ -5,14 +5,6 @@ SettingsPanel — JobFit Pro
 Provides user-adjustable tailoring preferences shown in the left column
 of the main UI. Produces a clean SettingsResult object for the
 MainWindow controller.
-
-Originally had multiple issues:
-- Missing get_settings()
-- Duplicated dictionary keys
-- Incorrect checkbox attribute names
-- No structured settings object
-
-This corrected version resolves all issues.
 """
 
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QCheckBox, QGroupBox, QFormLayout
@@ -41,7 +33,7 @@ class SettingsResult:
         self.keep_length = keep_length
         self.limit_pages = limit_pages
         self.limit_one = limit_one
-        self.limit_one_page = limit_one
+        self.limit_one_page = limit_one  # alias for tailor_engine compatibility
         self.ats_friendly = ats_friendly
 
 
@@ -64,29 +56,12 @@ class SettingsPanel(QWidget):
         self.chk_ats_friendly = QCheckBox("ATS-friendly formatting")
         self.chk_ats_friendly.setChecked(True)
 
-<<<<<<< HEAD
-        inner.addWidget(self.chk_focus_keywords)
-        inner.addWidget(self.chk_keep_length)
-        inner.addWidget(self.chk_limit_pages)
-        inner.addWidget(self.chk_limit_one)
-        inner.addWidget(self.chk_ats_friendly)
-        inner.addStretch()
-        
-        # Make page limit checkboxes mutually exclusive
-        self.chk_limit_pages.toggled.connect(
-            lambda checked: self.chk_limit_one.setEnabled(not checked)
-        )
-        self.chk_limit_one.toggled.connect(
-            lambda checked: self.chk_limit_pages.setEnabled(not checked)
-        )
-=======
         # Add in form layout
         form.addRow(self.chk_focus_keywords)
         form.addRow(self.chk_keep_length)
         form.addRow(self.chk_limit_pages)
         form.addRow(self.chk_limit_one)
         form.addRow(self.chk_ats_friendly)
->>>>>>> de3b892959d22a9ace277e0b716d2ffd3b568763
 
         outer.addWidget(group)
 
@@ -104,10 +79,6 @@ class SettingsPanel(QWidget):
 
     # ---------------------------------------------------------
     def get_settings(self) -> SettingsResult:
-        """
-        Returns a structured SettingsResult object used
-        by the MainWindow controller.
-        """
         return SettingsResult(
             focus_keywords=self.chk_focus_keywords.isChecked(),
             keep_length=self.chk_keep_length.isChecked(),
@@ -116,7 +87,6 @@ class SettingsPanel(QWidget):
             ats_friendly=self.chk_ats_friendly.isChecked(),
         )
 
-    # OPTIONAL — your controller no longer uses this, but provided for completeness
     def to_dict(self) -> dict:
         return {
             "focus_keywords": self.chk_focus_keywords.isChecked(),

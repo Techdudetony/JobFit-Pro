@@ -110,7 +110,7 @@ class TailoringHistoryWindow(QDialog):
     # Load All Entries
     # ============================================================
     def load_history(self):
-        self.table.blockSignals(True)  # Prevent itemChanged spam
+        self.table.blockSignals(True)
         self.table.setRowCount(0)
 
         if not os.path.exists(HISTORY_FILE):
@@ -154,7 +154,7 @@ class TailoringHistoryWindow(QDialog):
         # -------------------- File Link -------------------
         item_file = QTableWidgetItem("Open Resume" if file_link else "")
         item_file.setData(Qt.ItemDataRole.UserRole, file_link)
-        item_file.setForeground(QColor("#54AED5"))  # Brand primary
+        item_file.setForeground(QColor("#54AED5"))
         item_file.setFlags(Qt.ItemFlag.ItemIsEnabled)
         self.table.setItem(row, 2, item_file)
 
@@ -172,11 +172,6 @@ class TailoringHistoryWindow(QDialog):
         trash_path = os.path.join(ASSETS, "trash.svg")
 
         btn_delete = QPushButton()
-<<<<<<< HEAD
-        btn_delete.setIcon(QIcon.fromTheme("edit-delete"))
-        btn_delete.setToolTip("Delete this entry")
-        btn_delete.clicked.connect(lambda _, btn=btn_delete: self._delete_by_button(btn))
-=======
         if os.path.exists(trash_path):
             btn_delete.setIcon(QIcon(trash_path))
         else:
@@ -184,7 +179,6 @@ class TailoringHistoryWindow(QDialog):
 
         btn_delete.setFixedSize(28, 28)
         btn_delete.clicked.connect(lambda _, r=row: self.delete_row(r))
->>>>>>> de3b892959d22a9ace277e0b716d2ffd3b568763
 
         wrapper = QWidget()
         wlayout = QHBoxLayout(wrapper)
@@ -210,12 +204,10 @@ class TailoringHistoryWindow(QDialog):
         if not link:
             return
 
-        # Supabase or HTTPS URL
         if link.startswith("http://") or link.startswith("https://"):
             QDesktopServices.openUrl(QUrl(link))
             return
 
-        # Local file
         if os.path.exists(link):
             QDesktopServices.openUrl(QUrl.fromLocalFile(link))
         else:
@@ -230,31 +222,18 @@ class TailoringHistoryWindow(QDialog):
         row = item.row()
         col = item.column()
 
-        if col not in (0, 1, 3):  # Only editable fields
+        if col not in (0, 1, 3):
             return
 
-<<<<<<< HEAD
-        QDesktopServices.openUrl(QUrl.fromLocalFile(value))
-        
-    def _delete_by_button(self, btn: QPushButton):
-        """Find which row the clicked delete button belongs to, then delete it."""
-        for row in range(self.table.rowCount()):
-            widget = self.table.cellWidget(row, 3)
-            if widget and widget.findChild(QPushButton) is btn:
-                self.delete_row(row)
-                break
-=======
         try:
             with open(HISTORY_FILE, "r", encoding="utf-8") as f:
                 history = json.load(f)
         except Exception:
             return
->>>>>>> de3b892959d22a9ace277e0b716d2ffd3b568763
 
         if row >= len(history):
             return
 
-        # Apply edits
         if col == 0:
             history[row]["company"] = item.text()
         elif col == 1:
@@ -262,14 +241,11 @@ class TailoringHistoryWindow(QDialog):
         elif col == 3:
             history[row]["timestamp"] = item.text()
 
-        # Update last modified timestamp
         history[row]["last_updated"] = datetime.now().isoformat()
 
-        # Save
         with open(HISTORY_FILE, "w", encoding="utf-8") as f:
             json.dump(history, f, indent=4)
 
-        # Update UI column
         updated_item = QTableWidgetItem(history[row]["last_updated"])
         updated_item.setFlags(updated_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
         self.table.setItem(row, 4, updated_item)
@@ -296,7 +272,6 @@ class TailoringHistoryWindow(QDialog):
 
         if row < len(history):
             del history[row]
-
             with open(HISTORY_FILE, "w", encoding="utf-8") as f:
                 json.dump(history, f, indent=4)
 

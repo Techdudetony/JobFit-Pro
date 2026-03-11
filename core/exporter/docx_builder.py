@@ -61,7 +61,6 @@ def export_to_docx(text: str, output_path: str):
     # Bullet Style
     # -------------------------------------------
     bullet_style_name = "List Bullet"
-    # FIXED: Use try/except instead of .get()
     try:
         bullet_style = styles[bullet_style_name]
     except KeyError:
@@ -69,12 +68,6 @@ def export_to_docx(text: str, output_path: str):
 
     # -------------------------------------------
     # Helper Functions
-<<<<<<< HEAD
-    def is_section_heading(line: str) -> bool:
-        # Heuristic: Short, mostly uppercase, not ending with a period.
-        stripped = line.strip()
-        if not stripped:
-=======
     # -------------------------------------------
     COMMON_SECTION_NAMES = {
         "experience",
@@ -91,18 +84,17 @@ def export_to_docx(text: str, output_path: str):
     }
 
     def is_section_heading(line: str) -> bool:
-        """Identify headings using heuristics"""
+        """Identify headings using heuristics."""
         cleaned = line.strip()
 
         if not cleaned or len(cleaned) > 60:
->>>>>>> de3b892959d22a9ace277e0b716d2ffd3b568763
             return False
 
-        # Exact matches or close matches with common headings
+        # Exact matches with common section names
         if cleaned.lower() in COMMON_SECTION_NAMES:
             return True
 
-        # If 60%+ uppercase letters ... treat as a heading
+        # If 60%+ uppercase letters, treat as a heading
         letters = [char for char in cleaned if char.isalpha()]
         if letters:
             if sum(char.isupper() for char in letters) / len(letters) > 0.6:
@@ -123,7 +115,7 @@ def export_to_docx(text: str, output_path: str):
         stripped = line.lstrip()
         for prefix in ("- ", "• ", "* ", "– ", "— ", "-", "•", "*", "–", "—"):
             if stripped.startswith(prefix):
-                return stripped[len(prefix) :].strip()
+                return stripped[len(prefix):].strip()
         return stripped
 
     # -------------------------------------------
@@ -147,29 +139,20 @@ def export_to_docx(text: str, output_path: str):
         last_was_blank = False
         stripped = line.strip()
 
-<<<<<<< HEAD
-        # Section heading?
-        if is_section_heading(stripped):
-            p = doc.add_paragraph(stripped)
-            p.style = heading_style
-=======
         # Headings
         if is_section_heading(stripped):
             para = doc.add_paragraph(stripped)
             para.style = heading_style
             last_was_bullet = False
->>>>>>> de3b892959d22a9ace277e0b716d2ffd3b568763
             continue
 
         # Bullet
         if is_bullet(stripped):
             bullet_text = clean_bullet_text(stripped)
-            # FIXED: Check if style exists before using
             try:
                 para = doc.add_paragraph(bullet_text, style=bullet_style_name)
             except KeyError:
                 para = doc.add_paragraph(bullet_text)
-                # Manually format as bullet if style doesn't exist
                 para.style = normal_style
             last_was_bullet = True
             continue

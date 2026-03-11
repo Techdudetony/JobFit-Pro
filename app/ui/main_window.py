@@ -22,7 +22,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 
 from app.components.file_picker import FilePicker
-from app.components.output_panel import OutPutPanel
+from app.components.output_panel import OutputPanel
 from app.components.settings_panel import SettingsPanel
 
 
@@ -147,7 +147,7 @@ class Ui_MainWindow(object):
         output_group_layout = QVBoxLayout(output_group)
 
         # Custom component
-        self.outputPanel = OutPutPanel(parent=output_group)
+        self.outputPanel = OutputPanel(parent=output_group)
         self.outputPanel.setObjectName("outputPanel")
 
         # Expose text edit for MainWindow logic

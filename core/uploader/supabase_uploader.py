@@ -6,15 +6,12 @@ Uploads resumes to:
     resumes/users/<user_id>/<uuid>.<ext>
 
 Returns:
-    A signer URL valid for 7 dyas, or None on failure.
+    A signed URL valid for 7 days, or None on failure.
 """
 
 import os
 from uuid import uuid4
-<<<<<<< HEAD
-=======
 
->>>>>>> de3b892959d22a9ace277e0b716d2ffd3b568763
 from services.supabase_client import supabase
 from services.auth_manager import auth
 
@@ -62,28 +59,24 @@ def upload_resume(file_path: str) -> str | None:
             file_options={"content-type": mime_type},
         )
 
-<<<<<<< HEAD
-=======
-        # API variant 1: Returns dict
+        # Handle error response (dict-style API)
         if isinstance(result, dict) and result.get("error"):
             print("[UPLOAD FAILED]", result["error"])
             return None
 
         # 5. Create a signed URL (valid 7 days)
->>>>>>> de3b892959d22a9ace277e0b716d2ffd3b568763
         signed = supabase.storage.from_(BUCKET_NAME).create_signed_url(
             storage_key,
             expires_in=60 * 60 * 24 * 7,
         )
 
-<<<<<<< HEAD
-        return signed.signed_url
-=======
+        # Handle both Supabase client response styles
+        if hasattr(signed, "signed_url"):
+            return signed.signed_url
         if isinstance(signed, dict):
             return signed.get("signedURL")
 
         return None
->>>>>>> de3b892959d22a9ace277e0b716d2ffd3b568763
 
     except Exception as e:
         print("[UPLOAD EXCEPTION]", e)

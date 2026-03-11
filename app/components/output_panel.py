@@ -7,6 +7,7 @@ Displays a beautifully formatted preview of the tailored resume with:
 - Proper spacing and typography
 - Read-only formatted view
 - Copy-to-clipboard functionality
+- ATS match score bar
 """
 
 from PyQt6.QtWidgets import (
@@ -19,12 +20,8 @@ from PyQt6.QtWidgets import (
     QApplication,
     QProgressBar,
 )
-<<<<<<< HEAD
 from PyQt6.QtCore import Qt, QTimer
-=======
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont, QTextCharFormat, QTextCursor, QColor
->>>>>>> de3b892959d22a9ace277e0b716d2ffd3b568763
+from PyQt6.QtGui import QFont, QTextCursor
 
 
 class OutputPanel(QWidget):
@@ -50,8 +47,10 @@ class OutputPanel(QWidget):
         header_layout.addWidget(self.btnCopy)
 
         main_layout.addLayout(header_layout)
-        
-        # Score Row
+
+        # -----------------------------------------------------------
+        # ATS SCORE ROW
+        # -----------------------------------------------------------
         score_row = QHBoxLayout()
         self.score_label = QLabel("ATS Match Score:", self)
         self.score_bar = QProgressBar(self)
@@ -67,11 +66,10 @@ class OutputPanel(QWidget):
         # -----------------------------------------------------------
         # FORMATTED TEXT AREA (READ-ONLY PREVIEW)
         # -----------------------------------------------------------
-        self.text_edit = QTextEdit(self)  # Changed from QPlainTextEdit for rich text
+        self.text_edit = QTextEdit(self)
         self.text_edit.setReadOnly(True)
         self.text_edit.setPlaceholderText("Your tailored resume will appear here...")
 
-        # Set a clean, professional font
         font = QFont("Calibri", 11)
         self.text_edit.setFont(font)
 
@@ -91,10 +89,7 @@ class OutputPanel(QWidget):
 
     # -----------------------------------------------------------------------------------
     def _format_resume_text(self, text: str) -> str:
-        """
-        Convert plain resume text to HTML with nice formatting.
-        Detects headers, bullet points, and applies styling.
-        """
+        """Convert plain resume text to HTML with nice formatting."""
         if not text:
             return ""
 
@@ -103,22 +98,11 @@ class OutputPanel(QWidget):
             '<html><body style="font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.6;">'
         ]
 
-        # Common section headers to detect
         section_keywords = {
-            "experience",
-            "work experience",
-            "professional experience",
-            "education",
-            "skills",
-            "summary",
-            "profile",
-            "objective",
-            "projects",
-            "certifications",
-            "achievements",
-            "leadership",
-            "technical skills",
-            "core competencies",
+            "experience", "work experience", "professional experience",
+            "education", "skills", "summary", "profile", "objective",
+            "projects", "certifications", "achievements", "leadership",
+            "technical skills", "core competencies",
         }
 
         for line in lines:
@@ -128,28 +112,26 @@ class OutputPanel(QWidget):
                 html_parts.append("<br>")
                 continue
 
-            # Check if it's a section header
             is_header = False
-            if len(stripped) < 60:  # Headers are usually short
-                # Check if it's in all caps or title case
+            if len(stripped) < 60:
                 if stripped.isupper() or stripped.istitle():
                     is_header = True
-                # Check if it matches known section names
                 if stripped.lower() in section_keywords:
                     is_header = True
 
             if is_header:
                 html_parts.append(
-                    f'<p style="margin-top: 16px; margin-bottom: 8px;"><b style="color: #54AED5; font-size: 12pt; text-transform: uppercase;">{stripped}</b></p>'
+                    f'<p style="margin-top: 16px; margin-bottom: 8px;">'
+                    f'<b style="color: #54AED5; font-size: 12pt; text-transform: uppercase;">'
+                    f'{stripped}</b></p>'
                 )
             elif stripped.startswith(("- ", "• ", "* ", "– ", "— ")):
-                # Bullet point
                 bullet_text = stripped[2:].strip() if len(stripped) > 2 else stripped
                 html_parts.append(
-                    f'<p style="margin-left: 20px; margin-top: 4px; margin-bottom: 4px;">• {bullet_text}</p>'
+                    f'<p style="margin-left: 20px; margin-top: 4px; margin-bottom: 4px;">'
+                    f'• {bullet_text}</p>'
                 )
             else:
-                # Regular text
                 html_parts.append(
                     f'<p style="margin-top: 4px; margin-bottom: 4px;">{stripped}</p>'
                 )
@@ -165,7 +147,6 @@ class OutputPanel(QWidget):
         formatted_html = self._format_resume_text(text)
         self.text_edit.setHtml(formatted_html)
 
-        # Scroll to top
         cursor = self.text_edit.textCursor()
         cursor.movePosition(QTextCursor.MoveOperation.Start)
         self.text_edit.setTextCursor(cursor)
@@ -173,15 +154,16 @@ class OutputPanel(QWidget):
     def toPlainText(self) -> str:
         """Get the plain text content."""
         return self.text_edit.toPlainText()
-    
+
     def setScore(self, score: int) -> None:
+        """Update the ATS match score bar with color coding."""
         self.score_bar.setValue(score)
         if score >= 75:
-            color = "#22c55e"
+            color = "#22c55e"  # green
         elif score >= 50:
-            color = "#f59e0b"
+            color = "#f59e0b"  # amber
         else:
-            color = "#ef4444"
+            color = "#ef4444"  # red
         self.score_bar.setStyleSheet(
-            f"QProgressBar::chunk {{ background-color: {color}; border-radius:4px; }}"
+            f"QProgressBar::chunk {{ background-color: {color}; border-radius: 4px; }}"
         )
