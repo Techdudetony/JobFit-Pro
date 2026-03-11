@@ -22,7 +22,6 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 
 from app.components.file_picker import FilePicker
-    # Exposes: FilePicker.button → browse button
 from app.components.output_panel import OutPutPanel
 from app.components.settings_panel import SettingsPanel
 
@@ -130,9 +129,7 @@ class Ui_MainWindow(object):
 
         resume_group_layout = QVBoxLayout(resume_group)
         self.resumePreview = QPlainTextEdit(resume_group)
-        self.resumePreview.setPlaceholderText(
-            "Loaded resume text will appear here..."
-        )
+        self.resumePreview.setPlaceholderText("Loaded resume text will appear here...")
         self.resumePreview.setObjectName("resumePreview")
         resume_group_layout.addWidget(self.resumePreview)
 

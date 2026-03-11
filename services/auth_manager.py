@@ -1,103 +1,225 @@
-# services/auth_manager.py
 """
 AuthManager
------------
-Thin wrapper around Supabase auth for the desktop app.
+------------------------
 
-- Keeps track of the current session and user in this process
-- Provides sign_up / sign_in / sign_out helpers
-- Exposes a shared singleton: `auth`
+Centralized wrapper around Supabase authentication.
+Ensures ALL authentication functions return a consistent structure:
+
+    (user_object, error_message or None)
+
+This keeps the AuthModal clean and predictable.
+
+Handles:
+- Sign Up
+- Sign In
+- Sign Out
+- Session tracking
+- Remember Me (secure token storage)
 """
 
-from typing import Optional
-from supabase import Client
+from typing import Optional, Tuple
+import keyring
+import json
 from services.supabase_client import supabase
+
+# Keyring service name for secure storage
+SERVICE_NAME = "JobFitPro"
+CREDENTIALS_KEY = "saved_session"
 
 
 class AuthManager:
-    """
-    Small stateful wrapper around `supabase.auth`.
-
-    Important:
-    - We rely on a single global instance `auth` (see bottom of file).
-    - All parts of the app (AuthModal, MainWindow, etc.) must import
-      and use this SAME instance for sign-in state to be shared.
-    """
-
-    def __init__(self) -> None:
-        # Current Supabase session + user for this running app
+    def __init__(self):
+        # Track authenticated session + user
         self.session = None
         self.user = None
 
-    # ------------------------------------------------------------------
-    # Sign Up
-    # ------------------------------------------------------------------
-    def sign_up(self, email: str, password: str):
+    # ==================================================================
+    # SIGN UP
+    # ==================================================================
+    def sign_up(
+        self, email: str, password: str
+    ) -> Tuple[Optional[object], Optional[str]]:
         """
-        Registers a new Supabase user account.
+        Registers a new user account with Supabase.
 
         Returns:
-            The Supabase response object (with `.user`, `.session`, etc).
+            (user, None) on success
+            (None, error_message) on failure
+
+        NOTE:
+        Supabase may require email confirmation depending on project settings.
         """
-        response = supabase.auth.sign_up({"email": email, "password": password})
+        try:
+            res = supabase.auth.sign_up({"email": email, "password": password})
 
-        # We typically do NOT store session on sign-up because some
-        # projects require email verification before login.
-        return response
+            user = getattr(res, "user", None)
+            error = getattr(res, "error", None)
 
-    # ------------------------------------------------------------------
-    # Sign In
-    # ------------------------------------------------------------------
-    def sign_in(self, email: str, password: str):
+            return user, error
+        except Exception as e:
+            # Surface meaningful errors to AuthModal
+            return None, str(e)
+
+    # ==================================================================
+    # SIGN IN
+    # ==================================================================
+    def sign_in(
+        self, email: str, password: str, remember_me: bool = False
+    ) -> Tuple[Optional[object], Optional[str]]:
         """
-        Logs in an existing user via email + password.
+        Logs in using email/password.
 
-        On success:
-            - self.session is set
-            - self.user is set
+        Args:
+            email: User's email
+            password: User's password
+            remember_me: If True, saves session tokens for auto-login
+
         Returns:
-            The Supabase response object.
+            (user, None) on success
+            (None, error_message) on failure
         """
-        response = supabase.auth.sign_in_with_password(
-            {"email": email, "password": password}
-        )
+        try:
+            res = supabase.auth.sign_in_with_password(
+                {"email": email, "password": password}
+            )
+        except Exception as e:
+            return None, str(e)
 
-        # New supabase-py returns objects with .user and .session properties
-        self.session = getattr(response, "session", None)
-        self.user = getattr(response, "user", None)
+        # Extract session / user from response
+        session = getattr(res, "session", None)
+        user = getattr(res, "user", None)
 
+        # Some Supabase Python client versions nest the user inside session
+        if session and getattr(session, "user", None):
+            user = session.user
 
-        return response
+        error = getattr(res, "error", None)
 
-    # ------------------------------------------------------------------
-    # Current user
-    # ------------------------------------------------------------------
+        # Cache state internally
+        self.session = session
+        self.user = user
+
+        # CRITICAL FIX: Set the session token on the Supabase client
+        # This ensures storage operations use the authenticated user's credentials
+        if session and hasattr(session, "access_token"):
+            supabase.auth.set_session(session.access_token, session.refresh_token)
+
+            # Save session if "Remember Me" is enabled
+            if remember_me:
+                self._save_session(session)
+
+        return user, error
+
+    # ==================================================================
+    # REMEMBER ME - Session Storage
+    # ==================================================================
+    def _save_session(self, session):
+        """Securely save session tokens using keyring."""
+        try:
+            session_data = {
+                "access_token": session.access_token,
+                "refresh_token": session.refresh_token,
+            }
+            keyring.set_password(
+                SERVICE_NAME, CREDENTIALS_KEY, json.dumps(session_data)
+            )
+            print("[AUTH] Session saved for Remember Me")
+        except Exception as e:
+            print(f"[AUTH] Failed to save session: {e}")
+
+    def load_saved_session(self) -> Tuple[Optional[object], Optional[str]]:
+        """
+        Attempt to restore a saved session.
+
+        Returns:
+            (user, None) on success
+            (None, error_message) on failure
+        """
+        try:
+            # Retrieve saved session data
+            saved_data = keyring.get_password(SERVICE_NAME, CREDENTIALS_KEY)
+            if not saved_data:
+                return None, "No saved session found"
+
+            session_data = json.loads(saved_data)
+            access_token = session_data.get("access_token")
+            refresh_token = session_data.get("refresh_token")
+
+            if not access_token or not refresh_token:
+                return None, "Invalid session data"
+
+            # Restore session with Supabase
+            supabase.auth.set_session(access_token, refresh_token)
+
+            # Get current user
+            response = supabase.auth.get_user()
+            user = getattr(response, "user", None)
+
+            if not user:
+                # Session expired or invalid
+                self.clear_saved_session()
+                return None, "Session expired"
+
+            # Update internal state
+            self.user = user
+            self.session = response
+
+            print(f"[AUTH] Successfully restored session for {user.email}")
+            return user, None
+
+        except Exception as e:
+            print(f"[AUTH] Failed to restore session: {e}")
+            self.clear_saved_session()
+            return None, str(e)
+
+    def clear_saved_session(self):
+        """Remove saved session credentials."""
+        try:
+            keyring.delete_password(SERVICE_NAME, CREDENTIALS_KEY)
+            print("[AUTH] Saved session cleared")
+        except keyring.errors.PasswordDeleteError:
+            # No saved session to delete
+            pass
+        except Exception as e:
+            print(f"[AUTH] Error clearing session: {e}")
+
+    def has_saved_session(self) -> bool:
+        """Check if there's a saved session available."""
+        try:
+            saved_data = keyring.get_password(SERVICE_NAME, CREDENTIALS_KEY)
+            return saved_data is not None
+        except:
+            return False
+
+    # ==================================================================
     def get_user(self):
-        """
-        Returns the currently authenticated Supabase user object, or None.
-        We keep this in memory only for this app run.
-        """
+        """Returns the currently authenticated user (or None)."""
         return self.user
 
-    # ------------------------------------------------------------------
-    # Sign out
-    # ------------------------------------------------------------------
-    def sign_out(self):
+    # ==================================================================
+    def get_session(self):
+        """Returns the current session (or None)."""
+        return self.session
+
+    # ==================================================================
+    def sign_out(self, clear_remember_me: bool = True):
         """
-        Clears Supabase session on the server side (if supported) and
-        wipes our local session/user state.
+        Logs out and clears local session tracking.
+
+        Args:
+            clear_remember_me: If True, also clears saved session
         """
         try:
             supabase.auth.sign_out()
         except Exception as e:
-            # Not fatal; just log it and clear local state
             print("Supabase sign_out error:", e)
 
         self.session = None
         self.user = None
 
+        if clear_remember_me:
+            self.clear_saved_session()
 
-# ----------------------------------------------------------------------
-# Shared singleton instance used across the app
-# ----------------------------------------------------------------------
+
+# Singleton instance used throughout the application
 auth = AuthManager()

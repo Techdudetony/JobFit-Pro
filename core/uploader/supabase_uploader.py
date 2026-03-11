@@ -1,12 +1,20 @@
 """
-Uploads resumes to Supabase Storage inside:
-resumes/users/<user_id>/<uuid>.docx
+Supabase Resume Uploader
+--------------------------------------
 
-Returns a signed URL valid for 7 days.
+Uploads resumes to:
+    resumes/users/<user_id>/<uuid>.<ext>
+
+Returns:
+    A signer URL valid for 7 dyas, or None on failure.
 """
 
 import os
 from uuid import uuid4
+<<<<<<< HEAD
+=======
+
+>>>>>>> de3b892959d22a9ace277e0b716d2ffd3b568763
 from services.supabase_client import supabase
 from services.auth_manager import auth
 
@@ -16,59 +24,66 @@ BUCKET_NAME = "resumes"
 def upload_resume(file_path: str) -> str | None:
     """
     Uploads a resume for the authenticated user.
-    Creates a structured folder:
-        resumes/users/<user_id>/<uuid>.docx
-
-    Returns:
-        str | None — a signed URL (valid 7 days) or None on fail.
+    Returns a signed URL (valid 7 days) or None.
     """
 
-    # ------------------------------------------------------------
-    # 1. Validate authenticated user
-    # ------------------------------------------------------------
+    # 1. Validate the user
     user = auth.get_user()
     if not user:
         print("[UPLOAD ERROR] No authenticated user.")
         return None
 
-    user_id = user.id  # Ensure this matches AuthManager's return type
+    user_id = user.id
 
-    # ------------------------------------------------------------
-    # 2. Prepare file path + MIME type
-    # ------------------------------------------------------------
-    ext = os.path.splitext(file_path)[1]
+    # 2. Validate the file
+    if not os.path.isfile(file_path):
+        print(f"[UPLOAD ERROR] File not found: {file_path}")
+        return None
+
+    ext = os.path.splitext(file_path)[1].lower()
     uuid_name = f"{uuid4()}{ext}"
     storage_key = f"users/{user_id}/{uuid_name}"
 
-    # Auto-detect content type
     mime_type = (
         "application/pdf"
-        if ext.lower() == ".pdf"
+        if ext == ".pdf"
         else "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     )
 
     try:
-        # ------------------------------------------------------------
-        # 3. Read file contents
-        # ------------------------------------------------------------
-        with open(file_path, "rb") as f:
-            data = f.read()
+        # 3. Read file data
+        with open(file_path, "rb") as file:
+            data = file.read()
 
-        # ------------------------------------------------------------
-        # 4. Upload to Supabase Storage
-        # ------------------------------------------------------------
+        # 4. Upload file
         result = supabase.storage.from_(BUCKET_NAME).upload(
             storage_key,
             data,
             file_options={"content-type": mime_type},
         )
 
+<<<<<<< HEAD
+=======
+        # API variant 1: Returns dict
+        if isinstance(result, dict) and result.get("error"):
+            print("[UPLOAD FAILED]", result["error"])
+            return None
+
+        # 5. Create a signed URL (valid 7 days)
+>>>>>>> de3b892959d22a9ace277e0b716d2ffd3b568763
         signed = supabase.storage.from_(BUCKET_NAME).create_signed_url(
             storage_key,
             expires_in=60 * 60 * 24 * 7,
         )
 
+<<<<<<< HEAD
         return signed.signed_url
+=======
+        if isinstance(signed, dict):
+            return signed.get("signedURL")
+
+        return None
+>>>>>>> de3b892959d22a9ace277e0b716d2ffd3b568763
 
     except Exception as e:
         print("[UPLOAD EXCEPTION]", e)

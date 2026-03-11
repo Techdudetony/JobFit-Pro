@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /* ===========================================================
    JOBFIT PRO — LIGHT THEME  (PRIMARY: #54AED5)
    Mirrors every selector in app_dark.qss
@@ -456,3 +457,304 @@ QToolTip {
     padding: 4px 8px;
     font-size: 9pt;
 }
+=======
+/* ===========================================================
+   JOBFIT PRO – LIGHT THEME (PRIMARY: #54AED5)
+   =========================================================== */
+
+QMainWindow {
+    background-color: #FFFFFF;
+    color: #1E293B;
+    font-family: "Segoe UI", sans-serif;
+    font-size: 10pt;
+}
+
+QLabel {
+    color: #1E293B;
+}
+
+/* Panel Headers */
+QLabel[panelTitle="true"] {
+    font-weight: 600;
+    font-size: 11pt;
+    color: #2C7392;
+}
+
+/* ===========================================================
+   TEXT INPUTS
+   =========================================================== */
+
+QLineEdit,
+QPlainTextEdit {
+    background-color: #F8FAFC;
+    border: 1px solid #CBD5E1;
+    border-radius: 6px;
+    padding: 6px;
+    color: #1E293B;
+}
+
+QLineEdit:hover,
+QPlainTextEdit:hover {
+    border: 1px solid #54AED5;
+}
+
+QLineEdit:focus,
+QPlainTextEdit:focus {
+    border: 2px solid #54AED5;
+}
+
+/* ===========================================================
+   PRIMARY BUTTONS
+   =========================================================== */
+
+QPushButton {
+    background-color: #54AED5;
+    color: #FFFFFF;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-weight: 600;
+}
+
+QPushButton:hover {
+    background-color: #3D93BB;
+}
+
+QPushButton:pressed {
+    background-color: #2C7392;
+}
+
+QPushButton:disabled {
+    background-color: #E2E8F0;
+    color: #94A3B8;
+}
+
+/* Variant buttons (panel buttons) */
+QPushButton[panelButton="true"] {
+    background-color: #F8FAFC;
+    color: #1E293B;
+    border: 1px solid #CBD5E1;
+}
+
+QPushButton[panelButton="true"]:hover {
+    border-color: #54AED5;
+}
+
+/* ===========================================================
+   GROUP BOXES
+   =========================================================== */
+
+QGroupBox {
+    border: 1px solid #CBD5E1;
+    border-radius: 8px;
+    margin-top: 10px;
+    padding-top: 18px;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 10px;
+    padding: 0 4px;
+    color: #475569;
+}
+
+/* GroupBox Checkboxes */
+QGroupBox QCheckBox {
+    color: #1E293B;
+    font-weight: 500;
+}
+
+QGroupBox QCheckBox::indicator,
+QCheckBox::indicator {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 1px solid #CBD5E1;
+    background-color: #FFFFFF;
+}
+
+QGroupBox QCheckBox::indicator:hover,
+QCheckBox::indicator:hover {
+    border-color: #54AED5;
+}
+
+QGroupBox QCheckBox::indicator:checked,
+QCheckBox::indicator:checked {
+    background-color: #54AED5;
+    border-color: #54AED5;
+}
+
+/* ===========================================================
+   MENU BAR
+   =========================================================== */
+
+QMenuBar {
+    background-color: #F8FAFC;
+    color: #1E293B;
+    padding: 4px 8px;
+    font-size: 12pt;
+}
+
+QMenuBar::item {
+    padding: 6px 12px;
+    margin: 2px;
+    color: #1E293B;
+}
+
+QMenuBar::item:selected {
+    background-color: #E2E8F0;
+    border-radius: 6px;
+}
+
+/* Menu dropdowns */
+QMenu {
+    background-color: #FFFFFF;
+    color: #1E293B;
+    border: 1px solid #CBD5E1;
+    padding: 6px;
+}
+
+QMenu::item {
+    padding: 6px 18px;
+}
+
+QMenu::item:selected {
+    background-color: #E2E8F0;
+    border-radius: 4px;
+}
+
+/* ===========================================================
+   FILE PICKER
+   =========================================================== */
+
+QLineEdit[filePicker="true"] {
+    background-color: #F8FAFC;
+    border: 1px solid #CBD5E1;
+}
+
+/* ===========================================================
+   AUTH MODAL
+   =========================================================== */
+
+QDialog#AuthModal {
+    background-color: #FFFFFF;
+    border-radius: 16px;
+}
+
+QLabel#auth-title {
+    color: #1E293B;
+    font-size: 22px;
+    font-weight: 600;
+}
+
+/* Auth Fields */
+QLineEdit[authField="true"] {
+    background-color: #F8FAFC;
+    border: 1px solid #CBD5E1;
+    border-radius: 8px;
+    padding: 10px;
+    color: #1E293B;
+}
+
+QLineEdit[authField="true"]:focus {
+    border: 2px solid #54AED5;
+}
+
+/* Auth Buttons */
+QPushButton[authPrimary="true"] {
+    background-color: #54AED5;
+    color: #FFFFFF;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 15px;
+}
+
+QPushButton[authPrimary="true"]:hover {
+    background-color: #3D93BB;
+}
+
+QPushButton[authLink="true"] {
+    background: transparent;
+    color: #EF4444;
+}
+
+QPushButton[authLink="true"]:hover {
+    color: #DC2626;
+    text-decoration: underline;
+}
+
+QPushButton[authIcon="true"] {
+    background-color: #54AED5;
+    border-radius: 6px;
+    padding: 6px;
+}
+
+QPushButton[authIcon="true"]:hover {
+    background-color: #3D93BB;
+}
+
+/* ===========================================================
+   REMEMBER ME CHECKBOX (AUTH MODAL)
+   =========================================================== */
+
+QCheckBox#rememberMeCheckbox {
+    color: #1E293B;
+    font-size: 11pt;
+    font-weight: 500;
+    spacing: 8px;
+}
+
+QCheckBox#rememberMeCheckbox::indicator {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border: 2px solid #CBD5E1;
+    background-color: #FFFFFF;
+}
+
+QCheckBox#rememberMeCheckbox::indicator:hover {
+    border-color: #54AED5;
+}
+
+QCheckBox#rememberMeCheckbox::indicator:checked {
+    background-color: #54AED5;
+    border-color: #54AED5;
+}
+
+/* ===========================================================
+   HISTORY TABLE
+   =========================================================== */
+
+QTableWidget#historyTable {
+    background-color: #FFFFFF;
+    alternate-background-color: #F8FAFC;
+    color: #1E293B;
+    border: 1px solid #CBD5E1;
+    gridline-color: #CBD5E1;
+}
+
+QTableWidget#historyTable::item:selected {
+    background-color: #E2E8F0;
+}
+
+/* ===========================================================
+   MESSAGE BOX
+   =========================================================== */
+
+QMessageBox {
+    background-color: #FFFFFF;
+}
+
+QMessageBox QLabel {
+    color: #1E293B;
+    background: transparent;
+}
+
+QMessageBox QPushButton {
+    background-color: #54AED5;
+    color: #FFFFFF;
+}
+
+QMessageBox QPushButton:hover {
+    background-color: #3D93BB;
+}
+>>>>>>> de3b892959d22a9ace277e0b716d2ffd3b568763

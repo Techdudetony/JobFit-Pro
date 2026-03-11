@@ -2,11 +2,190 @@
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
-  <property name="windowTitle">
-   <string>ResumeAlign</string>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1400</width>
+    <height>900</height>
+   </rect>
   </property>
-  <widget class="QWidget" name="centralwidget"/>
+  <property name="windowTitle">
+   <string>JobFit Pro</string>
+  </property>
+
+  <!-- ============================
+       CENTRAL WIDGET + MAIN LAYOUT
+       ============================ -->
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QHBoxLayout" name="mainLayout">
+    <property name="spacing">
+     <number>20</number>
+    </property>
+    <property name="margin">
+     <number>20</number>
+    </property>
+
+    <!-- ========================================================= -->
+    <!-- COLUMN 1 — JOB SECTION                                     -->
+    <!-- ========================================================= -->
+    <item>
+     <layout class="QVBoxLayout" name="col_job">
+      <property name="spacing">
+       <number>12</number>
+      </property>
+
+      <!-- Job URL input -->
+      <item>
+       <widget class="QLineEdit" name="inputJobURL">
+        <property name="placeholderText">
+         <string>Paste job URL here…</string>
+        </property>
+       </widget>
+      </item>
+
+      <!-- Fetch / Use Manual buttons -->
+      <item>
+       <layout class="QHBoxLayout" name="jobButtons">
+        <item>
+         <widget class="QPushButton" name="btnFetchJob">
+          <property name="text">
+           <string>Fetch Job</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btnUseManualJob">
+          <property name="text">
+           <string>Use Manual</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+
+      <!-- Job description preview -->
+      <item>
+       <widget class="QPlainTextEdit" name="jobPreview">
+        <property name="placeholderText">
+         <string>Fetched or manual job description will appear here…</string>
+        </property>
+       </widget>
+      </item>
+
+      <!-- Tailoring options panel -->
+      <item>
+       <widget class="SettingsPanel" name="settingsPanel"/>
+      </item>
+     </layout>
+    </item>
+
+    <!-- ========================================================= -->
+    <!-- COLUMN 2 — RESUME SECTION                                  -->
+    <!-- ========================================================= -->
+    <item>
+     <layout class="QVBoxLayout" name="col_resume">
+      <property name="spacing">
+       <number>12</number>
+      </property>
+
+      <!-- File picker -->
+      <item>
+       <widget class="FilePicker" name="resumePicker"/>
+      </item>
+
+      <!-- Resume preview -->
+      <item>
+       <widget class="QPlainTextEdit" name="resumePreview">
+        <property name="placeholderText">
+         <string>Resume text will appear here…</string>
+        </property>
+       </widget>
+      </item>
+
+      <!-- Tailor button -->
+      <item>
+       <widget class="QPushButton" name="btnTailor">
+        <property name="text">
+         <string>Tailor Resume</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+
+    <!-- ========================================================= -->
+    <!-- COLUMN 3 — OUTPUT SECTION                                  -->
+    <!-- ========================================================= -->
+    <item>
+     <layout class="QVBoxLayout" name="col_output">
+      <property name="spacing">
+       <number>12</number>
+      </property>
+
+      <!-- Output panel (your fancy wrapper, if used) -->
+      <item>
+       <widget class="OutputPanel" name="outputPanel"/>
+      </item>
+
+      <!-- Raw tailored text -->
+      <item>
+       <widget class="QPlainTextEdit" name="outputPreview">
+        <property name="placeholderText">
+         <string>Tailored resume text will appear here…</string>
+        </property>
+       </widget>
+      </item>
+
+      <!-- Export buttons -->
+      <item>
+       <layout class="QHBoxLayout" name="exportButtons">
+        <item>
+         <widget class="QPushButton" name="btnExport">
+          <property name="text">
+           <string>Export DOCX</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btnExportPDF">
+          <property name="text">
+           <string>Export PDF</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+
+   </layout>
+  </widget>
  </widget>
+
+ <!-- ============================
+      CUSTOM WIDGET REGISTRATION
+      ============================ -->
+ <customwidgets>
+  <customwidget>
+   <class>FilePicker</class>
+   <extends>QWidget</extends>
+   <header>app.components.file_picker</header>
+  </customwidget>
+
+  <customwidget>
+   <class>SettingsPanel</class>
+   <extends>QWidget</extends>
+   <header>app.components.settings_panel</header>
+  </customwidget>
+
+  <customwidget>
+   <class>OutputPanel</class>
+   <extends>QWidget</extends>
+   <header>app.components.output_panel</header>
+  </customwidget>
+ </customwidgets>
+
  <resources/>
  <connections/>
 </ui>
