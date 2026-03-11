@@ -8,9 +8,7 @@ Returns a signed URL valid for 7 days.
 import os
 from uuid import uuid4
 from services.supabase_client import supabase
-from services.auth_manager import AuthManager
-
-auth = AuthManager()
+from services.auth_manager import auth
 
 BUCKET_NAME = "resumes"
 
@@ -65,20 +63,12 @@ def upload_resume(file_path: str) -> str | None:
             file_options={"content-type": mime_type},
         )
 
-        if result.get("error"):
-            print("[UPLOAD FAILED]", result["error"])
-            return None
-
-        # ------------------------------------------------------------
-        # 5. Create signed URL (7 days)
-        # ------------------------------------------------------------
         signed = supabase.storage.from_(BUCKET_NAME).create_signed_url(
             storage_key,
             expires_in=60 * 60 * 24 * 7,
         )
 
-        url = signed.get("signedURL")
-        return url
+        return signed.signed_url
 
     except Exception as e:
         print("[UPLOAD EXCEPTION]", e)

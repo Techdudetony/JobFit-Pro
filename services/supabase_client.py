@@ -8,16 +8,22 @@ Responsible only for:
 """
 
 import os
+import sys
 from dotenv import load_dotenv
 from supabase import create_client, Client
 
-load_dotenv()
+def _get_base_dir() -> str:
+    if getattr(sys, "frozen", False):
+        return os.path.dirname(sys.executable)
+    # Go up ONE level from services/ to reach the project root
+    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+load_dotenv(os.path.join(_get_base_dir(), ".env"))
 
 # -------------------------------------------------------------------
 # Read config from environment
 # -------------------------------------------------------------------
 SUPABASE_URL = os.getenv("SUPABASE_URL")
-# Prefer SERVICE_ROLE if you use it; otherwise fall back to ANON
 SUPABASE_KEY = os.getenv("SUPABASE_ANON_KEY")
 
 if not SUPABASE_URL or not SUPABASE_KEY:

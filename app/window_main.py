@@ -12,6 +12,13 @@ Responsibilities:
 - Manage loading overlay animation
 - Handle export to DOCX/PDF
 - Save tailoring history (local JSON + Supabase upload)
+
+v2 CHANGES:
+- Keyboard shortcuts added (Ctrl+T, Ctrl+F, Ctrl+M, Ctrl+E, Ctrl+Shift+E,
+  Ctrl+H, Ctrl+N, Ctrl+O, Ctrl+Q, Ctrl+Shift+T)
+- Light/Dark mode toggle added to View menu
+- Theme menu label updates dynamically after each toggle
+- _setup_shortcuts() added as a dedicated method
 """
 
 import os
@@ -29,8 +36,8 @@ from PyQt6.QtWidgets import (
     QMenuBar,
     QMenu,
 )
-from PyQt6.QtCore import Qt, QTimer
-from PyQt6.QtGui import QAction
+from PyQt6.QtCore import Qt, QTimer, QThread, pyqtSignal
+from PyQt6.QtGui import QAction, QKeySequence, QShortcut
 
 # ---------------- CORE LOGIC MODULES ----------------
 from core.extractor.pdf_parser import extract_pdf
@@ -41,15 +48,46 @@ from core.uploader.supabase_uploader import upload_resume
 from core.exporter.docx_builder import export_to_docx
 from core.exporter.pdf_exporter import export_to_pdf
 from core.processor.tailor_engine import ResumeTailor
+from core.processor.keyword_matcher import keyword_overlap
 
 # ---------------- AUTH SYSTEM -----------------------
-from services.auth_manager import auth          # Shared singleton
-from app.ui.auth_modal import AuthModal         # Login modal
+from services.auth_manager import auth
+from app.ui.auth_modal import AuthModal
 
 # ---------------- HISTORY --------------------------
 from app.ui.tailoring_history_window import HISTORY_FILE
 
 
+# ==============================================================================
+# Background Worker
+# ==============================================================================
+class TailorWorker(QThread):
+    finished = pyqtSignal(str)
+    error    = pyqtSignal(str)
+
+    def __init__(self, tailor, resume_text, job_text, settings):
+        super().__init__()
+        self.tailor      = tailor
+        self.resume_text = resume_text
+        self.job_text    = job_text
+        self.settings    = settings
+
+    def run(self):
+        try:
+            result = self.tailor.generate(
+                self.resume_text,
+                self.job_text,
+                limit_pages=self.settings.get("limit_pages", False),
+                limit_one=self.settings.get("limit_one", False),
+            )
+            self.finished.emit(result)
+        except Exception as e:
+            self.error.emit(str(e))
+
+
+# ==============================================================================
+# Main Window
+# ==============================================================================
 class MainWindow(QMainWindow):
     """
     Main application window (logic layer).
@@ -73,7 +111,6 @@ class MainWindow(QMainWindow):
             modal = AuthModal(self)
             result = modal.exec()
 
-            # If declined → app closes in main.py
             if result != QDialog.DialogCode.Accepted:
                 return
 
@@ -87,7 +124,14 @@ class MainWindow(QMainWindow):
         print("MainWindow created, user:", self.user.email if self.user else None)
 
         # ============================================================
-        # 2. LOADING OVERLAY SETUP
+        # 2. LOAD UI FROM PURE LAYOUT CLASS
+        # ============================================================
+        from app.ui.main_window import Ui_MainWindow
+        self.ui = Ui_MainWindow()
+        self.ui.setupUi(self)
+
+        # ============================================================
+        # 3. LOADING OVERLAY SETUP
         # ============================================================
         self._loading_base_text = "Tailoring in progress"
         self._loading_dots = 0
@@ -98,15 +142,15 @@ class MainWindow(QMainWindow):
             QLabel {
                 background-color: rgba(15, 23, 42, 220);
                 color: #E5E7EB;
-                font-size: 18pt;
+                font-size: 16pt;
                 font-weight: 600;
                 border-radius: 16px;
-                padding: 20px 32px;
+                padding: 24px 40px;
+                min-width: 400px;
             }
         """)
         self.loadingLabel.hide()
 
-        # Dot animation timer
         self.loadingTimer = QTimer(self)
         self.loadingTimer.setInterval(400)
         self.loadingTimer.timeout.connect(self._update_loading_text)
@@ -114,17 +158,10 @@ class MainWindow(QMainWindow):
         self._center_loading_label()
 
         # ============================================================
-        # 3. LOAD UI FROM PURE LAYOUT CLASS
-        # ============================================================
-        from app.ui.main_window import Ui_MainWindow
-        self.ui = Ui_MainWindow()
-        self.ui.setupUi(self)
-
-        # ============================================================
         # 4. INTERNAL STATE
         # ============================================================
-        self.resume_text = ""
-        self.job_text = ""
+        self.resume_text   = ""
+        self.job_text      = ""
         self.tailored_text = ""
 
         self.tailor = ResumeTailor()
@@ -137,33 +174,92 @@ class MainWindow(QMainWindow):
         self.ui.btnExport.clicked.connect(self.export_docx_output)
         self.ui.btnExportPDF.clicked.connect(self.export_pdf_output)
         self.ui.btnUseManualJob.clicked.connect(self.use_manual_job_description)
-
-        # File picker emits → load resume
         self.ui.resumePicker.fileSelected.connect(self.load_resume_from_picker)
 
         # ============================================================
         # 6. MENU BAR SETUP
         # ============================================================
+        self._setup_menus()
+
+        # ============================================================
+        # 7. KEYBOARD SHORTCUTS  ← NEW in v2
+        # ============================================================
+        self._setup_shortcuts()
+
+    # ==================================================================
+    # MENU BAR  ← UPDATED in v2 (added View menu with theme toggle)
+    # ==================================================================
+    def _setup_menus(self):
         menubar = QMenuBar(self)
         self.setMenuBar(menubar)
 
-        # Tools menu
+        # ---- Tools menu ----
         tools_menu = QMenu("Tools", self)
         menubar.addMenu(tools_menu)
 
         action_hist = QAction("Tailoring History", self)
+        action_hist.setShortcut(QKeySequence("Ctrl+H"))
         tools_menu.addAction(action_hist)
         action_hist.triggered.connect(self.open_tailoring_history)
 
-        # Right-aligned account menu
-        self._setup_user_menu()
+        # ---- File menu ----
+        file_menu = QMenu("File", self)
+        menubar.addMenu(file_menu)
+
+        action_new = QAction("New Resume", self)
+        action_new.setShortcut(QKeySequence("Ctrl+N"))
+        action_new.triggered.connect(self.new_resume)
+        file_menu.addAction(action_new)
+
+        action_load = QAction("Load Resume", self)
+        action_load.setShortcut(QKeySequence("Ctrl+O"))
+        action_load.triggered.connect(self._open_resume_dialog)
+        file_menu.addAction(action_load)
+
+        file_menu.addSeparator()
+
+        action_export_docx = QAction("Export as DOCX", self)
+        action_export_docx.setShortcut(QKeySequence("Ctrl+E"))
+        action_export_docx.triggered.connect(self.export_docx_output)
+        file_menu.addAction(action_export_docx)
+
+        action_export_pdf = QAction("Export as PDF", self)
+        action_export_pdf.setShortcut(QKeySequence("Ctrl+Shift+E"))
+        action_export_pdf.triggered.connect(self.export_pdf_output)
+        file_menu.addAction(action_export_pdf)
+
+        file_menu.addSeparator()
+
+        action_quit = QAction("Exit", self)
+        action_quit.setShortcut(QKeySequence("Ctrl+Q"))
+        action_quit.triggered.connect(self.close)
+        file_menu.addAction(action_quit)
+
+        # ---- View menu (NEW in v2) ----
+        view_menu = QMenu("View", self)
+        menubar.addMenu(view_menu)
+
+        self.theme_action = QAction(self._theme_label(), self, checkable=True)
+        self.theme_action.setShortcut(QKeySequence("Ctrl+Shift+T"))
+        self.theme_action.triggered.connect(self.toggle_theme)
+        # Reflect current theme state
+        try:
+            import services.theme_manager as tm_module
+            self.theme_action.setChecked(
+                tm_module.theme_manager.is_dark_mode()
+                if tm_module.theme_manager else True
+            )
+        except Exception:
+            self.theme_action.setChecked(True)
+        view_menu.addAction(self.theme_action)
+
+        # ---- Account menu (right-aligned) ----
+        self._setup_user_menu(menubar)
 
     # ==================================================================
     # USER MENU (TOP RIGHT)
     # ==================================================================
-    def _setup_user_menu(self) -> None:
-        menubar = self.menuBar()
-
+    def _setup_user_menu(self, menubar: QMenuBar) -> None:
         # Spacer to push account menu right
         spacer = menubar.addMenu(" " * 200)
         spacer.setDisabled(True)
@@ -176,19 +272,70 @@ class MainWindow(QMainWindow):
         account_menu.addAction(logout_action)
 
     def _sign_out(self) -> None:
-        """Log out user and close app."""
         self.auth.sign_out()
         QMessageBox.information(self, "Signed Out", "You have been signed out.")
         QApplication.instance().quit()
 
     # ==================================================================
+    # KEYBOARD SHORTCUTS  ← NEW in v2
+    # ==================================================================
+    def _setup_shortcuts(self):
+        """
+        Shortcuts for actions that don't live in a menu action.
+        Menu-bound shortcuts (Ctrl+H, Ctrl+N, Ctrl+O, Ctrl+E,
+        Ctrl+Shift+E, Ctrl+Q, Ctrl+Shift+T) are already set via
+        QAction.setShortcut() above.
+        """
+        # Tailor Resume — the primary action
+        self._sc_tailor = QShortcut(QKeySequence("Ctrl+T"), self)
+        self._sc_tailor.activated.connect(self.ui.btnTailor.click)
+
+        # Fetch job description from URL
+        self._sc_fetch = QShortcut(QKeySequence("Ctrl+F"), self)
+        self._sc_fetch.activated.connect(self.ui.btnFetchJob.click)
+
+        # Use manually pasted job description
+        self._sc_manual = QShortcut(QKeySequence("Ctrl+M"), self)
+        self._sc_manual.activated.connect(self.ui.btnUseManualJob.click)
+
+    # ==================================================================
+    # THEME TOGGLE  ← NEW in v2
+    # ==================================================================
+    def _theme_label(self) -> str:
+        """Returns the right menu label for the current theme."""
+        try:
+            import services.theme_manager as tm_module
+            if tm_module.theme_manager and tm_module.theme_manager.is_dark_mode():
+                return "Switch to Light Mode"
+        except Exception:
+            pass
+        return "Switch to Dark Mode"
+
+    def toggle_theme(self):
+        """Toggle light/dark and update menu label + checkmark."""
+        try:
+            import services.theme_manager as tm_module
+            if tm_module.theme_manager:
+                tm_module.theme_manager.toggle_theme()
+                is_dark = tm_module.theme_manager.is_dark_mode()
+                self.theme_action.setChecked(is_dark)
+                self.theme_action.setText(self._theme_label())
+        except Exception as e:
+            print(f"[THEME] Toggle failed: {e}")
+
+    # ==================================================================
     # LOADING OVERLAY HELPERS
     # ==================================================================
     def _center_loading_label(self):
-        w = max(320, int(self.width() * 0.4))
+        if not hasattr(self, "loadingLabel"):
+            return
+        if not hasattr(self, "ui") or not hasattr(self.ui, "central_widget"):
+            return
+        parent = self.ui.central_widget
+        w = max(420, int(parent.width() * 0.5))
         h = 80
-        x = (self.width() - w) // 2
-        y = (self.height() - h) // 2
+        x = (parent.width() - w) // 2
+        y = (parent.height() - h) // 2
         self.loadingLabel.setGeometry(x, y, w, h)
 
     def _set_loading_visible(self, visible: bool):
@@ -197,6 +344,7 @@ class MainWindow(QMainWindow):
             self._update_loading_text()
             self._center_loading_label()
             self.loadingLabel.show()
+            self.loadingLabel.raise_()
             self.loadingTimer.start()
             QApplication.processEvents()
         else:
@@ -204,7 +352,6 @@ class MainWindow(QMainWindow):
             self.loadingLabel.hide()
 
     def _update_loading_text(self):
-        """Cycle dots in loading text."""
         self._loading_dots = (self._loading_dots + 1) % 4
         dots = "." * self._loading_dots
         self.loadingLabel.setText(f"{self._loading_base_text}{dots}")
@@ -215,13 +362,20 @@ class MainWindow(QMainWindow):
     def load_resume_from_picker(self, fname: str):
         if not fname:
             return
-
         if fname.lower().endswith(".pdf"):
             self.resume_text = extract_pdf(fname)
         else:
             self.resume_text = extract_docx(fname)
-
         self.ui.resumePreview.setPlainText(self.resume_text)
+
+    def _open_resume_dialog(self):
+        """Open file dialog to load a resume (triggered via menu/shortcut)."""
+        path, _ = QFileDialog.getOpenFileName(
+            self, "Select Resume", "", "Documents (*.pdf *.docx)"
+        )
+        if path:
+            self.ui.resumePicker.setPath(path)
+            self.load_resume_from_picker(path)
 
     # ==================================================================
     # JOB DESCRIPTION FETCH
@@ -248,7 +402,6 @@ class MainWindow(QMainWindow):
         if not txt:
             QMessageBox.warning(self, "Error", "Paste a job description first.")
             return
-
         self.job_text = txt
         QMessageBox.information(self, "Success", "Using pasted job description.")
 
@@ -260,7 +413,6 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Error", "Load your resume first.")
             return
 
-        # Prefer what's CURRENTLY in UI job box
         pasted = self.ui.jobPreview.toPlainText().strip()
         if pasted:
             self.job_text = pasted
@@ -269,24 +421,37 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Error", "Paste or fetch a job description.")
             return
 
-        # --- Start overlay ---
+        settings = self.ui.settingsPanel.to_dict()
+
         self._set_loading_visible(True)
+        self.ui.btnTailor.setEnabled(False)
 
-        try:
-            settings = self.ui.settingsPanel.to_dict()
+        self.worker = TailorWorker(
+            self.tailor, self.resume_text, self.job_text, settings
+        )
+        self.worker.finished.connect(self._on_tailor_done)
+        self.worker.error.connect(self._on_tailor_error)
+        self.worker.start()
 
-            self.tailored_text = self.tailor.generate(
-                self.resume_text,
-                self.job_text,
-                limit_pages=settings.get("limit_pages", False),
-                limit_one=settings.get("limit_one_page", False),
-            )
+    def _on_tailor_done(self, result: str):
+        self.tailored_text = result
+        self.ui.outputPreview.setPlainText(self.tailored_text)
 
-            self.ui.outputPreview.setPlainText(self.tailored_text)
+        # ATS score
+        overlap = keyword_overlap(self.job_text, self.tailored_text)
+        score = min(100, len(overlap) * 2)
+        self.ui.outputPanel.setScore(score)
 
-        finally:
-            self._set_loading_visible(False)
+        self._set_loading_visible(False)
+        self.ui.btnTailor.setEnabled(True)
+
+        if self.tailored_text:
             self.save_tailoring_history()
+
+    def _on_tailor_error(self, error_msg: str):
+        self._set_loading_visible(False)
+        self.ui.btnTailor.setEnabled(True)
+        QMessageBox.critical(self, "Tailoring Failed", error_msg)
 
     # ==================================================================
     # EXPORT: DOCX
@@ -297,12 +462,9 @@ class MainWindow(QMainWindow):
             return
 
         path, _ = QFileDialog.getSaveFileName(
-            self,
-            "Save Tailored Resume",
-            "Tailored_Resume.docx",
+            self, "Save Tailored Resume", "Tailored_Resume.docx",
             "Word Document (*.docx)",
         )
-
         if path:
             export_to_docx(self.tailored_text, path)
             QMessageBox.information(self, "Success", "Resume exported successfully!")
@@ -316,12 +478,9 @@ class MainWindow(QMainWindow):
             return
 
         path, _ = QFileDialog.getSaveFileName(
-            self,
-            "Save Tailored Resume",
-            "Tailored_Resume.pdf",
+            self, "Save Tailored Resume", "Tailored_Resume.pdf",
             "PDF Files (*.pdf)",
         )
-
         if path:
             export_to_pdf(self.tailored_text, path)
             QMessageBox.information(self, "Success", "PDF exported successfully!")
@@ -335,6 +494,26 @@ class MainWindow(QMainWindow):
         self.history_window.show()
 
     # ==================================================================
+    # NEW RESUME — CLEAR ALL FIELDS
+    # ==================================================================
+    def new_resume(self):
+        confirm = QMessageBox.question(
+            self,
+            "Clear All?",
+            "Start a new blank workspace?\nUnsaved progress will be lost.",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        )
+        if confirm != QMessageBox.StandardButton.Yes:
+            return
+
+        self.resume_text   = ""
+        self.job_text      = ""
+        self.tailored_text = ""
+        self.ui.resumePreview.clear()
+        self.ui.jobPreview.clear()
+        self.ui.outputPreview.clear()
+
+    # ==================================================================
     # SAVE HISTORY (LOCAL + SUPABASE UPLOAD)
     # ==================================================================
     def save_tailoring_history(self):
@@ -346,9 +525,9 @@ class MainWindow(QMainWindow):
         resume_url = upload_resume(temp_path) or temp_path
 
         entry = {
-            "company": company,
-            "role": role,
-            "job_url": self.ui.inputJobURL.text().strip(),
+            "company":   company,
+            "role":      role,
+            "job_url":   self.ui.inputJobURL.text().strip(),
             "resume_url": resume_url,
             "timestamp": datetime.now().isoformat(),
         }
@@ -381,28 +560,25 @@ class MainWindow(QMainWindow):
         if not job_text:
             return "Unknown", "Unknown"
 
-        text = job_text.strip()
+        text  = job_text.strip()
         lines = [l.strip() for l in text.split("\n") if l.strip()]
         first = lines[0] if lines else ""
 
-        # Pattern A — "Company — Role"
         pat = r"^(?P<company>.+?)\s*[-–—]\s*(?P<role>.+)$"
         m = re.match(pat, first)
         if m:
             return m.group("company").strip(), m.group("role").strip()
 
-        # Pattern B — "Role: X"
         m = re.search(r"(Title|Role)\s*[:\-]\s*(.+)", text, re.IGNORECASE)
         role = m.group(2).strip() if m else "Unknown"
 
-        # Pattern C — "Company: X"
-        m = re.search(r"(Company|Employer|Hiring Company)\s*[:\-]\s*(.+)", text, re.IGNORECASE)
+        m = re.search(
+            r"(Company|Employer|Hiring Company)\s*[:\-]\s*(.+)", text, re.IGNORECASE
+        )
         company = m.group(2).strip() if m else "Unknown"
 
-        # Fallbacks
         if role == "Unknown" and lines:
             role = lines[0]
-
         if company == "Unknown" and len(lines) > 1:
             company = lines[1]
 

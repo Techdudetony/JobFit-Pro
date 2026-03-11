@@ -29,6 +29,14 @@ class SettingsPanel(QWidget):
         inner.addWidget(self.chk_limit_one)
         inner.addWidget(self.chk_ats_friendly)
         inner.addStretch()
+        
+        # Make page limit checkboxes mutually exclusive
+        self.chk_limit_pages.toggled.connect(
+            lambda checked: self.chk_limit_one.setEnabled(not checked)
+        )
+        self.chk_limit_one.toggled.connect(
+            lambda checked: self.chk_limit_pages.setEnabled(not checked)
+        )
 
         outer_layout.addWidget(group)
 

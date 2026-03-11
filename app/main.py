@@ -2,36 +2,28 @@ import sys
 import os
 from PyQt6.QtWidgets import QApplication
 from app.window_main import MainWindow
-from services.auth_manager import auth
+from services.theme_manager import ThemeManager
+import services.theme_manager as tm_module
 
-def load_styles(app: QApplication):
-    """Load global QSS styles."""
-    try:
-        qss_path = os.path.join(os.path.dirname(__file__), "styles", "app.qss")
-        with open(qss_path, "r", encoding="utf-8") as f:
-            app.setStyleSheet(f.read())
-        print("Stylesheet loaded successfully.")
-    except Exception as e:
-        print("Failed to load QSS stylesheet:", e)
 
 def main():
     app = QApplication(sys.argv)
 
-    # Load the global stylesheet
-    load_styles(app)
+    # Initialize theme manager — loads saved preference and applies QSS
+    tm_module.theme_manager = ThemeManager(app)
+    tm_module.theme_manager.apply_theme(tm_module.theme_manager.current_theme)
 
-    # Create window
+    # Create window (handles auth internally)
     print("Creating MainWindow...")
     window = MainWindow()
 
-    if auth.get_user():
-        print("User authenticated — showing main window.")
+    if window.auth_ok:
         window.show()
     else:
-        print("No session — showing auth modal instead.")
-        window.show_auth_modal()
+        sys.exit(0)
 
     sys.exit(app.exec())
+
 
 if __name__ == "__main__":
     main()

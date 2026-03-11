@@ -59,7 +59,7 @@ def export_to_docx(text: str, output_path: str):
         bullet_style = normal_style  # Fallback
 
     # Helper Functions
-    def is_secion_heading(line: str) -> bool:
+    def is_section_heading(line: str) -> bool:
         # Heuristic: Short, mostly uppercase, not ending with a period.
         stripped = line.strip()
         if not stripped:
@@ -101,7 +101,7 @@ def export_to_docx(text: str, output_path: str):
         stripped = line.strip()
 
         # Section heading?
-        if is_secion_heading(stripped):
+        if is_section_heading(stripped):
             p = doc.add_paragraph(stripped)
             p.style = heading_style
             continue

@@ -10,8 +10,9 @@ from PyQt6.QtWidgets import (
     QPushButton,
     QPlainTextEdit,
     QApplication,
+    QProgressBar,
 )
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QTimer
 
 
 class OutPutPanel(QWidget):
@@ -33,6 +34,19 @@ class OutPutPanel(QWidget):
         header_layout.addWidget(self.btnCopy)
 
         main_layout.addLayout(header_layout)
+        
+        # Score Row
+        score_row = QHBoxLayout()
+        self.score_label = QLabel("ATS Match Score:", self)
+        self.score_bar = QProgressBar(self)
+        self.score_bar.setRange(0, 100)
+        self.score_bar.setValue(0)
+        self.score_bar.setFixedHeight(16)
+        self.score_bar.setTextVisible(True)
+        self.score_bar.setFormat("%v%")
+        score_row.addWidget(self.score_label)
+        score_row.addWidget(self.score_bar)
+        main_layout.addLayout(score_row)
 
         # Text Area
         self.text_edit = QPlainTextEdit(self)
@@ -48,6 +62,8 @@ class OutPutPanel(QWidget):
         text = self.text_edit.toPlainText()
         if text:
             QApplication.clipboard().setText(text)
+            self.btnCopy.setText("Copied!")
+            QTimer.singleShot(2000, lambda: self.btnCopy.setText("Copy"))
 
     # Convenience helpers used from MainWindow
     def setText(self, text: str) -> None:
@@ -55,3 +71,15 @@ class OutPutPanel(QWidget):
 
     def toPlainText(self) -> str:
         return self.text_edit.toPlainText()
+    
+    def setScore(self, score: int) -> None:
+        self.score_bar.setValue(score)
+        if score >= 75:
+            color = "#22c55e"
+        elif score >= 50:
+            color = "#f59e0b"
+        else:
+            color = "#ef4444"
+        self.score_bar.setStyleSheet(
+            f"QProgressBar::chunk {{ background-color: {color}; border-radius:4px; }}"
+        )

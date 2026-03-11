@@ -125,7 +125,7 @@ class TailoringHistoryWindow(QDialog):
         btn_delete = QPushButton()
         btn_delete.setIcon(QIcon.fromTheme("edit-delete"))
         btn_delete.setToolTip("Delete this entry")
-        btn_delete.clicked.connect(lambda _, r=row: self.delete_row(r))
+        btn_delete.clicked.connect(lambda _, btn=btn_delete: self._delete_by_button(btn))
 
         delete_widget = QWidget()
         delete_layout = QHBoxLayout(delete_widget)
@@ -163,6 +163,14 @@ class TailoringHistoryWindow(QDialog):
             return
 
         QDesktopServices.openUrl(QUrl.fromLocalFile(value))
+        
+    def _delete_by_button(self, btn: QPushButton):
+        """Find which row the clicked delete button belongs to, then delete it."""
+        for row in range(self.table.rowCount()):
+            widget = self.table.cellWidget(row, 3)
+            if widget and widget.findChild(QPushButton) is btn:
+                self.delete_row(row)
+                break
 
     # ==================================================================
     #  Delete entry from JSON + table

@@ -7,9 +7,14 @@ A frameless authentication modal that:
 - Connects to Supabase through the global `auth` singleton.
 - Provides Sign In and Sign Up modes.
 - Exposes QSS objectNames + properties so global styles apply correctly.
+
+v2 CHANGES:
+- Enter on email field → moves focus to password (instead of submitting/doing nothing)
+- Enter on password field → submits in sign-in mode, moves to confirm in sign-up mode
+- Enter on confirm password field → always submits
 """
 
-import os
+import os, sys
 
 from PyQt6.QtWidgets import (
     QDialog,
@@ -28,8 +33,12 @@ from PyQt6.QtCore import Qt
 # Import global auth singleton (NOT the class)
 from services.auth_manager import auth
 
-# Utility for icon path
-ICON = lambda name: os.path.join(os.getcwd(), "assets", "icons", name)
+def _get_icon(name: str) -> str:
+    if getattr(sys, "frozen", False):
+        base = sys._MEIPASS
+    else:
+        base = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    return os.path.join(base, "assets", "icons", name)
 
 
 class AuthModal(QDialog):
@@ -52,6 +61,7 @@ class AuthModal(QDialog):
 
         self.mode = "signin"
         self.build_ui()
+        self._setup_enter_key()   # ← NEW in v2
         self.switch_mode("signin")
 
     # ==================================================================
@@ -64,7 +74,7 @@ class AuthModal(QDialog):
 
         # Card wrapper
         card = QWidget()
-        card.setObjectName("authCard")  # <-- QSS hook
+        card.setObjectName("authCard")
         card.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
 
         layout = QVBoxLayout(card)
@@ -74,12 +84,12 @@ class AuthModal(QDialog):
         # ---------------- TITLE ROW ----------------
         title_row = QHBoxLayout()
         self.lbl_title = QLabel("Sign In")
-        self.lbl_title.setObjectName("authTitle")  # <-- QSS hook
+        self.lbl_title.setObjectName("authTitle")
 
         self.btn_close = QPushButton()
-        self.btn_close.setIcon(QIcon(ICON("close.svg")))
+        self.btn_close.setIcon(QIcon(_get_icon("close.svg")))
         self.btn_close.setFixedSize(32, 32)
-        self.btn_close.setProperty("variant", "icon")  # <-- QSS hook
+        self.btn_close.setProperty("variant", "icon")
         self.btn_close.clicked.connect(self.confirm_exit)
 
         title_row.addWidget(self.lbl_title)
@@ -91,7 +101,7 @@ class AuthModal(QDialog):
         # ---------------- EMAIL ----------------
         self.input_email = QLineEdit()
         self.input_email.setPlaceholderText("Email address")
-        self.input_email.setObjectName("authField")  # <-- QSS hook
+        self.input_email.setObjectName("authField")
         layout.addWidget(self.input_email)
 
         # ---------------- PASSWORD ----------------
@@ -101,7 +111,7 @@ class AuthModal(QDialog):
         self.input_password.setObjectName("authField")
 
         self.btn_toggle_pw = QPushButton()
-        self.btn_toggle_pw.setIcon(QIcon(ICON("not_visible.svg")))
+        self.btn_toggle_pw.setIcon(QIcon(_get_icon("not_visible.svg")))
         self.btn_toggle_pw.setFixedSize(32, 32)
         self.btn_toggle_pw.setProperty("variant", "icon")
         self.btn_toggle_pw.clicked.connect(self.toggle_password)
@@ -119,7 +129,7 @@ class AuthModal(QDialog):
         self.input_password_confirm.setObjectName("authField")
 
         self.btn_toggle_confirm = QPushButton()
-        self.btn_toggle_confirm.setIcon(QIcon(ICON("not_visible.svg")))
+        self.btn_toggle_confirm.setIcon(QIcon(_get_icon("not_visible.svg")))
         self.btn_toggle_confirm.setFixedSize(32, 32)
         self.btn_toggle_confirm.setProperty("variant", "icon")
         self.btn_toggle_confirm.clicked.connect(self.toggle_password_confirm)
@@ -131,23 +141,50 @@ class AuthModal(QDialog):
 
         self.confirm_row_widget = QWidget()
         self.confirm_row_widget.setLayout(confirm_row)
-        self.confirm_row_widget.setObjectName("confirmRow")  # optional hook
+        self.confirm_row_widget.setObjectName("confirmRow")
         layout.addWidget(self.confirm_row_widget)
 
         # ---------------- SUBMIT BUTTON ----------------
         self.btn_submit = QPushButton("Sign In")
-        self.btn_submit.setProperty("variant", "primary")  # <-- QSS hook
+        self.btn_submit.setProperty("variant", "primary")
         self.btn_submit.clicked.connect(self.submit)
         layout.addWidget(self.btn_submit)
 
         # ---------------- SWITCH MODE LINK ----------------
         self.btn_switch_mode = QPushButton("Create an account")
         self.btn_switch_mode.setFlat(True)
-        self.btn_switch_mode.setObjectName("authLink")  # <-- QSS hook
+        self.btn_switch_mode.setObjectName("authLink")
         self.btn_switch_mode.clicked.connect(self.switch_modes_clicked)
         layout.addWidget(self.btn_switch_mode, alignment=Qt.AlignmentFlag.AlignCenter)
 
         outer.addWidget(card)
+
+    # ==================================================================
+    # ENTER KEY HANDLING  ← NEW in v2
+    # ==================================================================
+    def _setup_enter_key(self):
+        """
+        Smart Enter key flow:
+          Email    → move focus to password field
+          Password → submit (sign-in) OR move focus to confirm (sign-up)
+          Confirm  → always submit
+        """
+        # Tab-like: email → password
+        self.input_email.returnPressed.connect(
+            lambda: self.input_password.setFocus()
+        )
+        # Password behaviour depends on mode
+        self.input_password.returnPressed.connect(self._password_enter)
+        # Confirm always submits
+        self.input_password_confirm.returnPressed.connect(self.submit)
+
+    def _password_enter(self):
+        """Called when Enter is pressed in the password field."""
+        if self.mode == "signup":
+            # Don't submit yet — move to confirm field first
+            self.input_password_confirm.setFocus()
+        else:
+            self.submit()
 
     # ==================================================================
     # MODE SWITCHING
@@ -175,18 +212,18 @@ class AuthModal(QDialog):
     def toggle_password(self):
         if self.input_password.echoMode() == QLineEdit.EchoMode.Password:
             self.input_password.setEchoMode(QLineEdit.EchoMode.Normal)
-            self.btn_toggle_pw.setIcon(QIcon(ICON("visible.svg")))
+            self.btn_toggle_pw.setIcon(QIcon(_get_icon("visible.svg")))
         else:
             self.input_password.setEchoMode(QLineEdit.EchoMode.Password)
-            self.btn_toggle_pw.setIcon(QIcon(ICON("not_visible.svg")))
+            self.btn_toggle_pw.setIcon(QIcon(_get_icon("not_visible.svg")))
 
     def toggle_password_confirm(self):
         if self.input_password_confirm.echoMode() == QLineEdit.EchoMode.Password:
             self.input_password_confirm.setEchoMode(QLineEdit.EchoMode.Normal)
-            self.btn_toggle_confirm.setIcon(QIcon(ICON("visible.svg")))
+            self.btn_toggle_confirm.setIcon(QIcon(_get_icon("visible.svg")))
         else:
             self.input_password_confirm.setEchoMode(QLineEdit.EchoMode.Password)
-            self.btn_toggle_confirm.setIcon(QIcon(ICON("not_visible.svg")))
+            self.btn_toggle_confirm.setIcon(QIcon(_get_icon("not_visible.svg")))
 
     # ==================================================================
     # EXIT BEHAVIOR
@@ -250,5 +287,4 @@ class AuthModal(QDialog):
             QMessageBox.warning(self, "Error", "Incorrect email or password.")
             return
 
-        # SUCCESS → close and return Accepted status
         self.accept()
