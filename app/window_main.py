@@ -569,9 +569,8 @@ class MainWindow(QMainWindow):
     # HISTORY WINDOW
     # ==================================================================
     def open_tailoring_history(self):
-        from app.ui.tailoring_history_window import TailoringHistoryWindow
-        self.history_window = TailoringHistoryWindow(self)
-        self.history_window.show()
+        """Switch to the History tab (replaces old dialog)."""
+        self.ui.sidebarNav.set_tab(1)
 
     # ==================================================================
     # NEW RESUME — CLEAR ALL FIELDS
