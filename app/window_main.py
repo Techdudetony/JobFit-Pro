@@ -49,9 +49,18 @@ from core.exporter.docx_builder import export_to_docx
 from core.exporter.pdf_exporter import export_to_pdf
 from core.processor.tailor_engine import ResumeTailor
 from core.processor.keyword_matcher import keyword_overlap
+from core.processor.job_meta_extractor import JobMetaWorker
 
 LAST_RESUME_FILE = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "last_resume.json"
+)
+
+# Local folder where per-tailoring PDFs are saved
+HISTORY_RESUMES_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "app",
+    "data",
+    "history_resumes",
 )
 
 # ---------------- AUTH SYSTEM -----------------------
@@ -208,6 +217,14 @@ class MainWindow(QMainWindow):
         self.onboarding = OnboardingManager(self)
         # Slight delay so the window fully renders before overlay appears
         QTimer.singleShot(400, self.onboarding.start)
+
+        # ============================================================
+        # 9. WIRE ATS PANEL → HISTORY TAB
+        # ============================================================
+        # Give the History tab a reference to the ATS panel so "View ATS"
+        # buttons can replay stored analyses without any extra API calls.
+        if hasattr(self.ui, "tabHistory") and hasattr(self.ui, "atsPanel"):
+            self.ui.tabHistory.set_ats_panel(self.ui.atsPanel)
 
     # ==================================================================
     # MENU BAR  ← UPDATED in v2 (added View menu with theme toggle)
@@ -544,10 +561,88 @@ class MainWindow(QMainWindow):
         self.ui.btnTailor.setEnabled(True)
 
         # Load + auto-open ATS breakdown panel (fires OpenAI analysis in background)
+        # Panel will call _on_keyword_analysis_done which stores result for history
         self.ui.atsPanel.load(self.job_text, self.tailored_text)
 
+        # Save PDF locally first (guaranteed), then kick off meta extraction + Supabase async
         if self.tailored_text:
-            self.save_tailoring_history()
+            self._pending_history_entry = self._save_pdf_and_build_entry()
+            self._start_meta_extraction()
+
+    def _save_pdf_and_build_entry(self) -> dict:
+        """Save tailored resume as local PDF, return a partial history entry."""
+        import uuid
+
+        os.makedirs(HISTORY_RESUMES_DIR, exist_ok=True)
+
+        filename = (
+            f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}.pdf"
+        )
+        local_pdf = os.path.join(HISTORY_RESUMES_DIR, filename)
+
+        try:
+            export_to_pdf(self.tailored_text, local_pdf)
+        except Exception as e:
+            print(f"[HISTORY] PDF save failed: {e}")
+            local_pdf = ""
+
+        return {
+            "company": "Unknown",  # filled in by meta worker
+            "role": "Unknown",  # filled in by meta worker
+            "job_url": self.ui.inputJobURL.text().strip(),
+            "resume_url": local_pdf,  # local path; overwritten if Supabase succeeds
+            "local_pdf": local_pdf,  # always kept as fallback
+            "timestamp": datetime.now().isoformat(),
+            "ats_result": None,  # filled in when keyword_analyzer finishes
+        }
+
+    def _start_meta_extraction(self):
+        """Use OpenAI to extract company + role from job text in background."""
+        self._meta_worker = JobMetaWorker(self.job_text)
+        self._meta_worker.finished.connect(self._on_meta_done)
+        self._meta_worker.start()
+
+    def _on_meta_done(self, meta: dict):
+        """Called when OpenAI returns company + role. Finalizes and writes history."""
+        if not hasattr(self, "_pending_history_entry"):
+            return
+
+        entry = self._pending_history_entry
+        entry["company"] = meta.get("company", "Unknown")
+        entry["role"] = meta.get("role", "Unknown")
+
+        # Try Supabase upload (non-blocking — if it fails, local_pdf is the fallback)
+        local_pdf = entry.get("local_pdf", "")
+        if local_pdf and os.path.exists(local_pdf):
+            try:
+                url = upload_resume(local_pdf)
+                if url:
+                    entry["resume_url"] = url
+            except Exception as e:
+                print(f"[HISTORY] Supabase upload failed, keeping local path: {e}")
+
+        # Attach ATS result if the panel has already finished its analysis
+        if hasattr(self.ui, "atsPanel") and hasattr(self.ui.atsPanel, "_last_analysis"):
+            entry["ats_result"] = self.ui.atsPanel._last_analysis
+
+        self._write_history_entry(entry)
+        del self._pending_history_entry
+
+    def _write_history_entry(self, entry: dict):
+        """Append entry to local history JSON."""
+        try:
+            if os.path.exists(HISTORY_FILE):
+                with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+                    history = json.load(f)
+            else:
+                history = []
+        except Exception:
+            history = []
+
+        history.append(entry)
+
+        with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+            json.dump(history, f, indent=4)
 
     def _on_tailor_error(self, error_msg: str):
         self._set_loading_visible(False)
@@ -618,72 +713,8 @@ class MainWindow(QMainWindow):
         self.ui.outputPreview.clear()
 
     # ==================================================================
-    # SAVE HISTORY (LOCAL + SUPABASE UPLOAD)
-    # ==================================================================
-    def save_tailoring_history(self):
-        company, role = self.extract_company_and_role(self.job_text)
-
-        temp_path = os.path.join(os.getcwd(), "last_tailored_resume.docx")
-        export_to_docx(self.tailored_text, temp_path)
-
-        resume_url = upload_resume(temp_path) or temp_path
-
-        entry = {
-            "company": company,
-            "role": role,
-            "job_url": self.ui.inputJobURL.text().strip(),
-            "resume_url": resume_url,
-            "timestamp": datetime.now().isoformat(),
-        }
-
-        try:
-            if os.path.exists(HISTORY_FILE):
-                with open(HISTORY_FILE, "r", encoding="utf-8") as f:
-                    history = json.load(f)
-            else:
-                history = []
-        except Exception:
-            history = []
-
-        history.append(entry)
-
-        with open(HISTORY_FILE, "w", encoding="utf-8") as f:
-            json.dump(history, f, indent=4)
-
-    # ==================================================================
     # WINDOW RESIZE → RECENTER OVERLAY
     # ==================================================================
     def resizeEvent(self, event):
         self._center_loading_label()
         super().resizeEvent(event)
-
-    # ==================================================================
-    # COMPANY & ROLE EXTRACTION
-    # ==================================================================
-    def extract_company_and_role(self, job_text: str):
-        if not job_text:
-            return "Unknown", "Unknown"
-
-        text = job_text.strip()
-        lines = [l.strip() for l in text.split("\n") if l.strip()]
-        first = lines[0] if lines else ""
-
-        pat = r"^(?P<company>.+?)\s*[-–—]\s*(?P<role>.+)$"
-        m = re.match(pat, first)
-        if m:
-            return m.group("company").strip(), m.group("role").strip()
-
-        m = re.search(r"(Title|Role)\s*[:\-]\s*(.+)", text, re.IGNORECASE)
-        role = m.group(2).strip() if m else "Unknown"
-
-        m = re.search(
-            r"(Company|Employer|Hiring Company)\s*[:\-]\s*(.+)", text, re.IGNORECASE
-        )
-        company = m.group(2).strip() if m else "Unknown"
-
-        if role == "Unknown" and lines:
-            role = lines[0]
-        if company == "Unknown" and len(lines) > 1:
-            company = lines[1]
-
-        return company, role

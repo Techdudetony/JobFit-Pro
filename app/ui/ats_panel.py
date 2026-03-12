@@ -781,6 +781,31 @@ class ATSPanel(QWidget):
         }
         self._build_suggestions_from_ai(result, ai_result)
 
+        # Store full result so history tab can replay it later
+        self._last_analysis = result
+
+    def load_from_history(self, result: dict):
+        """
+        Replay a stored ATS analysis result (from history JSON).
+        Opens the panel and populates all sections without making any API call.
+        """
+        if not result:
+            return
+
+        # Show / open panel
+        if not self.isVisible():
+            self.setGeometry(self._panel_rect_closed())
+            self.show()
+            self.pull_tab.setGeometry(self._pull_tab_rect_closed())
+            self.pull_tab.show()
+            self.pull_tab.raise_()
+
+        self._is_open = False
+        self.open_panel()
+
+        # Populate with stored data — reuse the same rendering path
+        self._on_keyword_analysis_done(result)
+
     def _on_keyword_analysis_error(self, error: str):
         self._show_analysis_error(error)
 
