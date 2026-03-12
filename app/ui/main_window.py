@@ -1,19 +1,20 @@
+# app/ui/main_window.py
 """
 Pure-Python UI definition for the main window.
 
-This file builds the **static widget tree only**.
-- No business logic
-- No Supabase logic
-- No file parsing logic
-
-QSS styling hooks have been added for visual theme control.
+Layout (top to bottom):
+  ROW 1: Job URL input | Fetch Description | Use Pasted Text
+  ROW 2: Tailoring Options (horizontal checkboxes)
+  ROW 3: Resume: [input] | Browse | Last Resume
+  ROW 4: Job Description preview | Original Resume preview  (side by side)
+  ROW 5: Tailored Resume output panel (full width)
+  ROW 6: Tailor Resume | Export DOCX | Export PDF
 """
 
 from PyQt6.QtWidgets import (
     QWidget,
     QVBoxLayout,
     QHBoxLayout,
-    QLabel,
     QLineEdit,
     QPlainTextEdit,
     QPushButton,
@@ -27,70 +28,58 @@ from app.components.settings_panel import SettingsPanel
 
 
 class Ui_MainWindow(object):
-    """
-    Pure UI definition for JobFit Pro.
-
-    NOTE:
-    - This class NEVER contains logic.
-    - MainWindow handles signals, events, Supabase calls, etc.
-    - QSS objectNames added for styling consistency.
-    """
-
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1200, 800)
+        MainWindow.resize(1400, 900)
         MainWindow.setWindowTitle("JobFit Pro")
         MainWindow.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
 
-        # ===============================================================
-        # ROOT CONTAINER
-        # ===============================================================
+        # ---------------------------------------------------------------
+        # ROOT
+        # ---------------------------------------------------------------
         self.central_widget = QWidget(MainWindow)
         self.central_widget.setObjectName("MainCentral")
         self.central_widget.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
 
-        self.central_layout = QVBoxLayout(self.central_widget)
-        self.central_layout.setContentsMargins(12, 12, 12, 12)
-        self.central_layout.setSpacing(10)
+        root = QVBoxLayout(self.central_widget)
+        root.setContentsMargins(20, 20, 20, 20)
+        root.setSpacing(12)
 
-        # ===============================================================
+        # ---------------------------------------------------------------
         # ROW 1 — Job URL + buttons
-        # ===============================================================
-        job_row = QHBoxLayout()
-        job_row.setSpacing(8)
-
-        lbl_job_url = QLabel("Job URL:", self.central_widget)
-        lbl_job_url.setObjectName("labelJobUrl")
+        # ---------------------------------------------------------------
+        row_job_url = QHBoxLayout()
+        row_job_url.setSpacing(8)
 
         self.inputJobURL = QLineEdit(self.central_widget)
-        self.inputJobURL.setPlaceholderText("Paste the job posting URL here...")
+        self.inputJobURL.setPlaceholderText("Paste job URL here…")
         self.inputJobURL.setObjectName("inputJobURL")
-
-        self.btnUseManualJob = QPushButton("Use Pasted Text", self.central_widget)
-        self.btnUseManualJob.setObjectName("btnUseManualJob")
-        self.btnUseManualJob.setProperty("variant", "secondary")
 
         self.btnFetchJob = QPushButton("Fetch Description", self.central_widget)
         self.btnFetchJob.setObjectName("btnFetchJob")
-        self.btnFetchJob.setProperty("variant", "primary")
 
-        job_row.addWidget(lbl_job_url)
-        job_row.addWidget(self.inputJobURL)
-        job_row.addWidget(self.btnUseManualJob)
-        job_row.addWidget(self.btnFetchJob)
+        self.btnUseManualJob = QPushButton("Use Pasted Text", self.central_widget)
+        self.btnUseManualJob.setObjectName("btnUseManualJob")
+        self.btnUseManualJob.setProperty("panelButton", True)
 
-        self.central_layout.addLayout(job_row)
+        row_job_url.addWidget(self.inputJobURL)
+        row_job_url.addWidget(self.btnFetchJob)
+        row_job_url.addWidget(self.btnUseManualJob)
+        root.addLayout(row_job_url)
 
-        # ===============================================================
-        # ROW 2 — Settings Panel
-        # ===============================================================
+        # ---------------------------------------------------------------
+        # ROW 2 — Tailoring Options (horizontal checkboxes)
+        # ---------------------------------------------------------------
         self.settingsPanel = SettingsPanel(self.central_widget)
         self.settingsPanel.setObjectName("settingsPanel")
-        self.central_layout.addWidget(self.settingsPanel)
+        root.addWidget(self.settingsPanel)
 
-        # ===============================================================
-        # ROW 3 — Resume File Picker
-        # ===============================================================
+        # ---------------------------------------------------------------
+        # ROW 3 — Resume file picker + Last Resume button
+        # ---------------------------------------------------------------
+        row_resume_picker = QHBoxLayout()
+        row_resume_picker.setSpacing(8)
+
         self.resumePicker = FilePicker(
             label_text="Resume:",
             file_filter="PDF or Word (*.pdf *.docx)",
@@ -98,87 +87,76 @@ class Ui_MainWindow(object):
         )
         self.resumePicker.setObjectName("resumePicker")
 
-        # Expose Browse button so MainWindow can connect signals
-        self.btnLoadResume = self.resumePicker.button
+        self.btnLastResume = QPushButton("↩ Last Resume", self.central_widget)
+        self.btnLastResume.setObjectName("btnLastResume")
+        self.btnLastResume.setProperty("panelButton", True)
+        self.btnLastResume.setVisible(False)
 
-        self.central_layout.addWidget(self.resumePicker)
+        row_resume_picker.addWidget(self.resumePicker, stretch=1)
+        row_resume_picker.addWidget(self.btnLastResume)
+        root.addLayout(row_resume_picker)
 
-        # ===============================================================
-        # ROW 4 — Job + Resume Preview Side by Side
-        # ===============================================================
-        previews_row = QHBoxLayout()
-        previews_row.setSpacing(12)
+        # ---------------------------------------------------------------
+        # ROW 4 — Job Description | Original Resume (side by side)
+        # ---------------------------------------------------------------
+        row_previews = QHBoxLayout()
+        row_previews.setSpacing(12)
 
-        # ----- JOB DESCRIPTION GROUP -----
         job_group = QGroupBox("Job Description", self.central_widget)
         job_group.setObjectName("jobPreviewGroup")
-        job_group.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
-
         job_group_layout = QVBoxLayout(job_group)
         self.jobPreview = QPlainTextEdit(job_group)
-        self.jobPreview.setPlaceholderText(
-            "Fetched or pasted job description will appear here..."
-        )
+        self.jobPreview.setPlaceholderText("Fetched or pasted job description will appear here…")
         self.jobPreview.setObjectName("jobPreview")
         job_group_layout.addWidget(self.jobPreview)
 
-        # ----- RESUME PREVIEW GROUP -----
         resume_group = QGroupBox("Original Resume", self.central_widget)
         resume_group.setObjectName("resumePreviewGroup")
-        resume_group.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
-
         resume_group_layout = QVBoxLayout(resume_group)
         self.resumePreview = QPlainTextEdit(resume_group)
-        self.resumePreview.setPlaceholderText("Loaded resume text will appear here...")
+        self.resumePreview.setPlaceholderText("Loaded resume text will appear here…")
         self.resumePreview.setObjectName("resumePreview")
         resume_group_layout.addWidget(self.resumePreview)
 
-        previews_row.addWidget(job_group)
-        previews_row.addWidget(resume_group)
-        self.central_layout.addLayout(previews_row)
+        row_previews.addWidget(job_group)
+        row_previews.addWidget(resume_group)
+        root.addLayout(row_previews, stretch=3)
 
-        # ===============================================================
-        # ROW 5 — Tailored Resume Output Panel
-        # ===============================================================
+        # ---------------------------------------------------------------
+        # ROW 5 — Tailored Resume output (full width)
+        # ---------------------------------------------------------------
         output_group = QGroupBox("Tailored Resume", self.central_widget)
         output_group.setObjectName("tailoredGroup")
-        output_group.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
-
         output_group_layout = QVBoxLayout(output_group)
 
-        # Custom component
         self.outputPanel = OutputPanel(parent=output_group)
         self.outputPanel.setObjectName("outputPanel")
-
-        # Expose text edit for MainWindow logic
-        self.outputPreview = self.outputPanel.text_edit
+        self.outputPreview = self.outputPanel.text_edit  # expose for controller
 
         output_group_layout.addWidget(self.outputPanel)
-        self.central_layout.addWidget(output_group)
+        root.addWidget(output_group, stretch=2)
 
-        # ===============================================================
-        # ROW 6 — Action Buttons (RIGHT ALIGNED)
-        # ===============================================================
-        actions_row = QHBoxLayout()
-        actions_row.addStretch()
+        # ---------------------------------------------------------------
+        # ROW 6 — CTA buttons
+        # ---------------------------------------------------------------
+        row_actions = QHBoxLayout()
+        row_actions.setSpacing(8)
+        row_actions.addStretch()
 
         self.btnTailor = QPushButton("Tailor Resume", self.central_widget)
         self.btnTailor.setObjectName("btnTailor")
-        self.btnTailor.setProperty("variant", "primary")
 
         self.btnExport = QPushButton("Export DOCX", self.central_widget)
         self.btnExport.setObjectName("btnExportDOCX")
-        self.btnExport.setProperty("variant", "secondary")
+        self.btnExport.setProperty("panelButton", True)
 
         self.btnExportPDF = QPushButton("Export PDF", self.central_widget)
         self.btnExportPDF.setObjectName("btnExportPDF")
-        self.btnExportPDF.setProperty("variant", "secondary")
+        self.btnExportPDF.setProperty("panelButton", True)
 
-        actions_row.addWidget(self.btnTailor)
-        actions_row.addWidget(self.btnExport)
-        actions_row.addWidget(self.btnExportPDF)
+        row_actions.addWidget(self.btnTailor)
+        row_actions.addWidget(self.btnExport)
+        row_actions.addWidget(self.btnExportPDF)
+        root.addLayout(row_actions)
 
-        self.central_layout.addLayout(actions_row)
-
-        # Attach to main window
         MainWindow.setCentralWidget(self.central_widget)

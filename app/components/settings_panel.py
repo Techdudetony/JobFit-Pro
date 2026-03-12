@@ -7,7 +7,7 @@ of the main UI. Produces a clean SettingsResult object for the
 MainWindow controller.
 """
 
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QCheckBox, QGroupBox, QFormLayout
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QCheckBox, QGroupBox
 
 
 class SettingsResult:
@@ -46,7 +46,9 @@ class SettingsPanel(QWidget):
         outer.setContentsMargins(0, 0, 0, 0)
 
         group = QGroupBox("Tailoring Options", self)
-        form = QFormLayout(group)
+        row = QHBoxLayout(group)
+        row.setSpacing(24)
+        row.setContentsMargins(12, 8, 12, 8)
 
         # Checkbox options
         self.chk_focus_keywords = QCheckBox("Emphasize job keywords")
@@ -56,12 +58,12 @@ class SettingsPanel(QWidget):
         self.chk_ats_friendly = QCheckBox("ATS-friendly formatting")
         self.chk_ats_friendly.setChecked(True)
 
-        # Add in form layout
-        form.addRow(self.chk_focus_keywords)
-        form.addRow(self.chk_keep_length)
-        form.addRow(self.chk_limit_pages)
-        form.addRow(self.chk_limit_one)
-        form.addRow(self.chk_ats_friendly)
+        row.addWidget(self.chk_focus_keywords)
+        row.addWidget(self.chk_keep_length)
+        row.addWidget(self.chk_limit_pages)
+        row.addWidget(self.chk_limit_one)
+        row.addWidget(self.chk_ats_friendly)
+        row.addStretch()
 
         outer.addWidget(group)
 

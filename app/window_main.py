@@ -50,6 +50,11 @@ from core.exporter.pdf_exporter import export_to_pdf
 from core.processor.tailor_engine import ResumeTailor
 from core.processor.keyword_matcher import keyword_overlap
 
+LAST_RESUME_FILE = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "last_resume.json"
+)
+
 # ---------------- AUTH SYSTEM -----------------------
 from services.auth_manager import auth
 from app.ui.auth_modal import AuthModal
@@ -175,6 +180,10 @@ class MainWindow(QMainWindow):
         self.ui.btnExportPDF.clicked.connect(self.export_pdf_output)
         self.ui.btnUseManualJob.clicked.connect(self.use_manual_job_description)
         self.ui.resumePicker.fileSelected.connect(self.load_resume_from_picker)
+
+        # Last used resume button
+        self.ui.btnLastResume.clicked.connect(self.load_last_resume)
+        self._refresh_last_resume_button()
 
         # ============================================================
         # 6. MENU BAR SETUP
@@ -367,6 +376,49 @@ class MainWindow(QMainWindow):
         else:
             self.resume_text = extract_docx(fname)
         self.ui.resumePreview.setPlainText(self.resume_text)
+        self._save_last_resume(fname)
+        self._refresh_last_resume_button()
+
+    def _save_last_resume(self, path: str):
+        """Persist the last used resume path."""
+        try:
+            with open(LAST_RESUME_FILE, "w", encoding="utf-8") as f:
+                json.dump({"path": path}, f)
+        except Exception as e:
+            print(f"[LAST RESUME] Save failed: {e}")
+
+    def _load_last_resume_path(self) -> str:
+        """Return last used resume path if it still exists on disk."""
+        try:
+            if os.path.exists(LAST_RESUME_FILE):
+                with open(LAST_RESUME_FILE, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                path = data.get("path", "")
+                if os.path.exists(path):
+                    return path
+        except Exception:
+            pass
+        return ""
+
+    def _refresh_last_resume_button(self):
+        """Show the Last Resume button only when a valid saved path exists."""
+        path = self._load_last_resume_path()
+        if path:
+            name = os.path.basename(path)
+            self.ui.btnLastResume.setText(f"↩ Last: {name}")
+            self.ui.btnLastResume.setToolTip(f"Reload: {path}")
+            self.ui.btnLastResume.setVisible(True)
+        else:
+            self.ui.btnLastResume.setVisible(False)
+
+    def load_last_resume(self):
+        """Load the previously used resume."""
+        path = self._load_last_resume_path()
+        if not path:
+            QMessageBox.information(self, "No Last Resume", "No previously used resume found.")
+            return
+        self.ui.resumePicker.setPath(path)
+        self.load_resume_from_picker(path)
 
     def _open_resume_dialog(self):
         """Open file dialog to load a resume (triggered via menu/shortcut)."""
