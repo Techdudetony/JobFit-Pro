@@ -16,9 +16,14 @@ import os
 import json
 
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout,
-    QLineEdit, QPushButton, QPlainTextEdit,
-    QGroupBox, QLabel,
+    QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QLineEdit,
+    QPushButton,
+    QPlainTextEdit,
+    QGroupBox,
+    QLabel,
 )
 from PyQt6.QtCore import Qt
 
@@ -33,11 +38,19 @@ class TailorTab(QWidget):
         self._build_ui()
         self._apply_saved_prefs()
 
+        # ATS panel overlays this tab
+        from app.ui.ats_panel import ATSPanel
+
+        self.atsPanel = ATSPanel(self)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        if hasattr(self, "atsPanel"):
+            self.atsPanel.reposition()
+
     def _apply_saved_prefs(self):
         """Apply saved default preferences from config.json to settings panel."""
-        config_file = os.path.join(
-            os.path.expanduser("~"), ".jobfitpro", "config.json"
-        )
+        config_file = os.path.join(os.path.expanduser("~"), ".jobfitpro", "config.json")
         try:
             if os.path.exists(config_file):
                 with open(config_file, "r", encoding="utf-8") as f:
@@ -45,13 +58,17 @@ class TailorTab(QWidget):
                 prefs = cfg.get("default_prefs", {})
                 if prefs:
                     self.settingsPanel.chk_focus_keywords.setChecked(
-                        prefs.get("focus_keywords", False))
+                        prefs.get("focus_keywords", False)
+                    )
                     self.settingsPanel.chk_ats_friendly.setChecked(
-                        prefs.get("ats_friendly", True))
+                        prefs.get("ats_friendly", True)
+                    )
                     self.settingsPanel.chk_keep_length.setChecked(
-                        prefs.get("keep_length", False))
+                        prefs.get("keep_length", False)
+                    )
                     self.settingsPanel.chk_limit_one.setChecked(
-                        prefs.get("limit_one", False))
+                        prefs.get("limit_one", False)
+                    )
         except Exception:
             pass
 
@@ -126,9 +143,7 @@ class TailorTab(QWidget):
         resume_group.setObjectName("resumePreviewGroup")
         resume_layout = QVBoxLayout(resume_group)
         self.resumePreview = QPlainTextEdit()
-        self.resumePreview.setPlaceholderText(
-            "Loaded resume text will appear here..."
-        )
+        self.resumePreview.setPlaceholderText("Loaded resume text will appear here...")
         self.resumePreview.setObjectName("resumePreview")
         resume_layout.addWidget(self.resumePreview)
 

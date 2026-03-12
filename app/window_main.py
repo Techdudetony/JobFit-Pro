@@ -51,14 +51,17 @@ from core.processor.tailor_engine import ResumeTailor
 from core.processor.keyword_matcher import keyword_overlap
 
 LAST_RESUME_FILE = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-    "last_resume.json"
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "last_resume.json"
 )
 
 # ---------------- AUTH SYSTEM -----------------------
 from services.auth_manager import auth
 from app.ui.auth_modal import AuthModal
-from app.ui.onboarding import OnboardingManager, has_completed_onboarding, reset_onboarding
+from app.ui.onboarding import (
+    OnboardingManager,
+    has_completed_onboarding,
+    reset_onboarding,
+)
 
 # ---------------- HISTORY --------------------------
 from app.ui.tailoring_history_window import HISTORY_FILE
@@ -69,14 +72,14 @@ from app.ui.tailoring_history_window import HISTORY_FILE
 # ==============================================================================
 class TailorWorker(QThread):
     finished = pyqtSignal(str)
-    error    = pyqtSignal(str)
+    error = pyqtSignal(str)
 
     def __init__(self, tailor, resume_text, job_text, settings):
         super().__init__()
-        self.tailor      = tailor
+        self.tailor = tailor
         self.resume_text = resume_text
-        self.job_text    = job_text
-        self.settings    = settings
+        self.job_text = job_text
+        self.settings = settings
 
     def run(self):
         try:
@@ -133,6 +136,7 @@ class MainWindow(QMainWindow):
         # 2. LOAD UI FROM PURE LAYOUT CLASS
         # ============================================================
         from app.ui.main_window import Ui_MainWindow
+
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
@@ -144,7 +148,8 @@ class MainWindow(QMainWindow):
 
         self.loadingLabel = QLabel(self)
         self.loadingLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.loadingLabel.setStyleSheet("""
+        self.loadingLabel.setStyleSheet(
+            """
             QLabel {
                 background-color: rgba(15, 23, 42, 220);
                 color: #E5E7EB;
@@ -154,7 +159,8 @@ class MainWindow(QMainWindow):
                 padding: 24px 40px;
                 min-width: 400px;
             }
-        """)
+        """
+        )
         self.loadingLabel.hide()
 
         self.loadingTimer = QTimer(self)
@@ -166,8 +172,8 @@ class MainWindow(QMainWindow):
         # ============================================================
         # 4. INTERNAL STATE
         # ============================================================
-        self.resume_text   = ""
-        self.job_text      = ""
+        self.resume_text = ""
+        self.job_text = ""
         self.tailored_text = ""
 
         self.tailor = ResumeTailor()
@@ -219,6 +225,11 @@ class MainWindow(QMainWindow):
         tools_menu.addAction(action_hist)
         action_hist.triggered.connect(self.open_tailoring_history)
 
+        action_ats = QAction("View ATS Breakdown", self)
+        action_ats.setShortcut(QKeySequence("Ctrl+Shift+A"))
+        action_ats.triggered.connect(lambda: self.ui.atsPanel.toggle())
+        tools_menu.addAction(action_ats)
+
         # ---- File menu ----
         file_menu = QMenu("File", self)
         menubar.addMenu(file_menu)
@@ -262,9 +273,11 @@ class MainWindow(QMainWindow):
         # Reflect current theme state
         try:
             import services.theme_manager as tm_module
+
             self.theme_action.setChecked(
                 tm_module.theme_manager.is_dark_mode()
-                if tm_module.theme_manager else True
+                if tm_module.theme_manager
+                else True
             )
         except Exception:
             self.theme_action.setChecked(True)
@@ -343,6 +356,7 @@ class MainWindow(QMainWindow):
         """Returns the right menu label for the current theme."""
         try:
             import services.theme_manager as tm_module
+
             if tm_module.theme_manager and tm_module.theme_manager.is_dark_mode():
                 return "Switch to Light Mode"
         except Exception:
@@ -353,6 +367,7 @@ class MainWindow(QMainWindow):
         """Toggle light/dark and update menu label + checkmark."""
         try:
             import services.theme_manager as tm_module
+
             if tm_module.theme_manager:
                 tm_module.theme_manager.toggle_theme()
                 is_dark = tm_module.theme_manager.is_dark_mode()
@@ -444,7 +459,9 @@ class MainWindow(QMainWindow):
         """Load the previously used resume."""
         path = self._load_last_resume_path()
         if not path:
-            QMessageBox.information(self, "No Last Resume", "No previously used resume found.")
+            QMessageBox.information(
+                self, "No Last Resume", "No previously used resume found."
+            )
             return
         self.ui.resumePicker.setPath(path)
         self.load_resume_from_picker(path)
@@ -518,12 +535,16 @@ class MainWindow(QMainWindow):
         self.tailored_text = result
         self.ui.outputPreview.setPlainText(self.tailored_text)
 
-        # ATS score
+        # Quick heuristic ATS score bar (instant, no API call).
+        # The full OpenAI-powered analysis runs async inside ats_panel.load().
         ats_result = keyword_overlap(self.job_text, self.tailored_text)
         self.ui.outputPanel.setScore(int(ats_result["match_rate"]))
 
         self._set_loading_visible(False)
         self.ui.btnTailor.setEnabled(True)
+
+        # Load + auto-open ATS breakdown panel (fires OpenAI analysis in background)
+        self.ui.atsPanel.load(self.job_text, self.tailored_text)
 
         if self.tailored_text:
             self.save_tailoring_history()
@@ -542,7 +563,9 @@ class MainWindow(QMainWindow):
             return
 
         path, _ = QFileDialog.getSaveFileName(
-            self, "Save Tailored Resume", "Tailored_Resume.docx",
+            self,
+            "Save Tailored Resume",
+            "Tailored_Resume.docx",
             "Word Document (*.docx)",
         )
         if path:
@@ -558,7 +581,9 @@ class MainWindow(QMainWindow):
             return
 
         path, _ = QFileDialog.getSaveFileName(
-            self, "Save Tailored Resume", "Tailored_Resume.pdf",
+            self,
+            "Save Tailored Resume",
+            "Tailored_Resume.pdf",
             "PDF Files (*.pdf)",
         )
         if path:
@@ -585,8 +610,8 @@ class MainWindow(QMainWindow):
         if confirm != QMessageBox.StandardButton.Yes:
             return
 
-        self.resume_text   = ""
-        self.job_text      = ""
+        self.resume_text = ""
+        self.job_text = ""
         self.tailored_text = ""
         self.ui.resumePreview.clear()
         self.ui.jobPreview.clear()
@@ -604,9 +629,9 @@ class MainWindow(QMainWindow):
         resume_url = upload_resume(temp_path) or temp_path
 
         entry = {
-            "company":   company,
-            "role":      role,
-            "job_url":   self.ui.inputJobURL.text().strip(),
+            "company": company,
+            "role": role,
+            "job_url": self.ui.inputJobURL.text().strip(),
             "resume_url": resume_url,
             "timestamp": datetime.now().isoformat(),
         }
@@ -639,7 +664,7 @@ class MainWindow(QMainWindow):
         if not job_text:
             return "Unknown", "Unknown"
 
-        text  = job_text.strip()
+        text = job_text.strip()
         lines = [l.strip() for l in text.split("\n") if l.strip()]
         first = lines[0] if lines else ""
 
