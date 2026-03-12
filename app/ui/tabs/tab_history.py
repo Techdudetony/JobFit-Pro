@@ -40,7 +40,8 @@ COL_ROLE = 1
 COL_FILE = 2
 COL_CREATED = 3
 COL_ATS = 4
-COL_DELETE = 5
+COL_COVER = 5
+COL_DELETE = 6
 
 
 def _fmt_timestamp(raw: str) -> str:
@@ -83,16 +84,17 @@ class HistoryTab(QWidget):
         header.addWidget(self.btn_delete)
         root.addLayout(header)
 
-        self.table = QTableWidget(0, 6)
+        self.table = QTableWidget(0, 7)
         self.table.setObjectName("historyTable")
         self.table.setHorizontalHeaderLabels(
-            ["Company", "Role", "Resume", "Created", "ATS", ""]
+            ["Company", "Role", "Resume", "Created", "ATS", "Cover Letter", ""]
         )
-        self.table.setColumnWidth(COL_COMPANY, 190)
-        self.table.setColumnWidth(COL_ROLE, 230)
-        self.table.setColumnWidth(COL_FILE, 110)
-        self.table.setColumnWidth(COL_CREATED, 160)
+        self.table.setColumnWidth(COL_COMPANY, 170)
+        self.table.setColumnWidth(COL_ROLE, 200)
+        self.table.setColumnWidth(COL_FILE, 100)
+        self.table.setColumnWidth(COL_CREATED, 155)
         self.table.setColumnWidth(COL_ATS, 80)
+        self.table.setColumnWidth(COL_COVER, 100)
         self.table.setColumnWidth(COL_DELETE, 44)
         self.table.setSortingEnabled(
             False
@@ -173,6 +175,33 @@ class HistoryTab(QWidget):
             item_no.setForeground(QColor("#475569"))
             self.table.setItem(row, COL_ATS, item_no)
 
+        # Cover letter button or dash
+        cover_letter = entry.get("cover_letter", "")
+        if cover_letter:
+            btn_cover = QPushButton("View")
+            btn_cover.setFixedHeight(26)
+            btn_cover.setStyleSheet(
+                "QPushButton{background:#1A3A2A;color:#34D399;border:1px solid #34D399;"
+                "border-radius:4px;font-size:8pt;font-weight:600;padding:2px 6px;}"
+                "QPushButton:hover{background:#22543D;}"
+            )
+            btn_cover.clicked.connect(
+                lambda _, cl=cover_letter: self._open_cover_letter(cl)
+            )
+            wrap_cv = QWidget()
+            wl_cv = QHBoxLayout(wrap_cv)
+            wl_cv.addStretch()
+            wl_cv.addWidget(btn_cover)
+            wl_cv.addStretch()
+            wl_cv.setContentsMargins(2, 2, 2, 2)
+            self.table.setCellWidget(row, COL_COVER, wrap_cv)
+        else:
+            item_cv = QTableWidgetItem("—")
+            item_cv.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            item_cv.setFlags(Qt.ItemFlag.ItemIsEnabled)
+            item_cv.setForeground(QColor("#475569"))
+            self.table.setItem(row, COL_COVER, item_cv)
+
         # Delete button
         trash_path = os.path.join(ASSETS, "trash.svg")
         btn_del = QPushButton()
@@ -220,6 +249,43 @@ class HistoryTab(QWidget):
         if hasattr(main, "ui") and hasattr(main.ui, "sidebarNav"):
             main.ui.sidebarNav.set_tab(0)
         self._ats_panel_ref.load_from_history(result)
+
+    def _open_cover_letter(self, text: str):
+        """Show the saved cover letter in a simple read-only dialog."""
+        from PyQt6.QtWidgets import (
+            QDialog,
+            QVBoxLayout,
+            QTextEdit,
+            QPushButton,
+            QHBoxLayout,
+            QApplication,
+        )
+
+        dlg = QDialog(self)
+        dlg.setWindowTitle("Saved Cover Letter")
+        dlg.setMinimumSize(640, 520)
+        layout = QVBoxLayout(dlg)
+
+        editor = QTextEdit(dlg)
+        editor.setFont(
+            __import__("PyQt6.QtGui", fromlist=["QFont"]).QFont("Calibri", 11)
+        )
+        editor.setPlainText(text)
+        layout.addWidget(editor)
+
+        btn_row = QHBoxLayout()
+        btn_copy = QPushButton("Copy", dlg)
+        btn_copy.clicked.connect(
+            lambda: QApplication.clipboard().setText(editor.toPlainText())
+        )
+        btn_close = QPushButton("Close", dlg)
+        btn_close.clicked.connect(dlg.accept)
+        btn_row.addStretch()
+        btn_row.addWidget(btn_copy)
+        btn_row.addWidget(btn_close)
+        layout.addLayout(btn_row)
+
+        dlg.exec()
 
     def _save_edit(self, item):
         col = item.column()

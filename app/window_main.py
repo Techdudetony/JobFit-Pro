@@ -226,6 +226,14 @@ class MainWindow(QMainWindow):
         if hasattr(self.ui, "tabHistory") and hasattr(self.ui, "atsPanel"):
             self.ui.tabHistory.set_ats_panel(self.ui.atsPanel)
 
+        # ============================================================
+        # 10. WIRE COVER LETTER → HISTORY
+        # ============================================================
+        if hasattr(self.ui, "tabCoverLetter"):
+            self.ui.tabCoverLetter.coverLetterGenerated.connect(
+                self._on_cover_letter_generated
+            )
+
     # ==================================================================
     # MENU BAR  ← UPDATED in v2 (added View menu with theme toggle)
     # ==================================================================
@@ -439,6 +447,9 @@ class MainWindow(QMainWindow):
         self.ui.resumePreview.setPlainText(self.resume_text)
         self._save_last_resume(fname)
         self._refresh_last_resume_button()
+        # Keep cover letter tab in sync
+        if hasattr(self.ui, "tabCoverLetter"):
+            self.ui.tabCoverLetter.set_context(resume_text=self.resume_text)
 
     def _save_last_resume(self, path: str):
         """Persist the last used resume path."""
@@ -508,6 +519,8 @@ class MainWindow(QMainWindow):
 
         self.job_text = desc
         self.ui.jobPreview.setPlainText(desc)
+        if hasattr(self.ui, "tabCoverLetter"):
+            self.ui.tabCoverLetter.set_context(job_text=self.job_text)
 
     # ==================================================================
     # MANUAL JOB DESCRIPTION
@@ -518,6 +531,8 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Error", "Paste a job description first.")
             return
         self.job_text = txt
+        if hasattr(self.ui, "tabCoverLetter"):
+            self.ui.tabCoverLetter.set_context(job_text=self.job_text)
         QMessageBox.information(self, "Success", "Using pasted job description.")
 
     # ==================================================================
@@ -561,8 +576,11 @@ class MainWindow(QMainWindow):
         self.ui.btnTailor.setEnabled(True)
 
         # Load + auto-open ATS breakdown panel (fires OpenAI analysis in background)
-        # Panel will call _on_keyword_analysis_done which stores result for history
         self.ui.atsPanel.load(self.job_text, self.tailored_text)
+
+        # Keep cover letter tab in sync with the freshly tailored resume
+        if hasattr(self.ui, "tabCoverLetter"):
+            self.ui.tabCoverLetter.set_context(tailored_text=self.tailored_text)
 
         # Save PDF locally first (guaranteed), then kick off meta extraction + Supabase async
         if self.tailored_text:
@@ -711,6 +729,39 @@ class MainWindow(QMainWindow):
         self.ui.resumePreview.clear()
         self.ui.jobPreview.clear()
         self.ui.outputPreview.clear()
+
+    # ==================================================================
+    # COVER LETTER → HISTORY SAVE
+    # ==================================================================
+    def _on_cover_letter_generated(self, letter_text: str, used_tailored: bool):
+        """
+        If the cover letter was built from the tailored resume, patch it
+        into the most recent history entry so it's permanently linked.
+        Only saves if a history entry already exists for this session.
+        """
+        if not used_tailored:
+            return  # Generated from original resume — not tied to a history entry
+
+        if not os.path.exists(HISTORY_FILE):
+            return
+
+        try:
+            with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+                history = json.load(f)
+        except Exception:
+            return
+
+        if not history:
+            return
+
+        # Patch the most recent entry
+        history[-1]["cover_letter"] = letter_text
+        history[-1]["last_updated"] = datetime.now().isoformat()
+
+        with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+            json.dump(history, f, indent=4)
+
+        print("[HISTORY] Cover letter saved to latest history entry.")
 
     # ==================================================================
     # WINDOW RESIZE → RECENTER OVERLAY
