@@ -48,6 +48,7 @@ from PyQt6.QtGui import QPainter, QColor, QPen, QFont, QBrush, QPainterPath
 from core.processor.keyword_analyzer import analyze_keywords
 from core.processor.ai_detector import heuristic_score, deep_analysis
 
+
 PANEL_WIDTH_RATIO = 0.75
 PULL_TAB_WIDTH = 22
 ANIM_DURATION = 280
@@ -306,6 +307,9 @@ class ATSPanel(QWidget):
     Sliding right-side drawer overlay.
     Parent must be the TailorTab (or any full-size content widget).
     """
+
+    # Emits (ats_score: int) when OpenAI analysis completes
+    analysisReady = pyqtSignal(int)
 
     def __init__(self, parent: QWidget):
         super().__init__(parent)
@@ -783,6 +787,9 @@ class ATSPanel(QWidget):
 
         # Store full result so history tab can replay it later
         self._last_analysis = result
+
+        # Notify listeners (window_main → toast + badge)
+        self.analysisReady.emit(int(result.get("ats_score", 0)))
 
     def load_from_history(self, result: dict):
         """

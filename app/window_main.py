@@ -39,6 +39,8 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, QTimer, QThread, pyqtSignal
 from PyQt6.QtGui import QAction, QKeySequence, QShortcut
 
+from app.ui.toast_notification import ToastNotification
+
 # ---------------- CORE LOGIC MODULES ----------------
 from core.extractor.pdf_parser import extract_pdf
 from core.extractor.docx_parser import extract_docx
@@ -233,6 +235,12 @@ class MainWindow(QMainWindow):
             self.ui.tabCoverLetter.coverLetterGenerated.connect(
                 self._on_cover_letter_generated
             )
+
+        # ============================================================
+        # 11. WIRE ATS analysisReady → TOAST + BADGE
+        # ============================================================
+        if hasattr(self.ui, "atsPanel"):
+            self.ui.atsPanel.analysisReady.connect(self._on_ats_ready)
 
     # ==================================================================
     # MENU BAR  ← UPDATED in v2 (added View menu with theme toggle)
@@ -568,15 +576,11 @@ class MainWindow(QMainWindow):
         self.ui.outputPreview.setPlainText(self.tailored_text)
 
         # Quick heuristic ATS score bar (instant, no API call).
-        # The full OpenAI-powered analysis runs async inside ats_panel.load().
         ats_result = keyword_overlap(self.job_text, self.tailored_text)
         self.ui.outputPanel.setScore(int(ats_result["match_rate"]))
 
         self._set_loading_visible(False)
         self.ui.btnTailor.setEnabled(True)
-
-        # Load + auto-open ATS breakdown panel (fires OpenAI analysis in background)
-        self.ui.atsPanel.load(self.job_text, self.tailored_text)
 
         # Keep cover letter tab in sync with the freshly tailored resume
         if hasattr(self.ui, "tabCoverLetter"):
@@ -586,6 +590,18 @@ class MainWindow(QMainWindow):
         if self.tailored_text:
             self._pending_history_entry = self._save_pdf_and_build_entry()
             self._start_meta_extraction()
+
+        # Fire ATS analysis AFTER UI is responsive — 200ms delay so the
+        # user sees the tailored resume before any processing begins.
+        QTimer.singleShot(200, self._start_ats_analysis)
+
+    def _start_ats_analysis(self):
+        """
+        Kick off ATS analysis in the background.
+        The panel opens and populates itself; when done it emits analysisReady
+        which triggers the toast + sidebar badge.
+        """
+        self.ui.atsPanel.load(self.job_text, self.tailored_text)
 
     def _save_pdf_and_build_entry(self) -> dict:
         """Save tailored resume as local PDF, return a partial history entry."""
@@ -729,6 +745,32 @@ class MainWindow(QMainWindow):
         self.ui.resumePreview.clear()
         self.ui.jobPreview.clear()
         self.ui.outputPreview.clear()
+
+    # ==================================================================
+    # ATS ANALYSIS READY → TOAST + SIDEBAR BADGE
+    # ==================================================================
+    def _on_ats_ready(self, score: int):
+        """
+        Fires when the OpenAI ATS analysis finishes in the background.
+        Shows a toast notification and lights up the Tailor tab badge.
+        The badge clears automatically when the user clicks the Tailor tab.
+        """
+        # Pick toast style based on score
+        if score >= 75:
+            style, emoji = "success", "✅"
+        elif score >= 50:
+            style, emoji = "warning", "⚠️"
+        else:
+            style, emoji = "error", "❌"
+
+        msg = f"{emoji} ATS Analysis ready — {score}% match"
+
+        toast = ToastNotification(msg, parent=self, style=style, duration=5000)
+        toast.show_toast()
+
+        # Light up badge on Tailor tab (index 0)
+        if hasattr(self.ui, "sidebarNav"):
+            self.ui.sidebarNav.set_badge(0, True)
 
     # ==================================================================
     # COVER LETTER → HISTORY SAVE
