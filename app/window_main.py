@@ -58,6 +58,7 @@ LAST_RESUME_FILE = os.path.join(
 # ---------------- AUTH SYSTEM -----------------------
 from services.auth_manager import auth
 from app.ui.auth_modal import AuthModal
+from app.ui.onboarding import OnboardingManager, has_completed_onboarding, reset_onboarding
 
 # ---------------- HISTORY --------------------------
 from app.ui.tailoring_history_window import HISTORY_FILE
@@ -195,6 +196,13 @@ class MainWindow(QMainWindow):
         # ============================================================
         self._setup_shortcuts()
 
+        # ============================================================
+        # 8. ONBOARDING TUTORIAL
+        # ============================================================
+        self.onboarding = OnboardingManager(self)
+        # Slight delay so the window fully renders before overlay appears
+        QTimer.singleShot(400, self.onboarding.start)
+
     # ==================================================================
     # MENU BAR  ← UPDATED in v2 (added View menu with theme toggle)
     # ==================================================================
@@ -262,8 +270,29 @@ class MainWindow(QMainWindow):
             self.theme_action.setChecked(True)
         view_menu.addAction(self.theme_action)
 
+        # ---- Help menu ----
+        help_menu = QMenu("Help", self)
+        menubar.addMenu(help_menu)
+
+        action_tutorial = QAction("Show Tutorial", self)
+        action_tutorial.triggered.connect(lambda: self.onboarding.start(force=True))
+        help_menu.addAction(action_tutorial)
+
+        help_menu.addSeparator()
+
+        action_about = QAction("About JobFit Pro", self)
+        action_about.triggered.connect(self._show_about)
+        help_menu.addAction(action_about)
+
         # ---- Account menu (right-aligned) ----
         self._setup_user_menu(menubar)
+
+    def _show_about(self):
+        QMessageBox.information(
+            self,
+            "About JobFit Pro",
+            "JobFit Pro — AI-powered resume tailoring.\nCreated by Antonio Lee Jr.",
+        )
 
     # ==================================================================
     # USER MENU (TOP RIGHT)
