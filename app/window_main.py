@@ -40,6 +40,7 @@ from PyQt6.QtCore import Qt, QTimer, QThread, pyqtSignal
 from PyQt6.QtGui import QAction, QKeySequence, QShortcut
 
 from app.ui.toast_notification import ToastNotification
+from services.sync_manager import sync_manager
 
 # ---------------- CORE LOGIC MODULES ----------------
 from core.extractor.pdf_parser import extract_pdf
@@ -242,6 +243,12 @@ class MainWindow(QMainWindow):
         if hasattr(self.ui, "atsPanel"):
             self.ui.atsPanel.analysisReady.connect(self._on_ats_ready)
 
+        # ============================================================
+        # 12. SYNC ON LOGIN — pull cloud history + prefs
+        # ============================================================
+        # Small delay so the window is fully visible before network calls fire
+        QTimer.singleShot(1500, self._sync_on_login)
+
     # ==================================================================
     # MENU BAR  ← UPDATED in v2 (added View menu with theme toggle)
     # ==================================================================
@@ -406,6 +413,9 @@ class MainWindow(QMainWindow):
                 is_dark = tm_module.theme_manager.is_dark_mode()
                 self.theme_action.setChecked(is_dark)
                 self.theme_action.setText(self._theme_label())
+
+                # Push updated theme preference to Supabase
+                self._push_current_prefs()
         except Exception as e:
             print(f"[THEME] Toggle failed: {e}")
 
@@ -655,15 +665,13 @@ class MainWindow(QMainWindow):
             except Exception as e:
                 print(f"[HISTORY] Supabase upload failed, keeping local path: {e}")
 
-        # Attach ATS result if the panel has already finished its analysis
-        if hasattr(self.ui, "atsPanel") and hasattr(self.ui.atsPanel, "_last_analysis"):
-            entry["ats_result"] = self.ui.atsPanel._last_analysis
-
+        # Write entry now WITHOUT ats_result — it will be patched in by _on_ats_ready
+        # once the background analysis finishes (which fires separately after tailor)
         self._write_history_entry(entry)
         del self._pending_history_entry
 
     def _write_history_entry(self, entry: dict):
-        """Append entry to local history JSON."""
+        """Append entry to local history JSON, then push to Supabase async."""
         try:
             if os.path.exists(HISTORY_FILE):
                 with open(HISTORY_FILE, "r", encoding="utf-8") as f:
@@ -677,6 +685,13 @@ class MainWindow(QMainWindow):
 
         with open(HISTORY_FILE, "w", encoding="utf-8") as f:
             json.dump(history, f, indent=4)
+
+        # Push to Supabase in background — failure is silent, local copy is the source of truth
+        sync_manager.push_history_entry(
+            entry,
+            on_done=lambda row_id: print(f"[SYNC] History pushed: {row_id}"),
+            on_error=lambda e: print(f"[SYNC] History push failed (local saved): {e}"),
+        )
 
     def _on_tailor_error(self, error_msg: str):
         self._set_loading_visible(False)
@@ -752,8 +767,9 @@ class MainWindow(QMainWindow):
     def _on_ats_ready(self, score: int):
         """
         Fires when the OpenAI ATS analysis finishes in the background.
-        Shows a toast notification and lights up the Tailor tab badge.
-        The badge clears automatically when the user clicks the Tailor tab.
+        1. Shows a toast notification
+        2. Lights up the Tailor tab badge
+        3. Patches ats_result into the latest history entry (local + Supabase)
         """
         # Pick toast style based on score
         if score >= 75:
@@ -764,13 +780,47 @@ class MainWindow(QMainWindow):
             style, emoji = "error", "❌"
 
         msg = f"{emoji} ATS Analysis ready — {score}% match"
-
         toast = ToastNotification(msg, parent=self, style=style, duration=5000)
         toast.show_toast()
 
         # Light up badge on Tailor tab (index 0)
         if hasattr(self.ui, "sidebarNav"):
             self.ui.sidebarNav.set_badge(0, True)
+
+        # Patch ats_result into the most recent history entry
+        ats_result = getattr(self.ui.atsPanel, "_last_analysis", None)
+        if not ats_result:
+            return
+
+        try:
+            if not os.path.exists(HISTORY_FILE):
+                return
+            with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+                history = json.load(f)
+            if not history:
+                return
+
+            history[-1]["ats_result"] = ats_result
+            history[-1]["last_updated"] = datetime.now().isoformat()
+
+            with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+                json.dump(history, f, indent=4)
+
+            print("[HISTORY] ATS result patched into latest entry.")
+
+            # Refresh history tab so the View ATS button appears immediately
+            if hasattr(self.ui, "tabHistory"):
+                self.ui.tabHistory.load_history()
+
+            # Push updated entry to Supabase
+            sync_manager.push_history_entry(
+                history[-1],
+                on_done=lambda _: print("[SYNC] ATS-patched entry pushed."),
+                on_error=lambda e: print(f"[SYNC] ATS patch push failed: {e}"),
+            )
+
+        except Exception as e:
+            print(f"[HISTORY] Failed to patch ATS result: {e}")
 
     # ==================================================================
     # COVER LETTER → HISTORY SAVE
@@ -804,6 +854,140 @@ class MainWindow(QMainWindow):
             json.dump(history, f, indent=4)
 
         print("[HISTORY] Cover letter saved to latest history entry.")
+
+        # Push updated entry to Supabase
+        sync_manager.push_history_entry(
+            history[-1],
+            on_done=lambda _: print("[SYNC] Cover letter entry pushed."),
+            on_error=lambda e: print(f"[SYNC] Cover letter push failed: {e}"),
+        )
+
+    # ==================================================================
+    # SYNC — LOGIN PULL
+    # ==================================================================
+    def _sync_on_login(self):
+        """Pull preferences then history from Supabase after login."""
+        print("[SYNC] Starting login sync...")
+
+        # Pull preferences first
+        sync_manager.pull_preferences(
+            on_done=self._on_prefs_pulled,
+            on_error=lambda e: print(f"[SYNC] Prefs pull failed: {e}"),
+        )
+
+        # Pull history in parallel
+        local_history = self._read_local_history()
+        sync_manager.pull_and_merge_history(
+            local_history,
+            on_done=self._on_history_pulled,
+            on_error=lambda e: print(f"[SYNC] History pull failed: {e}"),
+        )
+
+    def _on_prefs_pulled(self, prefs: dict):
+        """Apply pulled preferences — theme and settings panel state."""
+        if not prefs:
+            # No cloud prefs yet — push current local state up
+            self._push_current_prefs()
+            return
+
+        import services.theme_manager as tm_module
+
+        # Apply theme if different from current
+        cloud_theme = prefs.get("theme", "dark")
+        if (
+            tm_module.theme_manager
+            and cloud_theme != tm_module.theme_manager.current_theme
+        ):
+            tm_module.theme_manager.apply_theme(cloud_theme)
+            print(f"[SYNC] Applied cloud theme: {cloud_theme}")
+
+        # Apply settings panel checkboxes (Tailor tab)
+        cloud_settings = prefs.get("settings", {})
+        if cloud_settings and hasattr(self.ui, "settingsPanel"):
+            sp = self.ui.settingsPanel
+            if "focus_keywords" in cloud_settings:
+                sp.chk_focus_keywords.setChecked(cloud_settings["focus_keywords"])
+            if "keep_length" in cloud_settings:
+                sp.chk_keep_length.setChecked(cloud_settings["keep_length"])
+            if "limit_pages" in cloud_settings:
+                sp.chk_limit_pages.setChecked(cloud_settings["limit_pages"])
+            if "limit_one" in cloud_settings:
+                sp.chk_limit_one.setChecked(cloud_settings["limit_one"])
+            if "ats_friendly" in cloud_settings:
+                sp.chk_ats_friendly.setChecked(cloud_settings["ats_friendly"])
+
+        # Mirror the same values into the Settings tab checkboxes
+        if cloud_settings and hasattr(self.ui, "tabSettings"):
+            ts = self.ui.tabSettings
+            try:
+                ts.chk_default_keywords.setChecked(
+                    cloud_settings.get("focus_keywords", False)
+                )
+                ts.chk_default_ats.setChecked(cloud_settings.get("ats_friendly", True))
+                ts.chk_default_keep_len.setChecked(
+                    cloud_settings.get("keep_length", False)
+                )
+                ts.chk_default_one_page.setChecked(
+                    cloud_settings.get("limit_one", False)
+                )
+            except Exception as e:
+                print(f"[SYNC] Failed to mirror prefs to Settings tab: {e}")
+
+        # Update Settings tab theme button label
+        if hasattr(self.ui, "tabSettings"):
+            try:
+                import services.theme_manager as tm_module
+
+                if tm_module.theme_manager:
+                    is_dark = tm_module.theme_manager.is_dark_mode()
+                    self.ui.tabSettings.btn_toggle_theme.setText(
+                        "Switch to Light Mode" if is_dark else "Switch to Dark Mode"
+                    )
+            except Exception:
+                pass
+
+        print("[SYNC] Preferences applied from cloud.")
+
+    def _on_history_pulled(self, merged: list):
+        """Save merged history to local JSON and refresh the history tab."""
+        if not merged:
+            return
+
+        try:
+            with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+                json.dump(merged, f, indent=4)
+            print(f"[SYNC] History merged: {len(merged)} entries saved locally.")
+
+            # Refresh the history tab if it's loaded
+            if hasattr(self.ui, "tabHistory"):
+                self.ui.tabHistory.load_history()
+
+        except Exception as e:
+            print(f"[SYNC] Failed to save merged history: {e}")
+
+    def _read_local_history(self) -> list:
+        """Read local history JSON, return empty list on any error."""
+        try:
+            if os.path.exists(HISTORY_FILE):
+                with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+                    return json.load(f)
+        except Exception:
+            pass
+        return []
+
+    def _push_current_prefs(self):
+        """Push current local theme + settings to Supabase."""
+        import services.theme_manager as tm_module
+
+        theme = "dark"
+        if tm_module.theme_manager:
+            theme = "dark" if tm_module.theme_manager.is_dark_mode() else "light"
+
+        settings = {}
+        if hasattr(self.ui, "settingsPanel"):
+            settings = self.ui.settingsPanel.to_dict()
+
+        sync_manager.push_preferences(theme, settings)
 
     # ==================================================================
     # WINDOW RESIZE → RECENTER OVERLAY
