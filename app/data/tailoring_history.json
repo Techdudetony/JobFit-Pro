@@ -1,32 +1,757 @@
 [
     {
-        "user_id": "0b9c1760-55af-457e-934d-363e91f4b05e",
+        "ats_result": {
+            "ats_score": 86,
+            "error": null,
+            "fabrication_warnings": [
+                {
+                    "item": "5+ years of experience",
+                    "reason": "Work history shows 2020\u20132025 as the primary role (about 5 years); the claim is plausible but tight\u2014ensure dates and any additional overlapping experience support '5+ years.'"
+                },
+                {
+                    "item": "Hardware/Software Troubleshooting (Basic)",
+                    "reason": "Most experience described is QA/compliance and interaction review rather than direct IT break/fix; still plausible, but the resume should include 1\u20132 concrete troubleshooting examples to avoid appearing overstated."
+                }
+            ],
+            "matched_keywords": [
+                {
+                    "context": "Summary and Key Skills explicitly reference Help Desk Support and help desk-style workflows.",
+                    "keyword": "help desk"
+                },
+                {
+                    "context": "Summary and Work Experience note high-volume phone interactions and multi-channel support.",
+                    "keyword": "phone"
+                },
+                {
+                    "context": "Summary, Key Skills, and Work Experience include chat support.",
+                    "keyword": "chat"
+                },
+                {
+                    "context": "Summary, Key Skills, and Work Experience include email support.",
+                    "keyword": "email"
+                },
+                {
+                    "context": "Summary and Work Experience emphasize accurate logging/documentation of outcomes across systems.",
+                    "keyword": "log"
+                },
+                {
+                    "context": "Summary, Key Skills, and Work Experience repeatedly mention documentation and audit readiness.",
+                    "keyword": "document"
+                },
+                {
+                    "context": "Summary mentions CRM/ticketing-style workflows; Key Skills includes issue logging and ticket routing.",
+                    "keyword": "ticketing"
+                },
+                {
+                    "context": "Key Skills lists Ticket Routing & Escalation; Work Experience describes redirecting issues to appropriate teams.",
+                    "keyword": "ticket routing"
+                },
+                {
+                    "context": "Summary and Work Experience describe escalating urgent/high-risk situations and following escalation procedures.",
+                    "keyword": "escalation"
+                },
+                {
+                    "context": "Key Skills includes Hardware/Software Troubleshooting (Basic).",
+                    "keyword": "hardware and software troubleshooting"
+                },
+                {
+                    "context": "Summary states skilled in troubleshooting user issues.",
+                    "keyword": "troubleshooting"
+                },
+                {
+                    "context": "Work Experience: researched case history and available knowledge resources to diagnose recurring issues.",
+                    "keyword": "research"
+                },
+                {
+                    "context": "Work Experience explicitly mentions using available knowledge resources.",
+                    "keyword": "knowledge resources"
+                },
+                {
+                    "context": "Summary mentions timely follow-through; Work Experience includes follow-up reviews to confirm resolution.",
+                    "keyword": "follow up"
+                },
+                {
+                    "context": "Summary and Work Experience emphasize process adherence and established protocols.",
+                    "keyword": "protocols and procedures"
+                },
+                {
+                    "context": "Summary references analyzing interactions and improving resolution quality; Key Skills includes root cause/trend analysis.",
+                    "keyword": "critical thinking"
+                },
+                {
+                    "context": "Summary and Key Skills indicate troubleshooting and root cause analysis aligned to problem solving.",
+                    "keyword": "problem solving"
+                },
+                {
+                    "context": "Summary and Key Skills explicitly list conflict resolution/de-escalation.",
+                    "keyword": "conflict resolution"
+                },
+                {
+                    "context": "Summary highlights clear communication; Work Experience includes communicating findings to leadership/stakeholders.",
+                    "keyword": "interpersonal and communication skills"
+                },
+                {
+                    "context": "Key Skills includes Following Written/Oral Procedures.",
+                    "keyword": "follow oral and written instructions"
+                },
+                {
+                    "context": "Key Skills lists Microsoft Teams, relevant to help desk communication.",
+                    "keyword": "Microsoft Teams"
+                },
+                {
+                    "context": "Key Skills lists Microsoft 365 (Word, Excel, PowerPoint).",
+                    "keyword": "Microsoft 365"
+                }
+            ],
+            "section_scores": {
+                "Education": 70,
+                "Experience": 82,
+                "Projects": null,
+                "Skills": 90,
+                "Summary": 92
+            },
+            "suggested_additions": [
+                {
+                    "confidence": "medium",
+                    "keyword": "ServiceNow (or other ITSM tool name used)",
+                    "reason": "Resume references CRM/ticketing-style workflows and ticket routing/escalation but does not name a specific help desk/ITSM platform; naming the actual tool used improves ATS matching."
+                },
+                {
+                    "confidence": "low",
+                    "keyword": "Active Directory (password resets/account unlocks)",
+                    "reason": "Common entry-level help desk task; candidate already emphasizes user support, procedures, and troubleshooting, making basic AD tasks plausible if experienced."
+                },
+                {
+                    "confidence": "medium",
+                    "keyword": "Windows 10/11 troubleshooting",
+                    "reason": "Job focuses on computer systems support; candidate lists basic hardware/software troubleshooting but not specific OS support."
+                },
+                {
+                    "confidence": "medium",
+                    "keyword": "Remote support tools (e.g., Teams screen share/remote assist)",
+                    "reason": "Role supports users via phone/chat/email; candidate already uses Teams and multi-channel support, so remote assistance experience is plausible if applicable."
+                },
+                {
+                    "confidence": "medium",
+                    "keyword": "Customer satisfaction (CSAT) / customer service metrics",
+                    "reason": "Help desk roles often track CSAT; candidate already references SLA/productivity adherence and QA monitoring, so adding CSAT if used would strengthen alignment."
+                },
+                {
+                    "confidence": "medium",
+                    "keyword": "Knowledge base / documentation (SOPs, FAQs)",
+                    "reason": "Job mentions researching using information resources and advising users on procedures; candidate references knowledge resources but could explicitly mention contributing to KB/SOP updates if true."
+                }
+            ],
+            "summary": "The resume aligns strongly with the help desk role\u2019s core workflow: multi-channel support, accurate logging/documentation, protocol adherence, escalation, research, and follow-up. Keyword coverage is high and the communication/conflict-resolution emphasis fits the customer-facing nature of help desk work. The main gap is limited explicit, hands-on IT tooling/desktop support detail (e.g., specific ticketing platform, OS/account support), which could be added if accurate to further improve ATS match."
+        },
+        "company": "Virginia Professional Group",
+        "cover_letter": "Hiring Team,\n\nVirginia Professional Group\u2019s Entry-Level Computer Helpdesk Support Associate role stands out for its clear investment in building strong Help Desk fundamentals\u2014timely, professional support; disciplined documentation; and a team-oriented approach to resolving user issues. With 5+ years of experience supporting high-volume phone, chat, and email workflows in a quality assurance and support environment, along with ongoing Computer Science education, I offer a proven record of improving resolution quality while consistently following protocols and protecting data integrity.\n\nIn my current role as a Quality Assurance Consultant with CarMax, I have reviewed and supported multi-channel customer and agent interactions by identifying issue types, researching case history and knowledge resources, and ensuring outcomes were accurately logged across multiple systems. This work required careful troubleshooting, clear written communication, and consistent adherence to established procedures so that resolutions were complete, auditable, and repeatable. I also conducted follow-up reviews to confirm issues were fully resolved and that documentation met quality standards\u2014an approach that aligns directly with your need to track, route, and document resolutions while maintaining a strong customer experience.\n\nI bring a results-focused mindset to process improvement and service quality. By creating and maintaining Excel and Power BI dashboards to monitor trends, resolution quality, and SLA-related performance, I helped leadership quickly identify recurring issues and prioritize corrective actions. Through targeted feedback loops, coaching notes, and process adjustments, I improved evaluation accuracy by 9% and reduced compliance opportunities by 23%. Just as importantly, I have experience identifying urgent or high-risk situations, following escalation procedures, and verifying handoffs to the appropriate teams were complete.\n\nYour requirements\u2014administering help desk software, logging all interactions, diagnosing basic hardware/software issues, advising users on appropriate procedures, and resolving requests in a timely and professional manner\u2014match the core of my day-to-day work. I am known for calm conflict resolution, strong interpersonal communication, and the ability to follow written and oral instructions while working independently and staying accountable to productivity and SLA expectations.\n\nI welcome the opportunity to discuss how my support, documentation, and troubleshooting strengths can help Virginia Professional Group deliver consistent, high-quality Help Desk service in Springfield. Thank you for your consideration.\n\nSincerely,  \nAntonio Lee",
+        "job_url": "https://virginiaprofessionalgroup.com/careers/entry-level-computer-helpdesk-support-associate-springfield/?utm_campaign=google_jobs_apply&utm_source=google_jobs_apply&utm_medium=organic",
+        "last_updated": "2026-03-12T12:54:03.585932",
+        "local_pdf": "C:\\Users\\lilto\\Desktop\\Projects\\JobFit-Pro\\app\\data\\history_resumes\\20260312_125017_57a36f33.pdf",
+        "resume_url": "https://cgfbvsdtaliuxdamsbzt.supabase.co/storage/v1/object/sign/resumes/users/0b9c1760-55af-457e-934d-363e91f4b05e/ef4c972d-0ba0-4f50-afba-a14daa8b9666.pdf?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8yMWVlNDE3My02OTdmLTQ3NjYtYTRkMS03ZjFmZjQ0ZWFjNDIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyZXN1bWVzL3VzZXJzLzBiOWMxNzYwLTU1YWYtNDU3ZS05MzRkLTM2M2U5MWY0YjA1ZS9lZjRjOTcyZC0wYmEwLTRmNTAtYWZiYS1hMTRkYWE4Yjk2NjYucGRmIiwiaWF0IjoxNzczMzM0Mjc0LCJleHAiOjE3NzM5MzkwNzR9.ZvdqPx_Ha1lauX6qtV1NHigjKCes825E68debOKN_Gs",
+        "role": "Entry-Level Computer Helpdesk Support Associate",
+        "timestamp": "2026-03-12T12:51:12.314919"
+    },
+    {
+        "ats_result": null,
+        "company": "CarMax",
+        "cover_letter": "Hiring Team,\n\nCarMax has always been at its best when it turns complexity into clarity\u2014whether that\u2019s moving inventory across a national network or creating a seamless omnichannel experience for millions of customers. That\u2019s exactly the kind of environment where I do my strongest work, which is why I\u2019m excited to apply for the Strategy Analyst role. After five years inside CarMax analyzing customer interactions and operational performance, I\u2019m eager to bring that same curiosity, rigor, and bias for action to the Strategy team that helps answer the big questions behind how we acquire, move, and serve at scale.\n\nIn my current role as a Quality Assurance Consultant, I\u2019ve spent years translating high-volume phone, chat, and email data into insights leaders can use immediately. I built and maintained Excel and Power BI dashboards that surfaced QA trends, channel performance, and recurring defect themes\u2014then paired the visuals with clear narratives and recommendations so decisions didn\u2019t stall at \u201cinteresting.\u201d That work strengthened how teams understood performance against standards and KPIs, and it helped prioritize where operational changes would have the most impact.\n\nMy best work shows up when analysis leads to measurable outcomes. I improved QA evaluation accuracy by 9% by strengthening scoring consistency, calibration routines, and reporting checks\u2014raising confidence in the data leaders relied on. I also reduced compliance opportunities by 23% by identifying root causes and reinforcing targeted, data-driven feedback loops with frontline teams. Those results required more than dashboards; they required thoughtful problem framing, cross-functional alignment, and the ability to influence without authority\u2014skills that map directly to Strategy\u2019s \u201canalyze, collaborate, and influence\u201d mission.\n\nI bring a Computer Science degree foundation that helps me think systematically about data, logic, and scalable solutions. I also have hands-on Python and data cleaning experience, including working through messy, multi-source datasets by reconciling fields, documenting assumptions, and validating outputs so analysis is trustworthy before it\u2019s persuasive. That combination\u2014technical grounding plus practical reporting integrity\u2014has been central to how I\u2019ve ensured accuracy across multiple systems, flagged anomalies early, and kept stakeholders aligned on what the numbers truly mean.\n\nWhat draws me to this Strategy Analyst role is the chance to apply the same data storytelling and operational mindset to broader business challenges: partnering with Product, Technology, and Operations leaders, shaping strategies with evidence, and helping CarMax keep innovating in a fast-moving retail and supply chain landscape. I\u2019d welcome the opportunity to discuss how my CarMax context, data-driven results, and analytics toolkit can help your team deliver insights that move the business forward. Thank you for your time and consideration.\n\nSincerely,  \nAntonio Lee",
+        "job_url": "https://careers.carmax.com/strategy-analyst/job/3A30F16F0913E55704DE1D0E99B466A1?source=Google_Organic&utm_source=Google_Organic",
+        "last_updated": "2026-03-12T12:44:27.724103",
+        "local_pdf": "C:\\Users\\lilto\\Desktop\\Projects\\JobFit-Pro\\app\\data\\history_resumes\\20260312_124145_cbc10d6b.pdf",
+        "resume_url": "https://cgfbvsdtaliuxdamsbzt.supabase.co/storage/v1/object/sign/resumes/users/0b9c1760-55af-457e-934d-363e91f4b05e/67db222e-c75b-488d-b950-6f4af57629a2.pdf?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8yMWVlNDE3My02OTdmLTQ3NjYtYTRkMS03ZjFmZjQ0ZWFjNDIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyZXN1bWVzL3VzZXJzLzBiOWMxNzYwLTU1YWYtNDU3ZS05MzRkLTM2M2U5MWY0YjA1ZS82N2RiMjIyZS1jNzViLTQ4OGQtYjk1MC02ZjRhZjU3NjI5YTIucGRmIiwiaWF0IjoxNzczMzMzNzYxLCJleHAiOjE3NzM5Mzg1NjF9.C3mKcmBHyQrhLTEcykvhn-AcoeVMz7Q-o-UXHvBjUio",
+        "role": "Strategy Analyst",
+        "timestamp": "2026-03-12T12:42:40.107806"
+    },
+    {
+        "ats_result": null,
+        "company": "CarMax",
+        "job_url": "https://careers.carmax.com/coordinator-ii-central-business-operations/job/2D4DA018C34CD25D17EFE5FF970D8306?source=Direct_Traffic&utm_source=Direct_Traffic",
+        "local_pdf": "C:\\Users\\lilto\\Desktop\\Projects\\JobFit-Pro\\app\\data\\history_resumes\\20260312_114608_2f7e2e62.pdf",
+        "resume_url": "https://cgfbvsdtaliuxdamsbzt.supabase.co/storage/v1/object/sign/resumes/users/0b9c1760-55af-457e-934d-363e91f4b05e/d560d904-0be3-411a-999c-6e914898eeb7.pdf?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8yMWVlNDE3My02OTdmLTQ3NjYtYTRkMS03ZjFmZjQ0ZWFjNDIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyZXN1bWVzL3VzZXJzLzBiOWMxNzYwLTU1YWYtNDU3ZS05MzRkLTM2M2U5MWY0YjA1ZS9kNTYwZDkwNC0wYmUzLTQxMWEtOTk5Yy02ZTkxNDg5OGVlYjcucGRmIiwiaWF0IjoxNzczMzMwNDI4LCJleHAiOjE3NzM5MzUyMjh9.nOShYgGnVj2M4J-LpjsFi6uislZkyBR33FLYYRe3oBc",
+        "role": "Coordinator II, Central Business Operations",
+        "timestamp": "2026-03-12T11:47:06.422388"
+    },
+    {
+        "ats_result": {
+            "ats_score": 78,
+            "error": null,
+            "fabrication_warnings": [
+                {
+                    "item": "Advanced in Excel",
+                    "reason": "Resume claims 'Advanced' but only lists filters/pivots/lookups; not inconsistent, but could be challenged without examples like Power Query, macros, complex modeling, or quantified automation."
+                },
+                {
+                    "item": "5+ years at CarMax (2020-2025)",
+                    "reason": "Dates support ~5 years, but if 2025 is end date and current year is 2026, clarify whether role is current or ended to avoid timeline ambiguity."
+                }
+            ],
+            "matched_keywords": [
+                {
+                    "context": "Summary and Work Experience note updating outcomes/progress in CarMax systems.",
+                    "keyword": "CarMax systems"
+                },
+                {
+                    "context": "Summary explicitly states detailed record keeping; experience describes maintaining detailed records of findings/status/follow-ups.",
+                    "keyword": "detailed record keeping"
+                },
+                {
+                    "context": "Summary mentions reviewing account-level information; experience includes reviewing customer accounts and documentation.",
+                    "keyword": "review accounts"
+                },
+                {
+                    "context": "Summary and experience repeatedly reference accurate documentation and documentation requirements.",
+                    "keyword": "documentation"
+                },
+                {
+                    "context": "Summary mentions communicating status updates to internal partners; experience includes tracking follow-ups through completion.",
+                    "keyword": "status updates"
+                },
+                {
+                    "context": "Summary and experience describe cross-functional coordination with leadership/operations/compliance.",
+                    "keyword": "internal partners"
+                },
+                {
+                    "context": "Experience: served as a point of contact for associates and leaders regarding quality/compliance questions.",
+                    "keyword": "point of contact"
+                },
+                {
+                    "context": "Summary and experience explicitly mention escalating issues and tracking resolution.",
+                    "keyword": "escalate issues"
+                },
+                {
+                    "context": "Experience: utilized department reports and productivity metrics to prioritize daily workload and meet SLAs.",
+                    "keyword": "department reports"
+                },
+                {
+                    "context": "Summary references improving productivity; experience references QA productivity metrics and dashboards.",
+                    "keyword": "productivity"
+                },
+                {
+                    "context": "Skills list Excel (filters, pivots, lookups) and experience building Excel dashboards.",
+                    "keyword": "Microsoft Excel"
+                },
+                {
+                    "context": "Skills list Microsoft Word/PowerPoint.",
+                    "keyword": "Microsoft Word"
+                },
+                {
+                    "context": "Skills include Customer Service and De-escalation; experience references phone/chat/email interactions.",
+                    "keyword": "customer service"
+                },
+                {
+                    "context": "Skills include Process Improvement; experience includes removing obstacles and improving process consistency.",
+                    "keyword": "process improvement"
+                },
+                {
+                    "context": "Implied via cross-functional partnering, though not explicitly labeled as relationship building.",
+                    "keyword": "relationship building"
+                }
+            ],
+            "section_scores": {
+                "Education": 55,
+                "Experience": 80,
+                "Projects": null,
+                "Skills": 82,
+                "Summary": 85
+            },
+            "suggested_additions": [
+                {
+                    "confidence": "medium",
+                    "keyword": "Title release",
+                    "reason": "Core job duty is reviewing accounts for title release; candidate already does account review/documentation tracking at CarMax, so adding any exposure to title-release workflows (if applicable) would strengthen alignment."
+                },
+                {
+                    "confidence": "medium",
+                    "keyword": "Lienholder/lender follow-up",
+                    "reason": "Role requires collecting titles/documents from lenders; candidate already performs follow-ups and status tracking\u2014if they have any experience contacting external parties, it should be stated."
+                },
+                {
+                    "confidence": "low",
+                    "keyword": "Auction documentation",
+                    "reason": "Job focuses on off-site auctions; candidate\u2019s background is internal QA\u2014if they have handled auction-related documentation or exceptions, adding it would improve match."
+                },
+                {
+                    "confidence": "low",
+                    "keyword": "Title and registration documentation",
+                    "reason": "The position is document-driven (titles, resale docs). Candidate emphasizes documentation standards; specifying familiarity with vehicle title/registration document types (only if true) would be highly relevant."
+                },
+                {
+                    "confidence": "high",
+                    "keyword": "Inbound/outbound calling",
+                    "reason": "Coordinator role relies on multiple forms of communication; candidate references phone interactions\u2014calling as a specific channel would help ATS alignment."
+                },
+                {
+                    "confidence": "high",
+                    "keyword": "Email correspondence tracking",
+                    "reason": "Job requires persistent follow-up until receipt; candidate uses email systems\u2014explicitly stating email follow-up cadence/trackers would align well."
+                },
+                {
+                    "confidence": "high",
+                    "keyword": "Work prioritization/queue management",
+                    "reason": "Role requires organizing work based on reports/priorities; candidate mentions SLA prioritization\u2014adding 'queue management' language could improve keyword match."
+                },
+                {
+                    "confidence": "high",
+                    "keyword": "Onsite (Richmond Home Office) availability",
+                    "reason": "Role is onsite 5 days/week in Richmond; candidate is Richmond-based\u2014explicitly stating onsite availability can reduce recruiter friction."
+                }
+            ],
+            "summary": "The resume aligns strongly with the role\u2019s core competencies: account review, detailed record keeping, status tracking, issue escalation, and using reports to prioritize work, with clear CarMax experience in a high-volume environment. The main gap is direct mention of title release/title collection, lenders, auctions, and lienholder documentation, which are central to this Coordinator II position. Adding any truthful exposure to title/vehicle document workflows and external partner follow-up would materially improve ATS match."
+        },
+        "company": "CarMax",
+        "job_url": "https://careers.carmax.com/coordinator-ii-central-business-operations/job/2D4DA018C34CD25D17EFE5FF970D8306?source=Direct_Traffic&utm_source=Direct_Traffic",
+        "local_pdf": "C:\\Users\\lilto\\Desktop\\Projects\\JobFit-Pro\\app\\data\\history_resumes\\20260312_101518_9ec5f29a.pdf",
+        "resume_url": "https://cgfbvsdtaliuxdamsbzt.supabase.co/storage/v1/object/sign/resumes/users/0b9c1760-55af-457e-934d-363e91f4b05e/b5da6500-e33b-4832-8109-bd1f53cf11c3.pdf?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8yMWVlNDE3My02OTdmLTQ3NjYtYTRkMS03ZjFmZjQ0ZWFjNDIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyZXN1bWVzL3VzZXJzLzBiOWMxNzYwLTU1YWYtNDU3ZS05MzRkLTM2M2U5MWY0YjA1ZS9iNWRhNjUwMC1lMzNiLTQ4MzItODEwOS1iZDFmNTNjZjExYzMucGRmIiwiaWF0IjoxNzczMzI0OTc1LCJleHAiOjE3NzM5Mjk3NzV9.MWsV7bgySegZlSrW746H_lbPj09ui9iXWLEZMuDhsRc",
+        "role": "Coordinator II, Central Business Operations",
+        "timestamp": "2026-03-12T10:16:12.817620"
+    },
+    {
+        "ats_result": {
+            "ats_score": 72,
+            "error": null,
+            "fabrication_warnings": [],
+            "matched_keywords": [
+                {
+                    "context": "Summary references evaluating operational controls; Key Skills explicitly lists Internal Controls; experience includes identifying gaps to strengthen controls.",
+                    "keyword": "Internal Controls"
+                },
+                {
+                    "context": "Key Skills lists Operational Audits; Work Experience states executed operational audits of customer interactions.",
+                    "keyword": "Operational Audits"
+                },
+                {
+                    "context": "Key Skills includes Compliance Auditing; Work Experience includes compliance audits and adherence to regulatory/compliance requirements.",
+                    "keyword": "Compliance Auditing"
+                },
+                {
+                    "context": "Summary includes control testing; Key Skills lists Control Testing; experience mentions testing adherence to policies/standards.",
+                    "keyword": "Control Testing"
+                },
+                {
+                    "context": "Summary states skilled in audit execution; Work Experience describes executing audits.",
+                    "keyword": "Audit execution"
+                },
+                {
+                    "context": "Key Skills includes Walkthroughs & Process Understanding; Work Experience describes walkthrough-style reviews with stakeholders.",
+                    "keyword": "Walkthroughs"
+                },
+                {
+                    "context": "Key Skills explicitly lists Workpaper Documentation; experience mentions documenting results and exceptions.",
+                    "keyword": "Workpaper Documentation"
+                },
+                {
+                    "context": "Key Skills includes Process Narratives; Work Experience mentions process summaries.",
+                    "keyword": "Process Narratives"
+                },
+                {
+                    "context": "Key Skills lists Risk/Issue Identification; experience includes identifying gaps, errors, and opportunities.",
+                    "keyword": "Risk/Issue Identification"
+                },
+                {
+                    "context": "Key Skills lists Corrective Action Follow-Up; Work Experience mentions follow-up monitoring to validate corrective actions.",
+                    "keyword": "Corrective Action Follow-Up"
+                },
+                {
+                    "context": "Summary and Work Experience emphasize maintaining/ensuring data integrity across multiple systems.",
+                    "keyword": "Data Integrity"
+                },
+                {
+                    "context": "Key Skills includes Data Integrity & Reconciliation; Work Experience mentions reconciling discrepancies.",
+                    "keyword": "Reconciliation"
+                },
+                {
+                    "context": "Summary mentions audit-style reporting; Work Experience includes audit-ready reports with findings/evidence/impact/recommendations.",
+                    "keyword": "Reporting"
+                },
+                {
+                    "context": "Summary and Key Skills list Power BI; Work Experience includes building Power BI dashboards.",
+                    "keyword": "Power BI"
+                },
+                {
+                    "context": "Summary and Key Skills list advanced Excel; Work Experience includes building/maintaining Excel dashboards.",
+                    "keyword": "Advanced Excel"
+                },
+                {
+                    "context": "Summary explicitly states strong PC skills; Key Skills includes Microsoft Office/Google Workspace/Teams.",
+                    "keyword": "Strong PC skills"
+                },
+                {
+                    "context": "Summary states strong time management and managing multiple priorities; Key Skills includes Time Management.",
+                    "keyword": "Time management"
+                },
+                {
+                    "context": "Key Skills lists Cross-Functional Collaboration; Work Experience describes partnering cross-functionally with leadership and compliance teams.",
+                    "keyword": "Cross-Functional Collaboration"
+                },
+                {
+                    "context": "Work Experience is at CarMax (retail automotive), aligning with preferred retail industry knowledge.",
+                    "keyword": "Retail industry"
+                }
+            ],
+            "section_scores": {
+                "Education": null,
+                "Experience": 70,
+                "Projects": null,
+                "Skills": 78,
+                "Summary": 80
+            },
+            "suggested_additions": [
+                {
+                    "confidence": "medium",
+                    "keyword": "SOX 404",
+                    "reason": "Job heavily emphasizes SOX 404/internal control over financial reporting; candidate already highlights internal controls and control testing, so clarifying any SOX exposure (even limited/supporting) would improve alignment if true."
+                },
+                {
+                    "confidence": "medium",
+                    "keyword": "ICFR (Internal Control over Financial Reporting)",
+                    "reason": "Role is focused on ICFR; candidate\u2019s controls language is strong but framed operationally\u2014adding ICFR terminology (if applicable) improves ATS matching."
+                },
+                {
+                    "confidence": "medium",
+                    "keyword": "Audit reports / audit committee-ready reporting",
+                    "reason": "Candidate mentions audit-ready reports for leadership; explicitly naming 'audit reports' and tailoring to senior management/Audit Committee audiences (if done) would better match the posting."
+                },
+                {
+                    "confidence": "low",
+                    "keyword": "Integrated audits (with IT audit)",
+                    "reason": "Posting mentions integrated audits with IT audit; candidate uses Power BI and multi-system data integrity work, so participation in cross-functional/tech-enabled audits may be plausible to mention if accurate."
+                },
+                {
+                    "confidence": "low",
+                    "keyword": "Tableau",
+                    "reason": "Tableau is a plus; candidate already has BI/dashboard experience (Power BI), so Tableau exposure could be plausible if they have used it even lightly."
+                },
+                {
+                    "confidence": "high",
+                    "keyword": "Project management / audit planning",
+                    "reason": "Job calls for planning and project management; candidate has 'Audit Planning Support' and managing multiple priorities\u2014adding concrete planning/scheduling/scoping language (if performed) would help."
+                },
+                {
+                    "confidence": "medium",
+                    "keyword": "Consumer compliance laws/regulations",
+                    "reason": "Role includes consumer compliance audits; resume references regulatory/compliance requirements but not specific consumer compliance framing\u2014adding that phrasing (if accurate) improves match."
+                },
+                {
+                    "confidence": "medium",
+                    "keyword": "Documentation of controls (process flows, RCM-style documentation)",
+                    "reason": "Candidate already lists process narratives and walkthroughs; adding more explicit control documentation artifacts (if used) strengthens internal audit alignment."
+                }
+            ],
+            "summary": "The resume aligns well with the role\u2019s operational/consumer compliance audit execution, walkthroughs, control testing, documentation, reporting, and time-management requirements, and the CarMax experience is a strong contextual match. However, key requirements for an Auditor II in Internal Audit\u2014Accounting degree, public accounting/audit firm experience, SOX 404/ICFR, and SEC reporting (10-Q/10-K)\u2014are not evidenced in the provided resume, which lowers overall ATS alignment for this specific posting."
+        },
+        "company": "CarMax",
+        "job_url": "https://careers.carmax.com/auditor-ii-internal-audit/job/0BEF61C842429FDEE4006F09580AC779?source=Direct_Traffic&utm_source=Direct_Traffic",
+        "local_pdf": "C:\\Users\\lilto\\Desktop\\Projects\\JobFit-Pro\\app\\data\\history_resumes\\20260312_100359_1624f08a.pdf",
+        "resume_url": "https://cgfbvsdtaliuxdamsbzt.supabase.co/storage/v1/object/sign/resumes/users/0b9c1760-55af-457e-934d-363e91f4b05e/d5a809de-5c5d-451f-a20a-a48ec07d2f78.pdf?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8yMWVlNDE3My02OTdmLTQ3NjYtYTRkMS03ZjFmZjQ0ZWFjNDIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyZXN1bWVzL3VzZXJzLzBiOWMxNzYwLTU1YWYtNDU3ZS05MzRkLTM2M2U5MWY0YjA1ZS9kNWE4MDlkZS01YzVkLTQ1MWYtYTIwYS1hNDhlYzA3ZDJmNzgucGRmIiwiaWF0IjoxNzczMzI0Mjk1LCJleHAiOjE3NzM5MjkwOTV9.BOuxe7HqJeBcZEcxGwAZJyyh2qhbEb_wh5IZVyewclk",
+        "role": "Auditor II, Internal Audit",
+        "timestamp": "2026-03-12T10:04:52.910964"
+    },
+    {
+        "ats_result": {
+            "ats_score": 62,
+            "error": null,
+            "fabrication_warnings": [
+                {
+                    "item": "Detail-oriented auditor and compliance professional with 5+ years of experience",
+                    "reason": "Work history shows a Quality Assurance Consultant role; while audit-like, it may not be formal internal audit experience. Consider clarifying audit scope/standards to avoid appearing overstated."
+                },
+                {
+                    "item": "Bachelor of Science - Computer Science (AI Concentration) | 2025 - 2026",
+                    "reason": "Degree dates indicate in-progress/future completion while the role requires a completed Bachelor degree in Accounting; could raise questions about meeting minimum education requirements."
+                },
+                {
+                    "item": "Associate of Science",
+                    "reason": "Education entry is incomplete (no field, school, or dates), which can look inconsistent or unverifiable."
+                }
+            ],
+            "matched_keywords": [
+                {
+                    "context": "Summary and Key Skills explicitly list internal controls; experience references identifying control gaps and strengthening control effectiveness.",
+                    "keyword": "Internal Controls"
+                },
+                {
+                    "context": "Key Skills includes Operational Auditing; Work Experience describes executing operational audits of customer interactions.",
+                    "keyword": "Operational Auditing"
+                },
+                {
+                    "context": "Key Skills includes Compliance Auditing; Work Experience describes compliance audits and required disclosures.",
+                    "keyword": "Compliance Auditing"
+                },
+                {
+                    "context": "Summary and Key Skills include control testing; experience describes assessing adherence and documenting results.",
+                    "keyword": "Control Testing"
+                },
+                {
+                    "context": "Summary mentions walkthrough-style reviews; Work Experience includes walkthrough-style evaluations of end-to-end processes.",
+                    "keyword": "Walkthroughs"
+                },
+                {
+                    "context": "Key Skills includes Audit Reporting; Work Experience includes preparing audit-style reports and narratives for leadership.",
+                    "keyword": "Audit Reporting"
+                },
+                {
+                    "context": "Summary references workpaper-quality documentation; Key Skills includes Workpaper Documentation.",
+                    "keyword": "Workpaper Documentation"
+                },
+                {
+                    "context": "Key Skills includes Risk & Issue Identification; experience references identifying control gaps, process breakdowns, and root causes.",
+                    "keyword": "Risk & Issue Identification"
+                },
+                {
+                    "context": "Key Skills includes Corrective Action Follow-Up; experience includes tracking outcomes through follow-up reviews.",
+                    "keyword": "Corrective Action Follow-Up"
+                },
+                {
+                    "context": "Key Skills includes Data Analysis; experience includes building Excel/Power BI reporting and reconciling discrepancies.",
+                    "keyword": "Data Analysis"
+                },
+                {
+                    "context": "Summary and Work Experience explicitly mention Power BI reporting.",
+                    "keyword": "Power BI"
+                },
+                {
+                    "context": "Summary and Key Skills list Excel; Work Experience includes building and maintaining Excel reporting and reconciliations.",
+                    "keyword": "Microsoft Excel"
+                },
+                {
+                    "context": "Key Skills explicitly lists Time Management.",
+                    "keyword": "Time Management"
+                },
+                {
+                    "context": "Key Skills includes Written & Verbal Communication; Summary emphasizes clear written reporting to leadership.",
+                    "keyword": "Written & Verbal Communication"
+                },
+                {
+                    "context": "Key Skills includes Stakeholder Management; experience includes partnering with cross-functional stakeholders and leaders.",
+                    "keyword": "Stakeholder Management"
+                },
+                {
+                    "context": "Work Experience is at CarMax (retail automotive), supporting retail industry relevance.",
+                    "keyword": "Retail"
+                }
+            ],
+            "section_scores": {
+                "Education": 20,
+                "Experience": 70,
+                "Projects": null,
+                "Skills": 72,
+                "Summary": 78
+            },
+            "suggested_additions": [
+                {
+                    "confidence": "medium",
+                    "keyword": "SOX 404",
+                    "reason": "Job heavily emphasizes SOX 404 internal control over financial reporting; candidate has internal controls/control testing background and works at CarMax, so clarifying any SOX exposure (even indirect) would improve alignment."
+                },
+                {
+                    "confidence": "medium",
+                    "keyword": "ICFR (Internal Control over Financial Reporting)",
+                    "reason": "Role is centered on ICFR; candidate discusses internal controls but not ICFR specifically\u2014adding if applicable would better match audit language."
+                },
+                {
+                    "confidence": "medium",
+                    "keyword": "COSO framework",
+                    "reason": "Common internal controls framework used in SOX/internal audit; plausible for someone doing control evaluations and audit documentation, if they have used it."
+                },
+                {
+                    "confidence": "high",
+                    "keyword": "Audit planning (scope, objectives, audit programs)",
+                    "reason": "Resume mentions audit planning support and program design; adding explicit terms like scope/objectives/audit program execution improves ATS match."
+                },
+                {
+                    "confidence": "high",
+                    "keyword": "Sampling methodology",
+                    "reason": "Candidate mentions refining sampling approaches; naming sampling methodology more explicitly strengthens audit credibility and keyword match."
+                },
+                {
+                    "confidence": "medium",
+                    "keyword": "Process mapping / flowcharts",
+                    "reason": "Candidate performs walkthroughs and process narratives; process mapping/flowcharting is a natural adjacent skill to mention if used."
+                },
+                {
+                    "confidence": "high",
+                    "keyword": "Issue remediation tracking",
+                    "reason": "They track outcomes and follow-up reviews; explicitly stating remediation tracking/validation aligns with internal audit expectations."
+                },
+                {
+                    "confidence": "low",
+                    "keyword": "Tableau",
+                    "reason": "Tableau is a plus in the job; candidate already uses Power BI and Excel, so Tableau exposure is plausible if they have used it."
+                },
+                {
+                    "confidence": "low",
+                    "keyword": "Public company reporting (10-Q, 10-K)",
+                    "reason": "Job includes reviewing 10-Q/10-K and press releases; if candidate has participated in any related control/testing or review processes at CarMax, adding it would be highly relevant."
+                },
+                {
+                    "confidence": "medium",
+                    "keyword": "Consumer compliance regulations (e.g., UDAAP/CFPB)",
+                    "reason": "Job references consumer compliance and CFPB oversight; candidate audits disclosures and compliance in customer interactions\u2014adding specific regulation familiarity if true would improve fit."
+                }
+            ],
+            "summary": "The resume aligns well with operational/compliance auditing, walkthroughs, control testing, reporting, and stakeholder partnership, and the CarMax experience supports retail relevance. However, it is missing key Internal Audit II requirements such as a Bachelor\u2019s in Accounting, SOX 404/ICFR language, and public company financial reporting (10-Q/10-K) exposure. Strengthening terminology around audit scope/planning, remediation tracking, and any SOX/consumer compliance regulatory specifics (if applicable) would materially improve ATS alignment."
+        },
+        "company": "CarMax",
+        "job_url": "https://careers.carmax.com/auditor-ii-internal-audit/job/0BEF61C842429FDEE4006F09580AC779?source=Direct_Traffic&utm_source=Direct_Traffic",
+        "local_pdf": "C:\\Users\\lilto\\Desktop\\Projects\\JobFit-Pro\\app\\data\\history_resumes\\20260312_094750_457a8873.pdf",
+        "resume_url": "https://cgfbvsdtaliuxdamsbzt.supabase.co/storage/v1/object/sign/resumes/users/0b9c1760-55af-457e-934d-363e91f4b05e/a30713bb-08ed-45b5-a2df-48d98c96db22.pdf?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8yMWVlNDE3My02OTdmLTQ3NjYtYTRkMS03ZjFmZjQ0ZWFjNDIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyZXN1bWVzL3VzZXJzLzBiOWMxNzYwLTU1YWYtNDU3ZS05MzRkLTM2M2U5MWY0YjA1ZS9hMzA3MTNiYi0wOGVkLTQ1YjUtYTJkZi00OGQ5OGM5NmRiMjIucGRmIiwiaWF0IjoxNzczMzIzMzI2LCJleHAiOjE3NzM5MjgxMjZ9.E1jCRxi4_ctSNCiHcaubotcM8KIc-diOTC5r_Og6zf8",
+        "role": "Auditor II, Internal Audit",
+        "timestamp": "2026-03-12T09:48:44.684393"
+    },
+    {
+        "ats_result": {
+            "ats_score": 72,
+            "error": null,
+            "fabrication_warnings": [
+                {
+                    "item": "5+ years of audit experience",
+                    "reason": "Resume frames experience as \"audit and compliance\" with \"audit-style reviews\" in a QA consultant role; may be interpreted as internal audit experience, but it is not clearly financial/internal audit or public accounting auditing as required by the JD."
+                }
+            ],
+            "matched_keywords": [
+                {
+                    "context": "Summary states \"audit and compliance professional\" and Skills include \"Internal Audit Support\"; experience describes audit-style reviews and audit planning support.",
+                    "keyword": "Internal audit"
+                },
+                {
+                    "context": "Summary mentions \"consumer compliance adherence\"; Skills include \"Consumer Compliance Monitoring\"; experience assesses compliance with policies/procedures.",
+                    "keyword": "Consumer compliance"
+                },
+                {
+                    "context": "Key Skills explicitly lists \"Operational Audits\"; work describes operational process evaluations and adherence reviews.",
+                    "keyword": "Operational audits"
+                },
+                {
+                    "context": "Summary notes strengthening internal controls; Skills include \"Internal Controls Testing\"; experience references control points and control improvements.",
+                    "keyword": "Internal controls"
+                },
+                {
+                    "context": "Summary includes \"control testing\" and Skills include \"Internal Controls Testing\".",
+                    "keyword": "Control testing"
+                },
+                {
+                    "context": "Summary includes \"walkthrough-style reviews\"; Skills include \"Walkthroughs & Process Understanding\"; experience includes \"walkthrough-style evaluations\".",
+                    "keyword": "Walkthroughs"
+                },
+                {
+                    "context": "Summary includes \"audit scoping\"; Skills include \"Audit Scope & Planning Support\"; experience includes defining review scope.",
+                    "keyword": "Audit scope"
+                },
+                {
+                    "context": "Summary includes \"workpaper-quality documentation\"; Skills include \"Workpaper Documentation\"; experience documents results/exceptions with evidence.",
+                    "keyword": "Workpapers / documentation"
+                },
+                {
+                    "context": "Summary mentions reporting actionable findings; experience includes preparing written reports and process narratives summarizing findings.",
+                    "keyword": "Audit reporting"
+                },
+                {
+                    "context": "Skills include \"Risk/Control Identification\"; experience references identifying high-risk themes and control points.",
+                    "keyword": "Risk/Control identification"
+                },
+                {
+                    "context": "Skills include \"Data Analysis\"; experience includes building dashboards to analyze trends and error rates.",
+                    "keyword": "Data analysis"
+                },
+                {
+                    "context": "Summary and Skills list Power BI; experience includes building and maintaining Power BI dashboards.",
+                    "keyword": "Power BI"
+                },
+                {
+                    "context": "Summary and Skills list advanced Excel; experience includes Excel dashboards and reconciliation.",
+                    "keyword": "Advanced Excel"
+                },
+                {
+                    "context": "Key Skills explicitly lists \"Time Management\".",
+                    "keyword": "Time management"
+                },
+                {
+                    "context": "Skills include cross-functional collaboration; experience describes partnering with compliance and business leaders.",
+                    "keyword": "Cross-functional collaboration"
+                },
+                {
+                    "context": "Work experience is at CarMax (Quality Assurance Consultant).",
+                    "keyword": "CarMax"
+                }
+            ],
+            "section_scores": {
+                "Education": null,
+                "Experience": 70,
+                "Projects": null,
+                "Skills": 78,
+                "Summary": 80
+            },
+            "suggested_additions": [
+                {
+                    "confidence": "medium",
+                    "keyword": "SOX 404",
+                    "reason": "Job heavily emphasizes SOX 404 ICFR testing; candidate already highlights internal controls testing and walkthroughs, so clarifying any SOX exposure (even indirect/supporting) would improve alignment if true."
+                },
+                {
+                    "confidence": "medium",
+                    "keyword": "ICFR (Internal Control over Financial Reporting)",
+                    "reason": "Role is focused on ICFR; candidate discusses internal controls broadly\u2014adding ICFR terminology where applicable would better match ATS searches if their controls work touched reporting/metrics governance."
+                },
+                {
+                    "confidence": "high",
+                    "keyword": "Audit Committee / management reporting",
+                    "reason": "JD references reporting for management and Audit Committee; candidate already prepares leadership reports\u2014adding explicit phrasing about executive-ready reporting would be plausible."
+                },
+                {
+                    "confidence": "high",
+                    "keyword": "Sampling methodology",
+                    "reason": "Audits commonly require sampling; candidate mentions checklists and scope and appears to do review-based testing\u2014adding \"sampling\" (if used) is plausible and ATS-relevant."
+                },
+                {
+                    "confidence": "high",
+                    "keyword": "Issue remediation tracking / action plans",
+                    "reason": "JD expects recommendations and improvements; candidate mentions corrective action follow-up\u2014adding explicit remediation tracking language would strengthen fit."
+                },
+                {
+                    "confidence": "high",
+                    "keyword": "Process mapping / flowcharts",
+                    "reason": "Candidate writes process narratives and performs walkthroughs; process mapping is a natural adjacent skill often used in audit documentation."
+                },
+                {
+                    "confidence": "medium",
+                    "keyword": "Regulatory requirements (CFPB)",
+                    "reason": "JD specifically mentions CFPB oversight; candidate has consumer compliance monitoring\u2014if their work aligned to CFPB-related requirements, naming it would improve match."
+                },
+                {
+                    "confidence": "medium",
+                    "keyword": "Integrated audits with IT audit",
+                    "reason": "JD mentions integrated audits with IT audit; candidate references multiple systems and dashboards\u2014if they partnered with IT/security/data teams, adding that collaboration is plausible."
+                },
+                {
+                    "confidence": "low",
+                    "keyword": "Tableau",
+                    "reason": "Tableau is a plus; candidate already uses Power BI and advanced Excel, making Tableau familiarity plausible if they have had exposure."
+                },
+                {
+                    "confidence": "high",
+                    "keyword": "Project management (multiple concurrent projects)",
+                    "reason": "JD stresses managing multiple projects; candidate lists time management\u2014adding explicit multi-project delivery/deadlines language (if accurate) would help."
+                }
+            ],
+            "summary": "Resume aligns well with consumer compliance, operational review work, walkthroughs, control testing concepts, and strong documentation/reporting\u2014key components of internal audit execution. The largest gaps versus the role are explicit SOX 404/ICFR experience, public accounting audit background, and financial reporting/SEC filing exposure (10-Q/10-K). Adding precise audit terminology (sampling, remediation tracking, ICFR) and any verified SOX/financial-controls involvement would materially improve ATS alignment."
+        },
+        "company": "CarMax",
+        "job_url": "https://careers.carmax.com/auditor-ii-internal-audit/job/0BEF61C842429FDEE4006F09580AC779?source=Direct_Traffic&utm_source=Direct_Traffic",
+        "last_updated": "2026-03-12T09:35:52.912749",
+        "local_pdf": "C:\\Users\\lilto\\Desktop\\Projects\\JobFit-Pro\\app\\data\\history_resumes\\20260312_092634_99ced399.pdf",
+        "resume_url": "https://cgfbvsdtaliuxdamsbzt.supabase.co/storage/v1/object/sign/resumes/users/0b9c1760-55af-457e-934d-363e91f4b05e/5e9cec0a-0d00-4693-98e4-8417bdf8e6c8.pdf?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8yMWVlNDE3My02OTdmLTQ3NjYtYTRkMS03ZjFmZjQ0ZWFjNDIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyZXN1bWVzL3VzZXJzLzBiOWMxNzYwLTU1YWYtNDU3ZS05MzRkLTM2M2U5MWY0YjA1ZS81ZTljZWMwYS0wZDAwLTQ2OTMtOThlNC04NDE3YmRmOGU2YzgucGRmIiwiaWF0IjoxNzczMzIyMDU1LCJleHAiOjE3NzM5MjY4NTV9.9-3kKjuIO5bi08Zp4u6z-yGAwBUoVcekrjpb_gsFkqM",
+        "role": "Auditor II, Internal Audit",
+        "timestamp": "2026-03-12T09:27:32.790905"
+    },
+    {
         "company": "Towne Bank",
+        "job_url": "",
+        "last_updated": "2026-03-12T09:40:28.320234",
+        "resume_url": "https://cgfbvsdtaliuxdamsbzt.supabase.co/storage/v1/object/sign/resumes/users/0b9c1760-55af-457e-934d-363e91f4b05e/d99622bc-d0e2-411a-9ae2-0d7d6d2bd456.pdf?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8yMWVlNDE3My02OTdmLTQ3NjYtYTRkMS03ZjFmZjQ0ZWFjNDIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyZXN1bWVzL3VzZXJzLzBiOWMxNzYwLTU1YWYtNDU3ZS05MzRkLTM2M2U5MWY0YjA1ZS9kOTk2MjJiYy1kMGUyLTQxMWEtOWFlMi0wZDdkNmQyYmQ0NTYucGRmIiwiaWF0IjoxNzY1NTExODE3LCJleHAiOjE3NjYxMTY2MTd9.Y6aaxnvX4cM9HwbS8CI0dcwy5jGtWRJre0U0BiB0vxY",
         "role": "Registered Client Service Assistant/ 401(k) Client Service Assistant (Richmond, Suffolk or Virginia Beach)",
         "timestamp": "2025-12-11T22:56:58.280842",
-        "job_url": "",
-        "resume_url": "https://cgfbvsdtaliuxdamsbzt.supabase.co/storage/v1/object/sign/resumes/users/0b9c1760-55af-457e-934d-363e91f4b05e/d99622bc-d0e2-411a-9ae2-0d7d6d2bd456.pdf?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8yMWVlNDE3My02OTdmLTQ3NjYtYTRkMS03ZjFmZjQ0ZWFjNDIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyZXN1bWVzL3VzZXJzLzBiOWMxNzYwLTU1YWYtNDU3ZS05MzRkLTM2M2U5MWY0YjA1ZS9kOTk2MjJiYy1kMGUyLTQxMWEtOWFlMi0wZDdkNmQyYmQ0NTYucGRmIiwiaWF0IjoxNzY1NTExODE3LCJleHAiOjE3NjYxMTY2MTd9.Y6aaxnvX4cM9HwbS8CI0dcwy5jGtWRJre0U0BiB0vxY",
-        "last_updated": "2025-12-11T22:57:51.629839"
-    },
-    {
-        "company": "2220 W. Broad Street, Richmond, VA 23220, United States",
-        "role": "Analyze",
-        "job_url": "https://careers.carmax.com/strategy-analyst/job/3A30F16F0913E55704DE1D0E99B466A1?source=Google_Organic&utm_source=Google_Organic",
-        "resume_url": "https://cgfbvsdtaliuxdamsbzt.supabase.co/storage/v1/object/sign/resumes/users/0b9c1760-55af-457e-934d-363e91f4b05e/877278d4-3c83-4c4f-a7fb-408b438b0394.docx?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8yMWVlNDE3My02OTdmLTQ3NjYtYTRkMS03ZjFmZjQ0ZWFjNDIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyZXN1bWVzL3VzZXJzLzBiOWMxNzYwLTU1YWYtNDU3ZS05MzRkLTM2M2U5MWY0YjA1ZS84NzcyNzhkNC0zYzgzLTRjNGYtYTdmYi00MDhiNDM4YjAzOTQuZG9jeCIsImlhdCI6MTc3MzI3MDcxNywiZXhwIjoxNzczODc1NTE3fQ.Gcb8e3zmrgpdshdOSL4fPcs7EdETt9GS6DR_n-wJ_0o",
-        "timestamp": "2026-03-11T19:11:55.509542"
-    },
-    {
-        "company": "2220 W. Broad Street, Richmond, VA 23220, United States",
-        "role": "Analyze",
-        "job_url": "https://careers.carmax.com/strategy-analyst/job/3A30F16F0913E55704DE1D0E99B466A1?source=Google_Organic&utm_source=Google_Organic",
-        "resume_url": "https://cgfbvsdtaliuxdamsbzt.supabase.co/storage/v1/object/sign/resumes/users/0b9c1760-55af-457e-934d-363e91f4b05e/ad746663-94bd-4dbf-a2ba-30dac53cc9f5.docx?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8yMWVlNDE3My02OTdmLTQ3NjYtYTRkMS03ZjFmZjQ0ZWFjNDIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyZXN1bWVzL3VzZXJzLzBiOWMxNzYwLTU1YWYtNDU3ZS05MzRkLTM2M2U5MWY0YjA1ZS9hZDc0NjY2My05NGJkLTRkYmYtYTJiYS0zMGRhYzUzY2M5ZjUuZG9jeCIsImlhdCI6MTc3MzI3MDgzNywiZXhwIjoxNzczODc1NjM3fQ.0jAjIZxorwqZvQ1rvacWuAhRUnglvTdgm7BvcXoTN2c",
-        "timestamp": "2026-03-11T19:13:55.737491"
-    },
-    {
-        "company": "2220 W. Broad Street, Richmond, VA 23220, United States",
-        "role": "Analyze",
-        "job_url": "https://careers.carmax.com/strategy-analyst/job/3A30F16F0913E55704DE1D0E99B466A1?source=Google_Organic&utm_source=Google_Organic",
-        "resume_url": "https://cgfbvsdtaliuxdamsbzt.supabase.co/storage/v1/object/sign/resumes/users/0b9c1760-55af-457e-934d-363e91f4b05e/7db2d537-3293-4a1f-8207-a0e7c661438d.docx?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8yMWVlNDE3My02OTdmLTQ3NjYtYTRkMS03ZjFmZjQ0ZWFjNDIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyZXN1bWVzL3VzZXJzLzBiOWMxNzYwLTU1YWYtNDU3ZS05MzRkLTM2M2U5MWY0YjA1ZS83ZGIyZDUzNy0zMjkzLTRhMWYtODIwNy1hMGU3YzY2MTQzOGQuZG9jeCIsImlhdCI6MTc3MzI3NzMwNSwiZXhwIjoxNzczODgyMTA1fQ.5khUCePJZTtCbpAnXQrU2-Qs9CiHNb-xwSkkQf1VdPs",
-        "timestamp": "2026-03-11T21:01:44.059777"
+        "user_id": "0b9c1760-55af-457e-934d-363e91f4b05e"
     }
 ]

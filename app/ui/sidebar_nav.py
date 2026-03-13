@@ -16,24 +16,29 @@ import os
 
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QSizePolicy
 from PyQt6.QtCore import (
-    Qt, QPropertyAnimation, QEasingCurve,
-    pyqtSignal, pyqtProperty, QByteArray,
+    Qt,
+    QPropertyAnimation,
+    QEasingCurve,
+    pyqtSignal,
+    pyqtProperty,
+    QByteArray,
 )
-from PyQt6.QtGui import QPainter, QColor, QPixmap, QFont, QPen
+from PyQt6.QtGui import QPainter, QColor, QPixmap, QFont, QPen, QBrush
 
 # ---------------------------------------------------------------
 # Layout constants
 # ---------------------------------------------------------------
-TAB_WIDTH_INACTIVE = 72    # resting width (px)
-TAB_WIDTH_ACTIVE   = 96    # extended width when active
-TAB_HEIGHT         = 90    # fixed height per tab
-ACCENT_BAR_W       = 4     # left accent bar thickness
-ICON_SIZE          = 28    # icon render size
-ANIM_DURATION      = 180   # ms
+TAB_WIDTH_INACTIVE = 72  # resting width (px)
+TAB_WIDTH_ACTIVE = 96  # extended width when active
+TAB_HEIGHT = 90  # fixed height per tab
+ACCENT_BAR_W = 4  # left accent bar thickness
+ICON_SIZE = 28  # icon render size
+ANIM_DURATION = 180  # ms
 
 ICONS_DIR = os.path.join(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-    "assets", "icons",
+    "assets",
+    "icons",
 )
 
 
@@ -41,23 +46,24 @@ ICONS_DIR = os.path.join(
 # Single Tab Button
 # ==================================================================
 class _TabButton(QWidget):
-    clicked = pyqtSignal(int)   # emits its own index
+    clicked = pyqtSignal(int)  # emits its own index
 
     def __init__(self, index: int, icon_name: str, label: str, parent=None):
         super().__init__(parent)
-        self._index   = index
-        self._label   = label
-        self._active  = False
+        self._index = index
+        self._label = label
+        self._active = False
         self._tab_width = float(TAB_WIDTH_INACTIVE)
+        self._badge = False  # shows notification dot when True
 
         # Load icon — generate a light-tinted version for dark mode
         icon_path = os.path.join(ICONS_DIR, icon_name)
         if os.path.exists(icon_path):
             raw = QPixmap(icon_path)
-            self._pixmap       = raw
+            self._pixmap = raw
             self._pixmap_light = self._tint_pixmap(raw, QColor(200, 210, 220))
         else:
-            self._pixmap       = QPixmap()
+            self._pixmap = QPixmap()
             self._pixmap_light = QPixmap()
 
         self.setFixedHeight(TAB_HEIGHT)
@@ -106,6 +112,11 @@ class _TabButton(QWidget):
         self._anim.setEndValue(target)
         self._anim.start()
 
+    def set_badge(self, visible: bool):
+        """Show or hide the notification dot."""
+        self._badge = visible
+        self.update()
+
     # ---- paint ----
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -125,6 +136,7 @@ class _TabButton(QWidget):
         is_dark = True
         try:
             import services.theme_manager as tm
+
             if tm.theme_manager:
                 is_dark = tm.theme_manager.is_dark_mode()
         except Exception:
@@ -133,7 +145,8 @@ class _TabButton(QWidget):
         pixmap = self._pixmap_light if is_dark else self._pixmap
         if not pixmap.isNull():
             scaled = pixmap.scaled(
-                ICON_SIZE, ICON_SIZE,
+                ICON_SIZE,
+                ICON_SIZE,
                 Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation,
             )
@@ -162,6 +175,14 @@ class _TabButton(QWidget):
         painter.setPen(QPen(QColor("#1E293B")))
         painter.drawLine(w - 1, 8, w - 1, h - 8)
 
+        # Notification badge dot (top-right area of icon)
+        if self._badge:
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(QBrush(QColor("#F87171")))
+            dot_x = w - 14
+            dot_y = 12
+            painter.drawEllipse(dot_x, dot_y, 9, 9)
+
         painter.end()
 
     def mousePressEvent(self, event):
@@ -177,15 +198,15 @@ class SidebarNav(QWidget):
 
     # (icon filename, display label)
     TABS = [
-        ("edit.png",     "Tailor"),
-        ("history.png",  "History"),
+        ("edit.png", "Tailor"),
+        ("history.png", "History"),
         ("settings.png", "Settings"),
-        ("cover.png",    "Cover Letter"),
+        ("cover.png", "Cover Letter"),
     ]
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setFixedWidth(TAB_WIDTH_ACTIVE)   # wide enough for active tab
+        self.setFixedWidth(TAB_WIDTH_ACTIVE)  # wide enough for active tab
         self.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Expanding)
         self.setObjectName("sidebarNav")
 
@@ -210,15 +231,24 @@ class SidebarNav(QWidget):
 
     def _on_tab_clicked(self, index: int):
         if index == self._current:
+            # Still clear badge if user clicks active tab
+            self._buttons[index].set_badge(False)
             return
         self._buttons[self._current].set_active(False)
         self._buttons[index].set_active(True)
+        # Clear badge when user navigates to that tab
+        self._buttons[index].set_badge(False)
         self._current = index
         self.tabChanged.emit(index)
 
     def set_tab(self, index: int):
         """Programmatically switch tab."""
         self._on_tab_clicked(index)
+
+    def set_badge(self, index: int, visible: bool):
+        """Show or hide the notification dot on a tab."""
+        if 0 <= index < len(self._buttons):
+            self._buttons[index].set_badge(visible)
 
     def paintEvent(self, event):
         """Draw sidebar background."""

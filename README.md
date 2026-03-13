@@ -1,169 +1,194 @@
-# **JobFit Pro**
+# JobFit Pro
 
-_A smart, AI-powered resume tailoring tool for Windows._
+> AI-powered resume tailoring for Windows — built with Python, PyQt6, and OpenAI.
 
-JobFit Pro is a modern desktop application designed to help job seekers quickly tailor their resumes to specific job descriptions. Built with **Python**, **PyQt6**, and **OpenAI**, the app extracts your resume, analyzes job postings, and generates a professionally aligned, ATS-friendly tailored version.
-
-This tool is ideal for students, professionals, and job hunters who want to streamline their application workflow with intelligent automation.
-
----
-
-## 🚀 **Current Features (Iteration 1)**
-
-### **AI-Powered Tailoring**
-
-- Upload your resume (PDF or DOCX)
-- Paste or fetch a job description
-- Automatically generate a tailored, ATS-friendly resume using GPT
-- Preview and export the tailored resume as DOCX
-
-### **Flexible Job Description Input**
-
-- URL-based scraping (LinkedIn/ZipRecruiter/Indeed-compatible with headers)
-- Manual paste mode for sites that block automated access
-
-### **Modern GUI**
-
-- PyQt6 desktop interface
-- Dark theme
-- Reusable components: file picker, settings panel, output panel
-- Clean section-based layout for resume, job description, and output
-
-### **Configurable Tailoring Options**
-
-- Emphasize keywords
-- Maintain approximate resume length
-- Ensure ATS formatting
+JobFit Pro is a modern desktop application that helps job seekers tailor their 
+resumes to specific job descriptions in seconds. It parses your resume, analyzes job postings, and uses GPT to generate a professionally aligned, ATS-optimized version — 
+all from a clean tabbed interface with cloud sync.
 
 ---
 
-## 🛣️ **Roadmap**
+## Features
 
-### 🔜 **Iteration 2**
+### AI Resume Tailoring
+- Upload your resume (PDF  or DOCX)
+- Paste or fetch a job description by URL
+- Generaate a tailored, ATS-friendly resume using OpenAI GPT
+- Export the result as DOCX or PDF
 
-- **Page Length Enforcement (1–2 pages)**  
-  Ensure the output resume fits standard U.S. letter formatting (8.5 x 11).
+### ATS SCore Analysis
+- Keyword overlap scoring between resume and job description
+- AI-powered breakdown of missing skills, tone, and alignment
+- AI-written content detection and integrity check
+- Sliding ATS panel with animated score bar and sidebar badge notification
 
-- **Job Tailoring Log System**  
-  Store each tailored resume along with job title, company, and date.  
-  View past tailoring history in a sortable table.
+### Cover Letter Generator
+- Auto-generate cover letters from your resume + job description
+- Choose tone (Professional / Friendly / Confident / Creative) and length
+- Source selected automatically: uses tailored resume if available, uploadedd resume if not, or prompts to upload if neither exists
+- Editable output with export to DOCX/PDF
+- Cover letters saved to tailoring history
 
-- **Accessibility Features**
+### Tailoring History
+- Every tailoring session is saved locally (JSON + PDF)
+- View company, role, ATS Score, and cover letter per entry
+- Replay ATS analysis on any past resume
+- Edit company/role fields inline
+- Bulk or single-row delete
 
-  - Font size adjustments
-  - High contrast modes
-  - Screen reader-friendly mode
+### Cloud Sync
+- All history synced to Supabase on each tailoring session
+- Manual Push All to Cloud and Pull from Cloud in Settings
+- User preferences (theme, tailoring defaults) synced across devices
+- Local-first — app works offline, syncs when connnected
 
-- **Personalization Panel**  
-  Allow user to adjust tone, formality, skill emphasis, and layout preferences.
+### Authentication
+- Email/password sign-in and sign-up
+- Remember Me with secure keyring token storage
+- Grace period (30-minute session restoration on restart)
+- Auto-login on launch when session is valid
 
-### 🔐 **Future Release**
-
-- **Multi-User Authentication**
-
-  - Local account system
-  - Cloud sync for resume history, templates, and preferences
-
-- **Advanced Resume Templates**
-
-  - Profession-specific variations
-  - Modern, minimalist, corporate, creative, and academic styles
-
-- **Cover Letter Generator**
-
-  - Auto-generate letters based on resume + job description
-
-- **ATS Score Analyzer**
-
-  - Keyword overlap
-  - Missing skills
-  - Strength meter
-
-- **Job Board Integrations**
-  - Direct import from LinkedIn, Indeed, ZipRecruiter, etc.
-
----
-
-## 🧩 **Technical Overview**
-
-### **Tech Stack**
-
-- **Python 3.9+**
-- **PyQt6** (GUI)
-- **OpenAI Python SDK** (AI resume tailoring)
-- **python-docx**, **pdfplumber** (document parsing)
-- **BeautifulSoup4**, **requests** (job scraping)
-- **dotenv** (environment config)
-- **QSS (Qt Stylesheets)** for dark mode UI styling
+### Modern UI
+- Tabbed sidebar layout: Tailor, History, Settings, Cover Letter
+- Dark and Light theme with live toggle
+- Toast notifications for async events (ATS score, errors)
+- Onboarding tutorial on first launch (re-triggerable from Help menu)
+- Keyboard shortcuts for all major actions
 
 ---
 
-## 📁 **Project Structure**
+## Tech Stack
 
-```bash
+|          Layer | Technology                      |
+| -------------- | ------------------------------- |
+|   UI Framework | PyQt6                           |
+|      AI Engine | OpenAI GPT (gpt-4.1 default)    |
+| Auth & Storage | Supabase (PostGreSQL + Storage) |
+| Resume Parsing | pdfplumber, python-docx         |
+|   Job Scraping | BeautifulSoup4, requests        |
+|    Credentials | keyring                         |
+|      Packaging | PyInstaller                     |
+|        Styling | QSS (Qt Stylesheets)            |
+
+---
+
+## Project Structure
+
+```
 JobFit-Pro/
-│
 ├── app/
-│ ├── main.py
-│ ├── window_main.py
-│ ├── components/
-│ │ ├── file_picker.py
-│ │ ├── output_panel.py
-│ │ └── settings_panel.py
-│ ├── styles/
-│ │ └── app.qss
-│ └── ui/
-│ ├── main_window.py
-│ └── main_window.ui
+│   ├── main.py                        # Entry point
+│   ├── window_main.py                 # Main window controller
+│   ├── components/
+│   │   ├── file_picker.py             # Reusable file picker widget
+│   │   ├── output_panel.py            # Formatted resume output panel
+│   │   └── settings_panel.py          # Tailoring options checkboxes
+│   ├── data/
+│   │   ├── tailoring_history.json     # Local history store
+│   │   └── history_resumes/           # Saved tailored resume PDFs
+│   ├── state/
+│   │   ├── session_state.py
+│   ├── styles/
+│   │   ├── app.qss                    # Dark theme stylesheet
+│   │   └── app_light.qss              # Light theme stylesheet
+│   └── ui/
+│       ├── auth_modal.py              # Sign in / sign up dialog
+│       ├── main_window_ui.py
+│       ├── main_window.py             # UI layout definition
+│       ├── main_window.ui
+│       ├── onboarding.py              # First-launch tutorial overlay
+│       ├── sidebar_nav.py             # Tab sidebar with badge support
+│       ├── ats_panel.py               # Sliding ATS score drawer
+│       ├── toast_notification.py      # Animated toast messages
+│       ├── tailoring_history_window.py
+│       ├── dialogs/
+│       │   ├── about_dialog.py
+│       │   ├── help_dialog.py
+│       │   └── loading_dialog.py
+│       └── tabs/
+│           ├── tab_tailor.py          # Main tailoring tab
+│           ├── tab_history.py         # History browser tab
+│           ├── tab_settings.py        # Settings + Cloud Sync tab
+│           └── tab_cover_letter.py    # Cover letter generator tab
 │
 ├── core/
-│ ├── extractor/
-│ ├── processor/
-│ └── exporter/
+│   ├── extractor/
+│   │   ├── pdf_parser.py              # PDF text extraction
+│   │   ├── docx_parser.py             # DOCX text extraction
+│   │   └── job_parser.py              # Job description URL scraper
+│   ├── history/
+│   │   ├── history_manager.py
+│   │   └── utils.py
+│   ├── processor/
+│   │   ├── tailor_engine.py           # GPT resume tailoring engine
+│   │   ├── cleaner.py                 # Resume text normalization
+│   │   ├── keyword_matcher.py         # ATS keyword overlap scoring
+│   │   ├── keyword_analyzer.py        # AI-powered ATS breakdown
+│   │   ├── ai_detector.py             # AI-written content detection
+│   │   ├── job_meta_extractor.py      # Company/role extraction from JD
+│   │   └── cover_letter_engine.py     # GPT cover letter generation
+│   ├── uploader/
+│   │   └── supabase_uploader.py       # Resume upload to Supabase Storage
+│   ├── utils/
+│   │   └── validators.py
+│   └── exporter/
+│       ├── docx_builder.py            # DOCX export with ATS formatting
+│       └── pdf_exporter.py            # PDF export via docx2pdf
 │
 ├── services/
-│ ├── openai_client.py
-│ └── config.py
+│   ├── config.py                      # .env loader (API keys, model)
+│   ├── openai_client.py               # OpenAI API wrapper
+│   ├── auth_manager.py                # Supabase auth + Remember Me
+│   ├── supabase_client.py             # Supabase client singleton
+│   ├── theme_manager.py               # Light/dark theme switching
+│   └── sync_manager.py                # Cloud sync workers (history + prefs)
 │
-├── tests/
+├── tests/                             # Unit tests (in progress)
 ├── assets/
+│   └── icons/                         # SVG icons for UI
+├── .env                               # API keys (not committed)
 ├── requirements.txt
 └── README.md
 ```
 
 ---
 
-## ⚙️ **Setup Instructions**
+## Setup
 
-### **1. Clone the repo**
+### 1. Clone the repo
 
 ```bash
-git clone https://github.com/<your-username>/JobFit-Pro.git
+git clone https://github.com/Techdudetony/JobFit-Pro.git
 cd JobFit-Pro
 ```
 
-### **2. Create a virtual environment**
+### 2. Create and activate a virtual environment
 
 ```bash
 python -m venv .venv
-.\.venv\Scripts\activate
+./.venv/Scripts/activate    # Windows
 ```
 
-### **3. Install dependencies**
+### 3. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### **4. Configure OpenAI**
+### 4. Configure environment variables
 
-Create a .env file in the project root.
+Create a `.env` file in the project root:
 
-```bash
-OPENAI_API_KEY=your_api_key_here
+```env
+OPENAI_API_KEY=sk-...
+OPENAI_MODEL_NAME=gpt-4.1
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-anon-key
 ```
 
-### **5. Run the application**
+You can also configure yhe API key and model directly from **Settings -> API Configuration** inside the app.
+
+### 5. Run the app
 
 ```bash
 python -m app.main
@@ -171,35 +196,68 @@ python -m app.main
 
 ---
 
-## Tests
+## Build (Windows .exe)
 
-Tests (coming soon) will live under
-`tests/`  
-Unit tests will cover:
+```bash
+pyinstaller --noconfirm --onefile --windowed \
+  --name "JobFit Pro" \
+  --icon "assets/desktop_icon.ico" \
+  --add-data "app/styles/app.qss;app/styles" \
+  --add-data "app/styles/app_light.qss;app/styles" \
+  --add-data "assets;assets" \
+  --add-data "assets/icons;assets/icons" \
+  --collect-all openai \
+  --collect-all pdfplumber \
+  --collect-all supabase \
+  --hidden-import=PyQt6.sip \
+  --hidden-import=PyQt6.QtSvg \
+  app/main.py
 
-- Resume parsing
-- Job description extraction
-- Tailoring engine
-- Export logic
-
----
-
-## Contributing
-
-This project is currently private and under active development.  
-Contribution guidelines and issue templates will be added as multi-user development begins.
-
----
-
-## License
-
-This project is proprietary and all rights are reserved.  
-You may not copy, modify, or redistribute this software without explicit permission from the author.
+copy .env dist\.env
+```
 
 ---
 
-## Contact
+## Keyboard Shortcuts
 
-For questions or feature suggestions:  
-Antonio Lee
-GitHub: https://github.com/Techdudetony
+|                Action | Shortcut     |
+| --------------------- | ------------ |
+|         Tailor Resume | Ctrl+T       |
+| Fetch Job Description | Ctrl+F       |
+|           Load Resume | Ctrl+O       |
+|           Export DOCX | Ctrl+E       |
+|            Export PDF | Ctrl+Shift+E |
+|          Open History | Ctrl+H       |
+|           New Session | Ctrl+N       |
+|                  Quit | Ctrl+Q       |
+
+---
+
+## Roadmap
+
+### In Progress
+- Resizable panels (QSplitter)
+- Tone analyzer badge
+- Interview prep mode
+
+### Planned
+- Multi-resume profiles
+- Resume builder with manual entry form
+- Resume versioning with diff view
+- Skill bank with proficiency badges
+- Resume templates (modern, minimal, corporate)
+- Usage dashboard
+- Help wiki
+
+---
+
+# License
+
+Proprietary - all rights reserved.
+You may not copy, modify, or redistribute this software without explicit written permission from the author.
+
+---
+
+## Author
+
+Antoino Lee — [GitHub: Techdudetony](https://github.com/Techdudetony)

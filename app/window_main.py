@@ -39,6 +39,9 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, QTimer, QThread, pyqtSignal
 from PyQt6.QtGui import QAction, QKeySequence, QShortcut
 
+from app.ui.toast_notification import ToastNotification
+from services.sync_manager import sync_manager
+
 # ---------------- CORE LOGIC MODULES ----------------
 from core.extractor.pdf_parser import extract_pdf
 from core.extractor.docx_parser import extract_docx
@@ -49,16 +52,28 @@ from core.exporter.docx_builder import export_to_docx
 from core.exporter.pdf_exporter import export_to_pdf
 from core.processor.tailor_engine import ResumeTailor
 from core.processor.keyword_matcher import keyword_overlap
+from core.processor.job_meta_extractor import JobMetaWorker
 
 LAST_RESUME_FILE = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "last_resume.json"
+)
+
+# Local folder where per-tailoring PDFs are saved
+HISTORY_RESUMES_DIR = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-    "last_resume.json"
+    "app",
+    "data",
+    "history_resumes",
 )
 
 # ---------------- AUTH SYSTEM -----------------------
 from services.auth_manager import auth
 from app.ui.auth_modal import AuthModal
-from app.ui.onboarding import OnboardingManager, has_completed_onboarding, reset_onboarding
+from app.ui.onboarding import (
+    OnboardingManager,
+    has_completed_onboarding,
+    reset_onboarding,
+)
 
 # ---------------- HISTORY --------------------------
 from app.ui.tailoring_history_window import HISTORY_FILE
@@ -69,14 +84,14 @@ from app.ui.tailoring_history_window import HISTORY_FILE
 # ==============================================================================
 class TailorWorker(QThread):
     finished = pyqtSignal(str)
-    error    = pyqtSignal(str)
+    error = pyqtSignal(str)
 
     def __init__(self, tailor, resume_text, job_text, settings):
         super().__init__()
-        self.tailor      = tailor
+        self.tailor = tailor
         self.resume_text = resume_text
-        self.job_text    = job_text
-        self.settings    = settings
+        self.job_text = job_text
+        self.settings = settings
 
     def run(self):
         try:
@@ -133,6 +148,7 @@ class MainWindow(QMainWindow):
         # 2. LOAD UI FROM PURE LAYOUT CLASS
         # ============================================================
         from app.ui.main_window import Ui_MainWindow
+
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
@@ -144,7 +160,8 @@ class MainWindow(QMainWindow):
 
         self.loadingLabel = QLabel(self)
         self.loadingLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.loadingLabel.setStyleSheet("""
+        self.loadingLabel.setStyleSheet(
+            """
             QLabel {
                 background-color: rgba(15, 23, 42, 220);
                 color: #E5E7EB;
@@ -154,7 +171,8 @@ class MainWindow(QMainWindow):
                 padding: 24px 40px;
                 min-width: 400px;
             }
-        """)
+        """
+        )
         self.loadingLabel.hide()
 
         self.loadingTimer = QTimer(self)
@@ -166,8 +184,8 @@ class MainWindow(QMainWindow):
         # ============================================================
         # 4. INTERNAL STATE
         # ============================================================
-        self.resume_text   = ""
-        self.job_text      = ""
+        self.resume_text = ""
+        self.job_text = ""
         self.tailored_text = ""
 
         self.tailor = ResumeTailor()
@@ -203,6 +221,34 @@ class MainWindow(QMainWindow):
         # Slight delay so the window fully renders before overlay appears
         QTimer.singleShot(400, self.onboarding.start)
 
+        # ============================================================
+        # 9. WIRE ATS PANEL → HISTORY TAB
+        # ============================================================
+        # Give the History tab a reference to the ATS panel so "View ATS"
+        # buttons can replay stored analyses without any extra API calls.
+        if hasattr(self.ui, "tabHistory") and hasattr(self.ui, "atsPanel"):
+            self.ui.tabHistory.set_ats_panel(self.ui.atsPanel)
+
+        # ============================================================
+        # 10. WIRE COVER LETTER → HISTORY
+        # ============================================================
+        if hasattr(self.ui, "tabCoverLetter"):
+            self.ui.tabCoverLetter.coverLetterGenerated.connect(
+                self._on_cover_letter_generated
+            )
+
+        # ============================================================
+        # 11. WIRE ATS analysisReady → TOAST + BADGE
+        # ============================================================
+        if hasattr(self.ui, "atsPanel"):
+            self.ui.atsPanel.analysisReady.connect(self._on_ats_ready)
+
+        # ============================================================
+        # 12. SYNC ON LOGIN — pull cloud history + prefs
+        # ============================================================
+        # Small delay so the window is fully visible before network calls fire
+        QTimer.singleShot(1500, self._sync_on_login)
+
     # ==================================================================
     # MENU BAR  ← UPDATED in v2 (added View menu with theme toggle)
     # ==================================================================
@@ -218,6 +264,11 @@ class MainWindow(QMainWindow):
         action_hist.setShortcut(QKeySequence("Ctrl+H"))
         tools_menu.addAction(action_hist)
         action_hist.triggered.connect(self.open_tailoring_history)
+
+        action_ats = QAction("View ATS Breakdown", self)
+        action_ats.setShortcut(QKeySequence("Ctrl+Shift+A"))
+        action_ats.triggered.connect(lambda: self.ui.atsPanel.toggle())
+        tools_menu.addAction(action_ats)
 
         # ---- File menu ----
         file_menu = QMenu("File", self)
@@ -262,9 +313,11 @@ class MainWindow(QMainWindow):
         # Reflect current theme state
         try:
             import services.theme_manager as tm_module
+
             self.theme_action.setChecked(
                 tm_module.theme_manager.is_dark_mode()
-                if tm_module.theme_manager else True
+                if tm_module.theme_manager
+                else True
             )
         except Exception:
             self.theme_action.setChecked(True)
@@ -343,6 +396,7 @@ class MainWindow(QMainWindow):
         """Returns the right menu label for the current theme."""
         try:
             import services.theme_manager as tm_module
+
             if tm_module.theme_manager and tm_module.theme_manager.is_dark_mode():
                 return "Switch to Light Mode"
         except Exception:
@@ -353,11 +407,15 @@ class MainWindow(QMainWindow):
         """Toggle light/dark and update menu label + checkmark."""
         try:
             import services.theme_manager as tm_module
+
             if tm_module.theme_manager:
                 tm_module.theme_manager.toggle_theme()
                 is_dark = tm_module.theme_manager.is_dark_mode()
                 self.theme_action.setChecked(is_dark)
                 self.theme_action.setText(self._theme_label())
+
+                # Push updated theme preference to Supabase
+                self._push_current_prefs()
         except Exception as e:
             print(f"[THEME] Toggle failed: {e}")
 
@@ -407,6 +465,9 @@ class MainWindow(QMainWindow):
         self.ui.resumePreview.setPlainText(self.resume_text)
         self._save_last_resume(fname)
         self._refresh_last_resume_button()
+        # Keep cover letter tab in sync
+        if hasattr(self.ui, "tabCoverLetter"):
+            self.ui.tabCoverLetter.set_context(resume_text=self.resume_text)
 
     def _save_last_resume(self, path: str):
         """Persist the last used resume path."""
@@ -444,7 +505,9 @@ class MainWindow(QMainWindow):
         """Load the previously used resume."""
         path = self._load_last_resume_path()
         if not path:
-            QMessageBox.information(self, "No Last Resume", "No previously used resume found.")
+            QMessageBox.information(
+                self, "No Last Resume", "No previously used resume found."
+            )
             return
         self.ui.resumePicker.setPath(path)
         self.load_resume_from_picker(path)
@@ -474,6 +537,8 @@ class MainWindow(QMainWindow):
 
         self.job_text = desc
         self.ui.jobPreview.setPlainText(desc)
+        if hasattr(self.ui, "tabCoverLetter"):
+            self.ui.tabCoverLetter.set_context(job_text=self.job_text)
 
     # ==================================================================
     # MANUAL JOB DESCRIPTION
@@ -484,6 +549,8 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Error", "Paste a job description first.")
             return
         self.job_text = txt
+        if hasattr(self.ui, "tabCoverLetter"):
+            self.ui.tabCoverLetter.set_context(job_text=self.job_text)
         QMessageBox.information(self, "Success", "Using pasted job description.")
 
     # ==================================================================
@@ -518,15 +585,113 @@ class MainWindow(QMainWindow):
         self.tailored_text = result
         self.ui.outputPreview.setPlainText(self.tailored_text)
 
-        # ATS score
+        # Quick heuristic ATS score bar (instant, no API call).
         ats_result = keyword_overlap(self.job_text, self.tailored_text)
         self.ui.outputPanel.setScore(int(ats_result["match_rate"]))
 
         self._set_loading_visible(False)
         self.ui.btnTailor.setEnabled(True)
 
+        # Keep cover letter tab in sync with the freshly tailored resume
+        if hasattr(self.ui, "tabCoverLetter"):
+            self.ui.tabCoverLetter.set_context(tailored_text=self.tailored_text)
+
+        # Save PDF locally first (guaranteed), then kick off meta extraction + Supabase async
         if self.tailored_text:
-            self.save_tailoring_history()
+            self._pending_history_entry = self._save_pdf_and_build_entry()
+            self._start_meta_extraction()
+
+        # Fire ATS analysis AFTER UI is responsive — 200ms delay so the
+        # user sees the tailored resume before any processing begins.
+        QTimer.singleShot(200, self._start_ats_analysis)
+
+    def _start_ats_analysis(self):
+        """
+        Kick off ATS analysis in the background.
+        The panel opens and populates itself; when done it emits analysisReady
+        which triggers the toast + sidebar badge.
+        """
+        self.ui.atsPanel.load(self.job_text, self.tailored_text)
+
+    def _save_pdf_and_build_entry(self) -> dict:
+        """Save tailored resume as local PDF, return a partial history entry."""
+        import uuid
+
+        os.makedirs(HISTORY_RESUMES_DIR, exist_ok=True)
+
+        filename = (
+            f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}.pdf"
+        )
+        local_pdf = os.path.join(HISTORY_RESUMES_DIR, filename)
+
+        try:
+            export_to_pdf(self.tailored_text, local_pdf)
+        except Exception as e:
+            print(f"[HISTORY] PDF save failed: {e}")
+            local_pdf = ""
+
+        return {
+            "company": "Unknown",  # filled in by meta worker
+            "role": "Unknown",  # filled in by meta worker
+            "job_url": self.ui.inputJobURL.text().strip(),
+            "resume_url": local_pdf,  # local path; overwritten if Supabase succeeds
+            "local_pdf": local_pdf,  # always kept as fallback
+            "timestamp": datetime.now().isoformat(),
+            "ats_result": None,  # filled in when keyword_analyzer finishes
+        }
+
+    def _start_meta_extraction(self):
+        """Use OpenAI to extract company + role from job text in background."""
+        self._meta_worker = JobMetaWorker(self.job_text)
+        self._meta_worker.finished.connect(self._on_meta_done)
+        self._meta_worker.start()
+
+    def _on_meta_done(self, meta: dict):
+        """Called when OpenAI returns company + role. Finalizes and writes history."""
+        if not hasattr(self, "_pending_history_entry"):
+            return
+
+        entry = self._pending_history_entry
+        entry["company"] = meta.get("company", "Unknown")
+        entry["role"] = meta.get("role", "Unknown")
+
+        # Try Supabase upload (non-blocking — if it fails, local_pdf is the fallback)
+        local_pdf = entry.get("local_pdf", "")
+        if local_pdf and os.path.exists(local_pdf):
+            try:
+                url = upload_resume(local_pdf)
+                if url:
+                    entry["resume_url"] = url
+            except Exception as e:
+                print(f"[HISTORY] Supabase upload failed, keeping local path: {e}")
+
+        # Write entry now WITHOUT ats_result — it will be patched in by _on_ats_ready
+        # once the background analysis finishes (which fires separately after tailor)
+        self._write_history_entry(entry)
+        del self._pending_history_entry
+
+    def _write_history_entry(self, entry: dict):
+        """Append entry to local history JSON, then push to Supabase async."""
+        try:
+            if os.path.exists(HISTORY_FILE):
+                with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+                    history = json.load(f)
+            else:
+                history = []
+        except Exception:
+            history = []
+
+        history.append(entry)
+
+        with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+            json.dump(history, f, indent=4)
+
+        # Push to Supabase in background — failure is silent, local copy is the source of truth
+        sync_manager.push_history_entry(
+            entry,
+            on_done=lambda row_id: print(f"[SYNC] History pushed: {row_id}"),
+            on_error=lambda e: print(f"[SYNC] History push failed (local saved): {e}"),
+        )
 
     def _on_tailor_error(self, error_msg: str):
         self._set_loading_visible(False)
@@ -542,7 +707,9 @@ class MainWindow(QMainWindow):
             return
 
         path, _ = QFileDialog.getSaveFileName(
-            self, "Save Tailored Resume", "Tailored_Resume.docx",
+            self,
+            "Save Tailored Resume",
+            "Tailored_Resume.docx",
             "Word Document (*.docx)",
         )
         if path:
@@ -558,7 +725,9 @@ class MainWindow(QMainWindow):
             return
 
         path, _ = QFileDialog.getSaveFileName(
-            self, "Save Tailored Resume", "Tailored_Resume.pdf",
+            self,
+            "Save Tailored Resume",
+            "Tailored_Resume.pdf",
             "PDF Files (*.pdf)",
         )
         if path:
@@ -585,45 +754,240 @@ class MainWindow(QMainWindow):
         if confirm != QMessageBox.StandardButton.Yes:
             return
 
-        self.resume_text   = ""
-        self.job_text      = ""
+        self.resume_text = ""
+        self.job_text = ""
         self.tailored_text = ""
         self.ui.resumePreview.clear()
         self.ui.jobPreview.clear()
         self.ui.outputPreview.clear()
 
     # ==================================================================
-    # SAVE HISTORY (LOCAL + SUPABASE UPLOAD)
+    # ATS ANALYSIS READY → TOAST + SIDEBAR BADGE
     # ==================================================================
-    def save_tailoring_history(self):
-        company, role = self.extract_company_and_role(self.job_text)
+    def _on_ats_ready(self, score: int):
+        """
+        Fires when the OpenAI ATS analysis finishes in the background.
+        1. Shows a toast notification
+        2. Lights up the Tailor tab badge
+        3. Patches ats_result into the latest history entry (local + Supabase)
+        """
+        # Pick toast style based on score
+        if score >= 75:
+            style, emoji = "success", "✅"
+        elif score >= 50:
+            style, emoji = "warning", "⚠️"
+        else:
+            style, emoji = "error", "❌"
 
-        temp_path = os.path.join(os.getcwd(), "last_tailored_resume.docx")
-        export_to_docx(self.tailored_text, temp_path)
+        msg = f"{emoji} ATS Analysis ready — {score}% match"
+        toast = ToastNotification(msg, parent=self, style=style, duration=5000)
+        toast.show_toast()
 
-        resume_url = upload_resume(temp_path) or temp_path
+        # Light up badge on Tailor tab (index 0)
+        if hasattr(self.ui, "sidebarNav"):
+            self.ui.sidebarNav.set_badge(0, True)
 
-        entry = {
-            "company":   company,
-            "role":      role,
-            "job_url":   self.ui.inputJobURL.text().strip(),
-            "resume_url": resume_url,
-            "timestamp": datetime.now().isoformat(),
-        }
+        # Patch ats_result into the most recent history entry
+        ats_result = getattr(self.ui.atsPanel, "_last_analysis", None)
+        if not ats_result:
+            return
 
         try:
-            if os.path.exists(HISTORY_FILE):
-                with open(HISTORY_FILE, "r", encoding="utf-8") as f:
-                    history = json.load(f)
-            else:
-                history = []
-        except Exception:
-            history = []
+            if not os.path.exists(HISTORY_FILE):
+                return
+            with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+                history = json.load(f)
+            if not history:
+                return
 
-        history.append(entry)
+            history[-1]["ats_result"] = ats_result
+            history[-1]["last_updated"] = datetime.now().isoformat()
+
+            with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+                json.dump(history, f, indent=4)
+
+            print("[HISTORY] ATS result patched into latest entry.")
+
+            # Refresh history tab so the View ATS button appears immediately
+            if hasattr(self.ui, "tabHistory"):
+                self.ui.tabHistory.load_history()
+
+            # Push updated entry to Supabase
+            sync_manager.push_history_entry(
+                history[-1],
+                on_done=lambda _: print("[SYNC] ATS-patched entry pushed."),
+                on_error=lambda e: print(f"[SYNC] ATS patch push failed: {e}"),
+            )
+
+        except Exception as e:
+            print(f"[HISTORY] Failed to patch ATS result: {e}")
+
+    # ==================================================================
+    # COVER LETTER → HISTORY SAVE
+    # ==================================================================
+    def _on_cover_letter_generated(self, letter_text: str, used_tailored: bool):
+        """
+        If the cover letter was built from the tailored resume, patch it
+        into the most recent history entry so it's permanently linked.
+        Only saves if a history entry already exists for this session.
+        """
+        if not used_tailored:
+            return  # Generated from original resume — not tied to a history entry
+
+        if not os.path.exists(HISTORY_FILE):
+            return
+
+        try:
+            with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+                history = json.load(f)
+        except Exception:
+            return
+
+        if not history:
+            return
+
+        # Patch the most recent entry
+        history[-1]["cover_letter"] = letter_text
+        history[-1]["last_updated"] = datetime.now().isoformat()
 
         with open(HISTORY_FILE, "w", encoding="utf-8") as f:
             json.dump(history, f, indent=4)
+
+        print("[HISTORY] Cover letter saved to latest history entry.")
+
+        # Push updated entry to Supabase
+        sync_manager.push_history_entry(
+            history[-1],
+            on_done=lambda _: print("[SYNC] Cover letter entry pushed."),
+            on_error=lambda e: print(f"[SYNC] Cover letter push failed: {e}"),
+        )
+
+    # ==================================================================
+    # SYNC — LOGIN PULL
+    # ==================================================================
+    def _sync_on_login(self):
+        """Pull preferences then history from Supabase after login."""
+        print("[SYNC] Starting login sync...")
+
+        # Pull preferences first
+        sync_manager.pull_preferences(
+            on_done=self._on_prefs_pulled,
+            on_error=lambda e: print(f"[SYNC] Prefs pull failed: {e}"),
+        )
+
+        # Pull history in parallel
+        local_history = self._read_local_history()
+        sync_manager.pull_and_merge_history(
+            local_history,
+            on_done=self._on_history_pulled,
+            on_error=lambda e: print(f"[SYNC] History pull failed: {e}"),
+        )
+
+    def _on_prefs_pulled(self, prefs: dict):
+        """Apply pulled preferences — theme and settings panel state."""
+        if not prefs:
+            # No cloud prefs yet — push current local state up
+            self._push_current_prefs()
+            return
+
+        import services.theme_manager as tm_module
+
+        # Apply theme if different from current
+        cloud_theme = prefs.get("theme", "dark")
+        if (
+            tm_module.theme_manager
+            and cloud_theme != tm_module.theme_manager.current_theme
+        ):
+            tm_module.theme_manager.apply_theme(cloud_theme)
+            print(f"[SYNC] Applied cloud theme: {cloud_theme}")
+
+        # Apply settings panel checkboxes (Tailor tab)
+        cloud_settings = prefs.get("settings", {})
+        if cloud_settings and hasattr(self.ui, "settingsPanel"):
+            sp = self.ui.settingsPanel
+            if "focus_keywords" in cloud_settings:
+                sp.chk_focus_keywords.setChecked(cloud_settings["focus_keywords"])
+            if "keep_length" in cloud_settings:
+                sp.chk_keep_length.setChecked(cloud_settings["keep_length"])
+            if "limit_pages" in cloud_settings:
+                sp.chk_limit_pages.setChecked(cloud_settings["limit_pages"])
+            if "limit_one" in cloud_settings:
+                sp.chk_limit_one.setChecked(cloud_settings["limit_one"])
+            if "ats_friendly" in cloud_settings:
+                sp.chk_ats_friendly.setChecked(cloud_settings["ats_friendly"])
+
+        # Mirror the same values into the Settings tab checkboxes
+        if cloud_settings and hasattr(self.ui, "tabSettings"):
+            ts = self.ui.tabSettings
+            try:
+                ts.chk_default_keywords.setChecked(
+                    cloud_settings.get("focus_keywords", False)
+                )
+                ts.chk_default_ats.setChecked(cloud_settings.get("ats_friendly", True))
+                ts.chk_default_keep_len.setChecked(
+                    cloud_settings.get("keep_length", False)
+                )
+                ts.chk_default_one_page.setChecked(
+                    cloud_settings.get("limit_one", False)
+                )
+            except Exception as e:
+                print(f"[SYNC] Failed to mirror prefs to Settings tab: {e}")
+
+        # Update Settings tab theme button label
+        if hasattr(self.ui, "tabSettings"):
+            try:
+                import services.theme_manager as tm_module
+
+                if tm_module.theme_manager:
+                    is_dark = tm_module.theme_manager.is_dark_mode()
+                    self.ui.tabSettings.btn_toggle_theme.setText(
+                        "Switch to Light Mode" if is_dark else "Switch to Dark Mode"
+                    )
+            except Exception:
+                pass
+
+        print("[SYNC] Preferences applied from cloud.")
+
+    def _on_history_pulled(self, merged: list):
+        """Save merged history to local JSON and refresh the history tab."""
+        if not merged:
+            return
+
+        try:
+            with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+                json.dump(merged, f, indent=4)
+            print(f"[SYNC] History merged: {len(merged)} entries saved locally.")
+
+            # Refresh the history tab if it's loaded
+            if hasattr(self.ui, "tabHistory"):
+                self.ui.tabHistory.load_history()
+
+        except Exception as e:
+            print(f"[SYNC] Failed to save merged history: {e}")
+
+    def _read_local_history(self) -> list:
+        """Read local history JSON, return empty list on any error."""
+        try:
+            if os.path.exists(HISTORY_FILE):
+                with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+                    return json.load(f)
+        except Exception:
+            pass
+        return []
+
+    def _push_current_prefs(self):
+        """Push current local theme + settings to Supabase."""
+        import services.theme_manager as tm_module
+
+        theme = "dark"
+        if tm_module.theme_manager:
+            theme = "dark" if tm_module.theme_manager.is_dark_mode() else "light"
+
+        settings = {}
+        if hasattr(self.ui, "settingsPanel"):
+            settings = self.ui.settingsPanel.to_dict()
+
+        sync_manager.push_preferences(theme, settings)
 
     # ==================================================================
     # WINDOW RESIZE → RECENTER OVERLAY
@@ -631,34 +995,3 @@ class MainWindow(QMainWindow):
     def resizeEvent(self, event):
         self._center_loading_label()
         super().resizeEvent(event)
-
-    # ==================================================================
-    # COMPANY & ROLE EXTRACTION
-    # ==================================================================
-    def extract_company_and_role(self, job_text: str):
-        if not job_text:
-            return "Unknown", "Unknown"
-
-        text  = job_text.strip()
-        lines = [l.strip() for l in text.split("\n") if l.strip()]
-        first = lines[0] if lines else ""
-
-        pat = r"^(?P<company>.+?)\s*[-–—]\s*(?P<role>.+)$"
-        m = re.match(pat, first)
-        if m:
-            return m.group("company").strip(), m.group("role").strip()
-
-        m = re.search(r"(Title|Role)\s*[:\-]\s*(.+)", text, re.IGNORECASE)
-        role = m.group(2).strip() if m else "Unknown"
-
-        m = re.search(
-            r"(Company|Employer|Hiring Company)\s*[:\-]\s*(.+)", text, re.IGNORECASE
-        )
-        company = m.group(2).strip() if m else "Unknown"
-
-        if role == "Unknown" and lines:
-            role = lines[0]
-        if company == "Unknown" and len(lines) > 1:
-            company = lines[1]
-
-        return company, role
