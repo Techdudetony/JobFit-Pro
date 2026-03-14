@@ -14,7 +14,7 @@ Each tab:
 
 import os
 
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QSizePolicy
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QSizePolicy, QLabel
 from PyQt6.QtCore import (
     Qt, QPropertyAnimation, QEasingCurve,
     pyqtSignal, pyqtProperty, QByteArray,
@@ -219,6 +219,23 @@ class SidebarNav(QWidget):
             self._buttons.append(btn)
 
         layout.addStretch()
+
+        # ── Logo at bottom ───────────────────────────────────────────
+        import os, sys
+        base = getattr(sys, "_MEIPASS", None) or os.getcwd()
+        logo_path = os.path.join(base, "assets", "desktop_icon.png")
+        if os.path.exists(logo_path):
+            logo_lbl = QLabel(self)
+            logo_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            px = QPixmap(logo_path).scaled(
+                56, 56,
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation,
+            )
+            logo_lbl.setPixmap(px)
+            logo_lbl.setContentsMargins(0, 0, 0, 16)
+            logo_lbl.setToolTip("JobFit Pro")
+            layout.addWidget(logo_lbl, alignment=Qt.AlignmentFlag.AlignHCenter)
 
         # Activate first tab
         self._buttons[0].set_active(True)

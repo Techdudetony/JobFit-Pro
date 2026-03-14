@@ -933,3 +933,97 @@ QLineEdit[fieldLocked="true"] {
     border-color: #E2E8F0;
     font-style: italic;
 }
+
+/* ── Help Viewer Dialog — light ── */
+QDialog#HelpViewerDialog { background-color: #FFFFFF; }
+
+QWidget#helpHeader { background-color: #FFFFFF; border-bottom: 1px solid #E2E8F0; max-height: 44px; }
+
+QWidget#helpToc {
+    background-color: #F8FAFC;
+    border-right: 1px solid #E2E8F0;
+}
+
+QLabel#helpTocHeader {
+    background-color: #F1F5F9;
+    color: #94A3B8;
+    font-size: 9pt;
+    font-weight: 600;
+    letter-spacing: 1px;
+    border-bottom: 1px solid #E2E8F0;
+    padding-left: 8px;
+}
+
+QListWidget#helpTocList {
+    background-color: #F8FAFC;
+    color: #475569;
+    font-size: 9pt;
+    border: none;
+    padding: 4px 0;
+}
+
+QListWidget#helpTocList::item {
+    padding: 6px 12px;
+    border-radius: 4px;
+}
+
+QListWidget#helpTocList::item:hover {
+    background-color: #E2E8F0;
+    color: #1E293B;
+}
+
+QListWidget#helpTocList::item:selected {
+    background-color: #DCFCE7;
+    color: #166534;
+}
+
+QTextBrowser#helpBrowser {
+    background-color: #FFFFFF;
+    color: #1E293B;
+    border: none;
+    font-family: Calibri, sans-serif;
+    font-size: 11pt;
+}
+
+/* ── Tailored Resume collapsible group — light ── */
+QGroupBox#tailoredGroup {
+    background-color: #FFFFFF;
+    border: 1px solid #CBD5E1;
+    border-radius: 8px;
+    margin-top: 8px;
+    padding-top: 20px;
+    color: #64748B;
+    font-size: 9pt;
+    font-weight: 600;
+}
+
+QGroupBox#tailoredGroup::title {
+    subcontrol-origin: margin;
+    left: 12px;
+    padding: 0 6px;
+    color: #64748B;
+}
+
+QGroupBox#tailoredGroup::indicator {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid #CBD5E1;
+    background-color: #F8FAFC;
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    left: 148px;
+}
+
+QGroupBox#tailoredGroup::indicator:checked {
+    background-color: #54AED5;
+    border-color: #54AED5;
+}
+
+/* Output panel text area — light */
+QTextEdit#outputPanel,
+QPlainTextEdit#outputPreview {
+    background-color: #FFFFFF;
+    color: #1E293B;
+    border: none;
+}

@@ -16,14 +16,9 @@ import os
 import json
 
 from PyQt6.QtWidgets import (
-    QWidget,
-    QVBoxLayout,
-    QHBoxLayout,
-    QLineEdit,
-    QPushButton,
-    QPlainTextEdit,
-    QGroupBox,
-    QLabel,
+    QWidget, QVBoxLayout, QHBoxLayout,
+    QLineEdit, QPushButton, QPlainTextEdit,
+    QGroupBox, QLabel,
 )
 from PyQt6.QtCore import Qt
 
@@ -40,7 +35,6 @@ class TailorTab(QWidget):
 
         # ATS panel overlays this tab
         from app.ui.ats_panel import ATSPanel
-
         self.atsPanel = ATSPanel(self)
 
     def resizeEvent(self, event):
@@ -50,7 +44,9 @@ class TailorTab(QWidget):
 
     def _apply_saved_prefs(self):
         """Apply saved default preferences from config.json to settings panel."""
-        config_file = os.path.join(os.path.expanduser("~"), ".jobfitpro", "config.json")
+        config_file = os.path.join(
+            os.path.expanduser("~"), ".jobfitpro", "config.json"
+        )
         try:
             if os.path.exists(config_file):
                 with open(config_file, "r", encoding="utf-8") as f:
@@ -58,17 +54,13 @@ class TailorTab(QWidget):
                 prefs = cfg.get("default_prefs", {})
                 if prefs:
                     self.settingsPanel.chk_focus_keywords.setChecked(
-                        prefs.get("focus_keywords", False)
-                    )
+                        prefs.get("focus_keywords", False))
                     self.settingsPanel.chk_ats_friendly.setChecked(
-                        prefs.get("ats_friendly", True)
-                    )
+                        prefs.get("ats_friendly", True))
                     self.settingsPanel.chk_keep_length.setChecked(
-                        prefs.get("keep_length", False)
-                    )
+                        prefs.get("keep_length", False))
                     self.settingsPanel.chk_limit_one.setChecked(
-                        prefs.get("limit_one", False)
-                    )
+                        prefs.get("limit_one", False))
         except Exception:
             pass
 
@@ -143,7 +135,9 @@ class TailorTab(QWidget):
         resume_group.setObjectName("resumePreviewGroup")
         resume_layout = QVBoxLayout(resume_group)
         self.resumePreview = QPlainTextEdit()
-        self.resumePreview.setPlaceholderText("Loaded resume text will appear here...")
+        self.resumePreview.setPlaceholderText(
+            "Loaded resume text will appear here..."
+        )
         self.resumePreview.setObjectName("resumePreview")
         resume_layout.addWidget(self.resumePreview)
 
@@ -180,3 +174,12 @@ class TailorTab(QWidget):
         action_row.addWidget(self.btnExport)
         action_row.addWidget(self.btnExportPDF)
         root.addLayout(action_row)
+
+    def _on_output_toggled(self, checked: bool):
+        """Show/hide output panel content when group header is clicked."""
+        self.outputPanel.setVisible(checked)
+
+    def expand_output(self):
+        """Called by window_main after tailoring completes to expand the panel."""
+        self._output_group.setChecked(True)
+        self._output_group.setTitle("Tailored Resume  ✓")

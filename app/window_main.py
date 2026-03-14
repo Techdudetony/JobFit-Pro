@@ -40,6 +40,7 @@ from PyQt6.QtCore import Qt, QTimer, QThread, pyqtSignal
 from PyQt6.QtGui import QAction, QKeySequence, QShortcut
 
 from app.ui.toast_notification import ToastNotification
+from app.ui.dialogs.help_viewer_dialog import HelpViewerDialog
 from app.ui.dialogs.tailor_context_dialog import TailorContextDialog
 from core.processor.context_question_engine import ContextQuestionWorker
 from services.sync_manager import sync_manager
@@ -322,6 +323,13 @@ class MainWindow(QMainWindow):
         help_menu = QMenu("Help", self)
         menubar.addMenu(help_menu)
 
+        action_guide = QAction("User Guide", self)
+        action_guide.setShortcut("F1")
+        action_guide.triggered.connect(self._show_user_guide)
+        help_menu.addAction(action_guide)
+
+        help_menu.addSeparator()
+
         action_tutorial = QAction("Show Tutorial", self)
         action_tutorial.triggered.connect(lambda: self.onboarding.start(force=True))
         help_menu.addAction(action_tutorial)
@@ -334,6 +342,14 @@ class MainWindow(QMainWindow):
 
         # ---- Account menu (right-aligned) ----
         self._setup_user_menu(menubar)
+
+    def _show_user_guide(self):
+        """Open the in-app help viewer (non-modal so user can follow along)."""
+        if not hasattr(self, "_help_dialog") or self._help_dialog is None:
+            self._help_dialog = HelpViewerDialog(self)
+        self._help_dialog.show()
+        self._help_dialog.raise_()
+        self._help_dialog.activateWindow()
 
     def _show_about(self):
         QMessageBox.information(
@@ -601,6 +617,9 @@ class MainWindow(QMainWindow):
 
     def _on_tailor_done(self, result: str):
         self.tailored_text = result
+        # Expand the output panel now that there's content
+        if hasattr(self.ui, "tabTailor"):
+            self.ui.tabTailor.expand_output()
         self.ui.outputPreview.setPlainText(self.tailored_text)
 
         # Quick heuristic ATS score bar (instant, no API call).

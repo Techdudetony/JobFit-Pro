@@ -33,12 +33,14 @@ from PyQt6.QtGui import QPainter, QColor, QPainterPath, QFont, QBrush
 # ------------------------------------------------------------------
 # Config path for persisting completion state
 # ------------------------------------------------------------------
-CONFIG_FILE = os.path.join(os.path.expanduser("~"), ".jobfitpro", "config.json")
+CONFIG_FILE = os.path.join(
+    os.path.expanduser("~"), ".jobfitpro", "config.json"
+)
 
-CARD_WIDTH = 320
+CARD_WIDTH  = 320
 CARD_HEIGHT = 160  # approximate — adjusts to content
-PADDING = 16  # gap between highlight box and card
-SPOT_MARGIN = 8  # extra glow margin around target widget
+PADDING     = 16   # gap between highlight box and card
+SPOT_MARGIN = 8    # extra glow margin around target widget
 
 
 # ==================================================================
@@ -46,76 +48,99 @@ SPOT_MARGIN = 8  # extra glow margin around target widget
 # ==================================================================
 STEPS = [
     {
-        "target": None,  # No spotlight — centered welcome card
-        "title": "👋 Welcome to JobFit Pro",
-        "body": (
-            "This quick tutorial walks you through everything in the new v2 layout. "
-            "It takes about 2 minutes — or skip any time and replay from Help → Show Tutorial."
+        "target": None,
+        "title":  "👋 Welcome to JobFit Pro",
+        "body":   (
+            "This quick tutorial walks you through all five tabs in about 2 minutes. "
+            "Skip any time and replay from Help → Show Tutorial whenever you need a refresher."
         ),
     },
     {
         "target": "sidebarNav",
-        "title": "Step 1 — Navigation",
-        "body": (
-            "The sidebar on the left has four tabs: Tailor, History, Settings, and Cover Letter. "
-            "Click any tab to switch — the active tab slides out and highlights in blue."
+        "title":  "Step 1 — Navigation",
+        "body":   (
+            "The sidebar has five tabs: Tailor, History, Settings, Cover Letter, and Builder. "
+            "Click any tab to switch — the active tab highlights and slides out. "
+            "A red badge dot appears on a tab when something needs your attention."
         ),
     },
     {
         "target": "inputJobURL",
-        "title": "Step 2 — Job Description",
-        "body": (
-            "Paste a job posting URL and click 'Fetch Description' to pull the full text "
-            "automatically. Or paste the description directly into the box below and click "
-            "'Use Pasted Text'."
+        "title":  "Step 2 — Job Description",
+        "body":   (
+            "Paste a job posting URL and click 'Fetch Description' to pull the full text. "
+            "Or paste the description directly and click 'Use Pasted Text'. "
+            "Before tailoring starts, JobFit Pro will ask you a few quick questions "
+            "to personalize the result."
         ),
     },
     {
         "target": "resumePicker",
-        "title": "Step 3 — Load Your Resume",
-        "body": (
+        "title":  "Step 3 — Load Your Resume",
+        "body":   (
             "Click 'Browse' to load your resume (PDF or DOCX), or drag and drop a file. "
             "JobFit Pro remembers your last resume — use '↩ Last Resume' to reload it "
-            "instantly on future sessions."
+            "instantly. No resume yet? Use the Builder tab to create one from scratch."
         ),
     },
     {
         "target": "btnTailor",
-        "title": "Step 4 — Tailor & Score",
-        "body": (
-            "Click 'Tailor Resume' to send your resume and job description to the AI. "
-            "Your tailored result appears immediately. ATS analysis then runs in the "
-            "background — you'll get a notification when it's ready."
+        "title":  "Step 4 — Tailor & ATS Score",
+        "body":   (
+            "Click 'Tailor Resume' and answer the personalized questions that appear. "
+            "Your tailored resume is ready in seconds. ATS analysis runs in the background "
+            "— a green badge and toast notification appear when your score is ready."
         ),
     },
     {
         "target": "atsPanel",
-        "title": "Step 5 — ATS Breakdown Panel",
-        "body": (
-            "After tailoring, the ATS panel slides in from the right. It shows your match "
-            "score, matched and missing keywords, section scores, and AI detection results. "
-            "Use the pull tab on the edge to open or close it any time."
+        "title":  "Step 5 — ATS Breakdown",
+        "body":   (
+            "The ATS panel slides in from the right after tailoring. It shows your keyword "
+            "match score, matched and missing keywords, section scores, AI writing detection, "
+            "and actionable suggestions. Pull the tab on the edge to open or close it."
         ),
     },
     {
         "target": "tabHistory",
-        "title": "Step 6 — Tailoring History",
-        "body": (
-            "Every tailored resume is saved here automatically. You can edit the company "
-            "and role names, replay the ATS breakdown, open the saved PDF, and view any "
-            "cover letter that was generated for that session."
+        "title":  "Step 6 — Tailoring History",
+        "body":   (
+            "Every session is saved here automatically — company, role, ATS score, resume PDF, "
+            "and cover letter. Edit company or role names inline, replay ATS analysis on past "
+            "resumes, and delete entries you no longer need."
         ),
-        "switch_tab": 1,  # Switch sidebar to History tab for this step
+        "switch_tab": 1,
     },
     {
         "target": "tabCoverLetter",
-        "title": "Step 7 — Cover Letter Generator",
-        "body": (
-            "Generate a cover letter from your tailored resume. Choose tone, length, and "
-            "what to highlight. The generated letter is editable and links back to this "
-            "tailoring session in your History."
+        "title":  "Step 7 — Cover Letter Generator",
+        "body":   (
+            "Generate a cover letter from your tailored resume. Choose tone (Professional, "
+            "Friendly, Confident, or Creative), length, and what to highlight. "
+            "The output is fully editable and saves back to your tailoring history."
         ),
-        "switch_tab": 3,  # Switch sidebar to Cover Letter tab
+        "switch_tab": 3,
+    },
+    {
+        "target": "tabBuilder",
+        "title":  "Step 8 — Resume Builder",
+        "body":   (
+            "Build or edit a resume from scratch using the structured form. Import an existing "
+            "PDF/DOCX, or pull in your latest tailored resume. Each section has an AI Improve "
+            "button that rewrites your content with stronger language and better impact. "
+            "Export in any of your saved styles."
+        ),
+        "switch_tab": 4,
+    },
+    {
+        "target": "tabSettings",
+        "title":  "Step 9 — Settings & Style",
+        "body":   (
+            "In Settings, choose your default resume export style (Prestige, Swiss, Spearmint, "
+            "Coral, or Modern Writer), set default tailoring preferences, and check your API "
+            "connection status. Cloud Sync keeps your history and preferences in sync across devices."
+        ),
+        "switch_tab": 2,
     },
 ]
 
@@ -142,21 +167,21 @@ def _save_config(data: dict):
         print(f"[ONBOARDING] Failed to save config: {e}")
 
 
-ONBOARDING_VERSION = "v2"  # bump this whenever steps change significantly
+ONBOARDING_VERSION = "v3"   # bump this whenever steps change significantly
 
 
 def has_completed_onboarding() -> bool:
     cfg = _load_config()
     return (
-        cfg.get("onboarding_complete", False)
-        and cfg.get("onboarding_version") == ONBOARDING_VERSION
+        cfg.get("onboarding_complete", False) and
+        cfg.get("onboarding_version") == ONBOARDING_VERSION
     )
 
 
 def mark_onboarding_complete():
     cfg = _load_config()
     cfg["onboarding_complete"] = True
-    cfg["onboarding_version"] = ONBOARDING_VERSION
+    cfg["onboarding_version"]  = ONBOARDING_VERSION
     _save_config(cfg)
 
 
@@ -206,8 +231,7 @@ class OnboardingOverlay(QWidget):
                 float(self._spotlight.y()),
                 float(self._spotlight.width()),
                 float(self._spotlight.height()),
-                8.0,
-                8.0,
+                8.0, 8.0,
             )
             path = path.subtracted(spot)
 
@@ -239,8 +263,7 @@ class OnboardingCard(QWidget):
 
     def _build_ui(self):
         self.setObjectName("onboardingCard")
-        self.setStyleSheet(
-            """
+        self.setStyleSheet("""
             QWidget#onboardingCard {
                 background-color: rgba(12, 17, 23, 200);
                 border: 1px solid #54AED5;
@@ -249,8 +272,7 @@ class OnboardingCard(QWidget):
             QLabel {
                 background: transparent;
             }
-        """
-        )
+        """)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 16, 20, 16)
@@ -258,24 +280,18 @@ class OnboardingCard(QWidget):
 
         # Progress label
         self.lbl_progress = QLabel(f"1 / {self.total_steps}")
-        self.lbl_progress.setStyleSheet(
-            "color: #54AED5; font-size: 10pt; font-weight: 600;"
-        )
+        self.lbl_progress.setStyleSheet("color: #54AED5; font-size: 10pt; font-weight: 600;")
         layout.addWidget(self.lbl_progress)
 
         # Title
         self.lbl_title = QLabel()
-        self.lbl_title.setStyleSheet(
-            "color: #FFFFFF; font-size: 12pt; font-weight: 700;"
-        )
+        self.lbl_title.setStyleSheet("color: #FFFFFF; font-size: 12pt; font-weight: 700;")
         self.lbl_title.setWordWrap(True)
         layout.addWidget(self.lbl_title)
 
         # Body
         self.lbl_body = QLabel()
-        self.lbl_body.setStyleSheet(
-            "color: #CBD5E1; font-size: 10pt; line-height: 1.5;"
-        )
+        self.lbl_body.setStyleSheet("color: #CBD5E1; font-size: 10pt; line-height: 1.5;")
         self.lbl_body.setWordWrap(True)
         layout.addWidget(self.lbl_body)
 
@@ -284,8 +300,7 @@ class OnboardingCard(QWidget):
         btn_row.setSpacing(8)
 
         self.btn_skip = QPushButton("Skip Tutorial")
-        self.btn_skip.setStyleSheet(
-            """
+        self.btn_skip.setStyleSheet("""
             QPushButton {
                 background: transparent;
                 color: #64748B;
@@ -293,13 +308,11 @@ class OnboardingCard(QWidget):
                 font-size: 9pt;
             }
             QPushButton:hover { color: #94A3B8; }
-        """
-        )
+        """)
         self.btn_skip.setFixedHeight(28)
 
         self.btn_back = QPushButton("← Back")
-        self.btn_back.setStyleSheet(
-            """
+        self.btn_back.setStyleSheet("""
             QPushButton {
                 background-color: #1E293B;
                 color: #FFFFFF;
@@ -309,13 +322,11 @@ class OnboardingCard(QWidget):
                 font-size: 10pt;
             }
             QPushButton:hover { border-color: #54AED5; }
-        """
-        )
+        """)
         self.btn_back.setFixedHeight(32)
 
         self.btn_next = QPushButton("Next →")
-        self.btn_next.setStyleSheet(
-            """
+        self.btn_next.setStyleSheet("""
             QPushButton {
                 background-color: #54AED5;
                 color: #0C1117;
@@ -325,8 +336,7 @@ class OnboardingCard(QWidget):
                 font-weight: 600;
             }
             QPushButton:hover { background-color: #3D93BB; }
-        """
-        )
+        """)
         self.btn_next.setFixedHeight(32)
 
         btn_row.addWidget(self.btn_skip)
@@ -340,9 +350,7 @@ class OnboardingCard(QWidget):
         self.lbl_title.setText(step["title"])
         self.lbl_body.setText(step["body"])
         self.btn_back.setVisible(step_index > 0)
-        self.btn_next.setText(
-            "Finish ✓" if step_index == self.total_steps - 1 else "Next →"
-        )
+        self.btn_next.setText("Finish ✓" if step_index == self.total_steps - 1 else "Next →")
         self.adjustSize()
 
 
@@ -350,36 +358,29 @@ class OnboardingCard(QWidget):
 # Confetti Overlay
 # ==================================================================
 CONFETTI_COLORS = [
-    "#54AED5",
-    "#EFA8B8",
-    "#D7DDA8",
-    "#FFFFFF",
-    "#3D93BB",
-    "#F472B6",
-    "#34D399",
-    "#FBBF24",
+    "#54AED5", "#EFA8B8", "#D7DDA8", "#FFFFFF",
+    "#3D93BB", "#F472B6", "#34D399", "#FBBF24",
 ]
-
 
 class ConfettiParticle:
     def __init__(self, win_w: int, win_h: int):
-        self.x = random.uniform(0, win_w)
-        self.y = random.uniform(-win_h * 0.3, 0)
-        self.vx = random.uniform(-2, 2)
-        self.vy = random.uniform(4, 9)
+        self.x     = random.uniform(0, win_w)
+        self.y     = random.uniform(-win_h * 0.3, 0)
+        self.vx    = random.uniform(-2, 2)
+        self.vy    = random.uniform(4, 9)
         self.angle = random.uniform(0, 360)
-        self.spin = random.uniform(-6, 6)
-        self.w = random.uniform(7, 14)
-        self.h = random.uniform(4, 8)
+        self.spin  = random.uniform(-6, 6)
+        self.w     = random.uniform(7, 14)
+        self.h     = random.uniform(4, 8)
         self.color = QColor(random.choice(CONFETTI_COLORS))
         self.alpha = 255
 
     def step(self):
-        self.x += self.vx
-        self.y += self.vy
-        self.vy *= 0.99  # very slight drag
+        self.x     += self.vx
+        self.y     += self.vy
+        self.vy    *= 0.99          # very slight drag
         self.angle += self.spin
-        self.alpha = max(0, self.alpha - 3)  # fade out
+        self.alpha  = max(0, self.alpha - 3)   # fade out
 
 
 class ConfettiOverlay(QWidget):
@@ -393,11 +394,12 @@ class ConfettiOverlay(QWidget):
         self.raise_()
 
         self.particles = [
-            ConfettiParticle(self.width(), self.height()) for _ in range(count)
+            ConfettiParticle(self.width(), self.height())
+            for _ in range(count)
         ]
 
         self._timer = QTimer(self)
-        self._timer.setInterval(16)  # ~60 fps
+        self._timer.setInterval(16)          # ~60 fps
         self._timer.timeout.connect(self._tick)
         self._timer.start()
         self.show()
@@ -408,7 +410,8 @@ class ConfettiOverlay(QWidget):
 
         # Remove fully faded or off-screen particles
         self.particles = [
-            p for p in self.particles if p.alpha > 0 and p.y < self.height() + 20
+            p for p in self.particles
+            if p.alpha > 0 and p.y < self.height() + 20
         ]
 
         if not self.particles:
@@ -432,7 +435,9 @@ class ConfettiOverlay(QWidget):
             painter.save()
             painter.translate(p.x, p.y)
             painter.rotate(p.angle)
-            painter.drawRoundedRect(QRectF(-p.w / 2, -p.h / 2, p.w, p.h), 2, 2)
+            painter.drawRoundedRect(
+                QRectF(-p.w / 2, -p.h / 2, p.w, p.h), 2, 2
+            )
             painter.restore()
 
         painter.end()
@@ -450,9 +455,9 @@ class OnboardingManager:
     """
 
     def __init__(self, main_window):
-        self.window = main_window
-        self.overlay = None
-        self.card = None
+        self.window   = main_window
+        self.overlay  = None
+        self.card     = None
         self.step_idx = 0
 
     def start(self, force: bool = False):
@@ -499,8 +504,8 @@ class OnboardingManager:
         target = self._find_widget(target_name) if target_name else None
 
         if target and target.isVisible():
-            global_pos = target.mapToGlobal(QPoint(0, 0))
-            window_pos = self.window.mapFromGlobal(global_pos)
+            global_pos  = target.mapToGlobal(QPoint(0, 0))
+            window_pos  = self.window.mapFromGlobal(global_pos)
             target_rect = QRect(window_pos, target.size())
             self.overlay.set_spotlight(target_rect)
             self._position_card(target_rect)
@@ -519,34 +524,27 @@ class OnboardingManager:
         """
         win_w = self.window.width()
         win_h = self.window.height()
-        cw = self.card.sizeHint().width() or CARD_WIDTH
-        ch = self.card.sizeHint().height() or CARD_HEIGHT
+        cw    = self.card.sizeHint().width()  or CARD_WIDTH
+        ch    = self.card.sizeHint().height() or CARD_HEIGHT
 
         tr = target_rect
 
         # Available space in each direction (must fit the full card)
         space = {
-            "above": tr.top() - PADDING,
-            "below": win_h - tr.bottom() - PADDING,
-            "left": tr.left() - PADDING,
-            "right": win_w - tr.right() - PADDING,
+            "above": tr.top()             - PADDING,
+            "below": win_h - tr.bottom()  - PADDING,
+            "left":  tr.left()            - PADDING,
+            "right": win_w - tr.right()   - PADDING,
         }
 
         # Only consider directions where the card actually fits
-        fits = {
-            k: v
-            for k, v in space.items()
-            if v >= (ch if k in ("above", "below") else cw)
-        }
+        fits = {k: v for k, v in space.items() if v >= (ch if k in ("above", "below") else cw)}
 
         # Pick the direction with most room; fall back to largest space if none fit
         best = max(fits, key=fits.get) if fits else max(space, key=space.get)
 
-        def clamp_x(x):
-            return max(0, min(x, win_w - cw))
-
-        def clamp_y(y):
-            return max(0, min(y, win_h - ch))
+        def clamp_x(x): return max(0, min(x, win_w - cw))
+        def clamp_y(y): return max(0, min(y, win_h - ch))
 
         if best == "above":
             # If target is in the right half, anchor card to left side of window
@@ -577,8 +575,8 @@ class OnboardingManager:
     def _center_card(self):
         cw = CARD_WIDTH
         ch = CARD_HEIGHT
-        x = (self.window.width() - cw) // 2
-        y = (self.window.height() - ch) // 2
+        x  = (self.window.width()  - cw) // 2
+        y  = (self.window.height() - ch) // 2
         self.card.move(x, y)
 
     def _next(self):

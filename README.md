@@ -80,7 +80,7 @@ JobFit-Pro/
 │   ├── components/
 │   │   ├── file_picker.py             # Reusable file picker widget
 │   │   ├── output_panel.py            # Formatted resume output panel
-│   │   └── settings_panel.py          # Tailoring options checkboxes
+│   │   └── settings_panel.py         # Tailoring options checkboxes
 │   ├── data/
 │   │   ├── tailoring_history.json     # Local history store
 │   │   └── history_resumes/           # Saved tailored resume PDFs
@@ -88,7 +88,7 @@ JobFit-Pro/
 │   │   └── session_state.py
 │   ├── styles/
 │   │   ├── app.qss                    # Dark theme stylesheet
-│   │   └── app_light.qss              # Light theme stylesheet
+│   │   └── app_light.qss             # Light theme stylesheet
 │   └── ui/
 │       ├── auth_modal.py              # Sign in / sign up dialog
 │       ├── main_window_ui.py
@@ -204,6 +204,7 @@ pyinstaller --noconfirm --onefile --windowed \
   --add-data "app/styles/app_light.qss;app/styles" \
   --add-data "assets;assets" \
   --add-data "assets/icons;assets/icons" \
+  --add-data "assets/docs;assets/docs" \
   --collect-all openai \
   --collect-all pdfplumber \
   --collect-all supabase \

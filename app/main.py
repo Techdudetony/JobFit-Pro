@@ -25,6 +25,14 @@ from app.window_main import MainWindow
 def main():
     app = QApplication(sys.argv)
 
+    # Set application-wide window icon (appears in taskbar + all dialogs)
+    import os
+    from PyQt6.QtGui import QIcon
+    base = getattr(__import__("sys"), "_MEIPASS", None) or os.getcwd()
+    icon_path = os.path.join(base, "assets", "desktop_icon.png")
+    if os.path.exists(icon_path):
+        app.setWindowIcon(QIcon(icon_path))
+
     # ------------------------------------------------------------------
     # Initialize ThemeManager + apply saved preference
     # ------------------------------------------------------------------
