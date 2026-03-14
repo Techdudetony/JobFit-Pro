@@ -2,21 +2,19 @@
 
 > AI-powered resume tailoring for Windows — built with Python, PyQt6, and OpenAI.
 
-JobFit Pro is a modern desktop application that helps job seekers tailor their 
-resumes to specific job descriptions in seconds. It parses your resume, analyzes job postings, and uses GPT to generate a professionally aligned, ATS-optimized version — 
-all from a clean tabbed interface with cloud sync.
+JobFit Pro is a modern desktop application that helps job seekers tailor their resumes to specific job descriptions in seconds. It parses your resume, analyzes job postings, and uses GPT to generate a professionally aligned, ATS-optimized version — all from a clean tabbed interface with cloud sync.
 
 ---
 
 ## Features
 
 ### AI Resume Tailoring
-- Upload your resume (PDF  or DOCX)
+- Upload your resume (PDF or DOCX)
 - Paste or fetch a job description by URL
-- Generaate a tailored, ATS-friendly resume using OpenAI GPT
+- Generate a tailored, ATS-friendly resume using OpenAI GPT
 - Export the result as DOCX or PDF
 
-### ATS SCore Analysis
+### ATS Score Analysis
 - Keyword overlap scoring between resume and job description
 - AI-powered breakdown of missing skills, tone, and alignment
 - AI-written content detection and integrity check
@@ -25,13 +23,13 @@ all from a clean tabbed interface with cloud sync.
 ### Cover Letter Generator
 - Auto-generate cover letters from your resume + job description
 - Choose tone (Professional / Friendly / Confident / Creative) and length
-- Source selected automatically: uses tailored resume if available, uploadedd resume if not, or prompts to upload if neither exists
+- Source selected automatically: uses tailored resume if available, uploaded resume if not, or prompts to upload if neither exists
 - Editable output with export to DOCX/PDF
 - Cover letters saved to tailoring history
 
 ### Tailoring History
 - Every tailoring session is saved locally (JSON + PDF)
-- View company, role, ATS Score, and cover letter per entry
+- View company, role, ATS score, and cover letter per entry
 - Replay ATS analysis on any past resume
 - Edit company/role fields inline
 - Bulk or single-row delete
@@ -40,7 +38,7 @@ all from a clean tabbed interface with cloud sync.
 - All history synced to Supabase on each tailoring session
 - Manual Push All to Cloud and Pull from Cloud in Settings
 - User preferences (theme, tailoring defaults) synced across devices
-- Local-first — app works offline, syncs when connnected
+- Local-first — app works offline, syncs when connected
 
 ### Authentication
 - Email/password sign-in and sign-up
@@ -50,7 +48,7 @@ all from a clean tabbed interface with cloud sync.
 
 ### Modern UI
 - Tabbed sidebar layout: Tailor, History, Settings, Cover Letter
-- Dark and Light theme with live toggle
+- Dark and light theme with live toggle
 - Toast notifications for async events (ATS score, errors)
 - Onboarding tutorial on first launch (re-triggerable from Help menu)
 - Keyboard shortcuts for all major actions
@@ -59,16 +57,16 @@ all from a clean tabbed interface with cloud sync.
 
 ## Tech Stack
 
-|          Layer | Technology                      |
-| -------------- | ------------------------------- |
-|   UI Framework | PyQt6                           |
-|      AI Engine | OpenAI GPT (gpt-4.1 default)    |
-| Auth & Storage | Supabase (PostGreSQL + Storage) |
-| Resume Parsing | pdfplumber, python-docx         |
-|   Job Scraping | BeautifulSoup4, requests        |
-|    Credentials | keyring                         |
-|      Packaging | PyInstaller                     |
-|        Styling | QSS (Qt Stylesheets)            |
+| Layer | Technology |
+|---|---|
+| UI Framework | PyQt6 |
+| AI Engine | OpenAI GPT (gpt-4.1 default) |
+| Auth & Storage | Supabase (PostgreSQL + Storage) |
+| Resume Parsing | pdfplumber, python-docx |
+| Job Scraping | BeautifulSoup4, requests |
+| Credentials | keyring |
+| Packaging | PyInstaller |
+| Styling | QSS (Qt Stylesheets) |
 
 ---
 
@@ -87,7 +85,7 @@ JobFit-Pro/
 │   │   ├── tailoring_history.json     # Local history store
 │   │   └── history_resumes/           # Saved tailored resume PDFs
 │   ├── state/
-│   │   ├── session_state.py
+│   │   └── session_state.py
 │   ├── styles/
 │   │   ├── app.qss                    # Dark theme stylesheet
 │   │   └── app_light.qss              # Light theme stylesheet
@@ -166,7 +164,7 @@ cd JobFit-Pro
 
 ```bash
 python -m venv .venv
-./.venv/Scripts/activate    # Windows
+.venv\Scripts\activate      # Windows
 ```
 
 ### 3. Install dependencies
@@ -186,7 +184,7 @@ SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_ANON_KEY=your-anon-key
 ```
 
-You can also configure yhe API key and model directly from **Settings -> API Configuration** inside the app.
+You can also configure the API key and model directly from **Settings → API Configuration** inside the app.
 
 ### 5. Run the app
 
@@ -220,16 +218,16 @@ copy .env dist\.env
 
 ## Keyboard Shortcuts
 
-|                Action | Shortcut     |
-| --------------------- | ------------ |
-|         Tailor Resume | Ctrl+T       |
-| Fetch Job Description | Ctrl+F       |
-|           Load Resume | Ctrl+O       |
-|           Export DOCX | Ctrl+E       |
-|            Export PDF | Ctrl+Shift+E |
-|          Open History | Ctrl+H       |
-|           New Session | Ctrl+N       |
-|                  Quit | Ctrl+Q       |
+| Action | Shortcut |
+|---|---|
+| Tailor resume | Ctrl+T |
+| Fetch job description | Ctrl+F |
+| Load resume | Ctrl+O |
+| Export DOCX | Ctrl+E |
+| Export PDF | Ctrl+Shift+E |
+| Open history | Ctrl+H |
+| New session | Ctrl+N |
+| Quit | Ctrl+Q |
 
 ---
 
@@ -244,20 +242,20 @@ copy .env dist\.env
 - Multi-resume profiles
 - Resume builder with manual entry form
 - Resume versioning with diff view
-- Skill bank with proficiency badges
+- Skills bank with proficiency badges
 - Resume templates (modern, minimal, corporate)
 - Usage dashboard
 - Help wiki
 
 ---
 
-# License
+## License
 
-Proprietary - all rights reserved.
+Proprietary — all rights reserved.
 You may not copy, modify, or redistribute this software without explicit written permission from the author.
 
 ---
 
 ## Author
 
-Antoino Lee — [GitHub: Techdudetony](https://github.com/Techdudetony)
+Antonio Lee — [GitHub: Techdudetony](https://github.com/Techdudetony)
