@@ -922,6 +922,16 @@ class MainWindow(QMainWindow):
     # ==================================================================
     # SYNC — LOGIN PULL
     # ==================================================================
+    def _on_builder_tab_activated(self):
+        """Called when user switches to the Builder tab (index 4)."""
+        # Pre-wire the Use Tailored button on the builder tab
+        try:
+            if self.tailored_text and not self.ui.tabBuilder._work_cards:
+                # Offer to pre-fill if they have tailored text and builder is empty
+                pass  # User can click Use Tailored button manually
+        except Exception:
+            pass
+
     def _sync_on_login(self):
         """Pull preferences then history from Supabase after login."""
         print("[SYNC] Starting login sync...")

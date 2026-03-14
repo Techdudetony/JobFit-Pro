@@ -15,9 +15,7 @@ Structure:
 """
 
 from PyQt6.QtWidgets import (
-    QWidget,
-    QHBoxLayout,
-    QStackedWidget,
+    QWidget, QHBoxLayout, QStackedWidget,
 )
 from PyQt6.QtCore import Qt
 
@@ -26,6 +24,7 @@ from app.ui.tabs.tab_tailor import TailorTab
 from app.ui.tabs.tab_history import HistoryTab
 from app.ui.tabs.tab_settings import SettingsTab
 from app.ui.tabs.tab_cover_letter import CoverLetterTab
+from app.ui.tabs.tab_resume_builder import ResumeBuilderTab
 
 
 class Ui_MainWindow:
@@ -54,18 +53,21 @@ class Ui_MainWindow:
         root_layout.addWidget(self.stack, stretch=1)
 
         # ── Tabs ──────────────────────────────────────────────────
-        self.tabTailor = TailorTab(self.stack)
-        self.tabHistory = HistoryTab(self.stack)
-        self.tabSettings = SettingsTab(
+        self.tabTailor      = TailorTab(self.stack)
+        self.tabHistory     = HistoryTab(self.stack)
+        self.tabSettings    = SettingsTab(
             settings_panel=self.tabTailor.settingsPanel,
             parent=self.stack,
         )
         self.tabCoverLetter = CoverLetterTab(self.stack)
 
-        self.stack.addWidget(self.tabTailor)  # index 0
-        self.stack.addWidget(self.tabHistory)  # index 1
-        self.stack.addWidget(self.tabSettings)  # index 2
+        self.stack.addWidget(self.tabTailor)       # index 0
+        self.stack.addWidget(self.tabHistory)      # index 1
+        self.stack.addWidget(self.tabSettings)     # index 2
         self.stack.addWidget(self.tabCoverLetter)  # index 3
+
+        self.tabBuilder = ResumeBuilderTab(self.stack)
+        self.stack.addWidget(self.tabBuilder)       # index 4
 
         # ── Wire sidebar → stack ──────────────────────────────────
         self.sidebarNav.tabChanged.connect(self._on_tab_changed)
@@ -74,21 +76,21 @@ class Ui_MainWindow:
 
         # ── Expose all widget names window_main.py expects ────────
         # Tailor tab widgets
-        self.inputJobURL = self.tabTailor.inputJobURL
-        self.btnFetchJob = self.tabTailor.btnFetchJob
-        self.btnUseManualJob = self.tabTailor.btnUseManualJob
-        self.settingsPanel = self.tabTailor.settingsPanel
-        self.resumePicker = self.tabTailor.resumePicker
-        self.btnLoadResume = self.tabTailor.btnLoadResume
-        self.btnLastResume = self.tabTailor.btnLastResume
-        self.jobPreview = self.tabTailor.jobPreview
-        self.resumePreview = self.tabTailor.resumePreview
-        self.outputPanel = self.tabTailor.outputPanel
-        self.outputPreview = self.tabTailor.outputPreview
-        self.btnTailor = self.tabTailor.btnTailor
-        self.btnExport = self.tabTailor.btnExport
-        self.btnExportPDF = self.tabTailor.btnExportPDF
-        self.atsPanel = self.tabTailor.atsPanel
+        self.inputJobURL    = self.tabTailor.inputJobURL
+        self.btnFetchJob    = self.tabTailor.btnFetchJob
+        self.btnUseManualJob= self.tabTailor.btnUseManualJob
+        self.settingsPanel  = self.tabTailor.settingsPanel
+        self.resumePicker   = self.tabTailor.resumePicker
+        self.btnLoadResume  = self.tabTailor.btnLoadResume
+        self.btnLastResume  = self.tabTailor.btnLastResume
+        self.jobPreview     = self.tabTailor.jobPreview
+        self.resumePreview  = self.tabTailor.resumePreview
+        self.outputPanel    = self.tabTailor.outputPanel
+        self.outputPreview  = self.tabTailor.outputPreview
+        self.btnTailor      = self.tabTailor.btnTailor
+        self.btnExport      = self.tabTailor.btnExport
+        self.btnExportPDF   = self.tabTailor.btnExportPDF
+        self.atsPanel       = self.tabTailor.atsPanel
 
     def _on_tab_changed(self, index: int):
         self.stack.setCurrentIndex(index)

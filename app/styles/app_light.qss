@@ -768,3 +768,168 @@ QTableWidget#historyTable QHeaderView::section:vertical {
     font-size: 8pt;
     padding: 0px 4px;
 }
+
+/* ══════════════════════════════════════════════
+   RESUME BUILDER — LIGHT
+   ══════════════════════════════════════════════ */
+
+QWidget#builderLeft {
+    background-color: #FFFFFF;
+    border-right: 1px solid #E2E8F0;
+}
+
+QWidget#builderRight {
+    background-color: #F8FAFC;
+}
+
+QWidget#builderBtnBar,
+QWidget#builderPreviewHeader {
+    background-color: #FFFFFF;
+}
+
+QWidget#builderForm {
+    background-color: #FFFFFF;
+}
+
+QGroupBox#builderCard {
+    background-color: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    margin-top: 8px;
+    padding-top: 16px;
+    font-weight: 600;
+    color: #64748B;
+}
+
+QGroupBox#builderCard::title {
+    subcontrol-origin: margin;
+    left: 12px;
+    padding: 0 6px;
+    color: #64748B;
+    font-size: 9pt;
+}
+
+QLabel[builderSectionTitle="true"] {
+    color: #1E293B;
+    font-size: 10pt;
+    font-weight: 700;
+}
+
+QLabel[builderFieldLabel="true"] {
+    color: #64748B;
+    font-size: 9pt;
+}
+
+QTextEdit#builderTextEdit {
+    background-color: #FFFFFF;
+    border: 1px solid #CBD5E1;
+    border-radius: 6px;
+    color: #1E293B;
+    font-size: 9.5pt;
+    padding: 6px;
+}
+
+QTextEdit#builderTextEdit:focus {
+    border-color: #54AED5;
+}
+
+QTextEdit#builderPreview {
+    background-color: #F8FAFC;
+    border: none;
+    color: #1E293B;
+    font-family: "Calibri", "Segoe UI", sans-serif;
+    font-size: 10pt;
+    padding: 24px;
+}
+
+QPushButton[addSectionBtn="true"] {
+    background-color: transparent;
+    border: 1px dashed #CBD5E1;
+    border-radius: 6px;
+    color: #94A3B8;
+    font-size: 9pt;
+    padding: 6px;
+}
+
+QPushButton[addSectionBtn="true"]:hover {
+    border-color: #54AED5;
+    color: #54AED5;
+}
+
+QPushButton[aiImproveBtn="true"] {
+    background-color: #F0FDF4;
+    border: 1px solid #86EFAC;
+    border-radius: 4px;
+    color: #16A34A;
+    font-size: 8pt;
+    font-weight: 600;
+    padding: 2px 8px;
+}
+
+QPushButton[aiImproveBtn="true"]:hover {
+    background-color: #DCFCE7;
+}
+
+QPushButton[aiImproveBtn="true"]:disabled {
+    background-color: #F8FAFC;
+    color: #CBD5E1;
+    border-color: #E2E8F0;
+}
+
+QPushButton[removeBtn="true"] {
+    background-color: transparent;
+    border: 1px solid #E2E8F0;
+    border-radius: 4px;
+    color: #94A3B8;
+    font-size: 8pt;
+}
+
+QPushButton[removeBtn="true"]:hover {
+    background-color: #FEF2F2;
+    border-color: #EF4444;
+    color: #EF4444;
+}
+
+QPushButton[exportBtn="true"] {
+    background-color: #16A34A;
+    color: #FFFFFF;
+    border-radius: 6px;
+    font-weight: 700;
+}
+
+QPushButton[exportBtn="true"]:hover {
+    background-color: #15803D;
+}
+
+QLabel[styleBadge="true"] {
+    color: #94A3B8;
+    font-size: 8.5pt;
+    font-style: italic;
+}
+
+QFrame#builderDivider {
+    color: #E2E8F0;
+}
+
+/* ── Email domain suggestion chips — light ── */
+QPushButton[emailChip="true"] {
+    background-color: #F1F5F9;
+    border: 1px solid #CBD5E1;
+    border-radius: 10px;
+    color: #64748B;
+    font-size: 8pt;
+    padding: 2px 8px;
+}
+QPushButton[emailChip="true"]:hover {
+    background-color: #54AED5;
+    border-color: #54AED5;
+    color: #FFFFFF;
+}
+
+/* Locked/read-only field (Current role, Currently Enrolled) — light */
+QLineEdit[fieldLocked="true"] {
+    background-color: #F1F5F9;
+    color: #94A3B8;
+    border-color: #E2E8F0;
+    font-style: italic;
+}
