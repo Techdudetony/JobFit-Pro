@@ -40,6 +40,8 @@ from PyQt6.QtCore import Qt, QTimer, QThread, pyqtSignal
 from PyQt6.QtGui import QAction, QKeySequence, QShortcut
 
 from app.ui.toast_notification import ToastNotification
+from app.ui.dialogs.tailor_context_dialog import TailorContextDialog
+from core.processor.context_question_engine import ContextQuestionWorker
 from services.sync_manager import sync_manager
 
 # ---------------- CORE LOGIC MODULES ----------------
@@ -55,25 +57,20 @@ from core.processor.keyword_matcher import keyword_overlap
 from core.processor.job_meta_extractor import JobMetaWorker
 
 LAST_RESUME_FILE = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "last_resume.json"
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "last_resume.json"
 )
 
 # Local folder where per-tailoring PDFs are saved
 HISTORY_RESUMES_DIR = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-    "app",
-    "data",
-    "history_resumes",
+    "app", "data", "history_resumes"
 )
 
 # ---------------- AUTH SYSTEM -----------------------
 from services.auth_manager import auth
 from app.ui.auth_modal import AuthModal
-from app.ui.onboarding import (
-    OnboardingManager,
-    has_completed_onboarding,
-    reset_onboarding,
-)
+from app.ui.onboarding import OnboardingManager, has_completed_onboarding, reset_onboarding
 
 # ---------------- HISTORY --------------------------
 from app.ui.tailoring_history_window import HISTORY_FILE
@@ -84,14 +81,15 @@ from app.ui.tailoring_history_window import HISTORY_FILE
 # ==============================================================================
 class TailorWorker(QThread):
     finished = pyqtSignal(str)
-    error = pyqtSignal(str)
+    error    = pyqtSignal(str)
 
-    def __init__(self, tailor, resume_text, job_text, settings):
+    def __init__(self, tailor, resume_text, job_text, settings, context=""):
         super().__init__()
-        self.tailor = tailor
+        self.tailor      = tailor
         self.resume_text = resume_text
-        self.job_text = job_text
-        self.settings = settings
+        self.job_text    = job_text
+        self.settings    = settings
+        self.context     = context
 
     def run(self):
         try:
@@ -100,6 +98,7 @@ class TailorWorker(QThread):
                 self.job_text,
                 limit_pages=self.settings.get("limit_pages", False),
                 limit_one=self.settings.get("limit_one", False),
+                context=self.context,
             )
             self.finished.emit(result)
         except Exception as e:
@@ -148,7 +147,6 @@ class MainWindow(QMainWindow):
         # 2. LOAD UI FROM PURE LAYOUT CLASS
         # ============================================================
         from app.ui.main_window import Ui_MainWindow
-
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
@@ -160,8 +158,7 @@ class MainWindow(QMainWindow):
 
         self.loadingLabel = QLabel(self)
         self.loadingLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.loadingLabel.setStyleSheet(
-            """
+        self.loadingLabel.setStyleSheet("""
             QLabel {
                 background-color: rgba(15, 23, 42, 220);
                 color: #E5E7EB;
@@ -171,8 +168,7 @@ class MainWindow(QMainWindow):
                 padding: 24px 40px;
                 min-width: 400px;
             }
-        """
-        )
+        """)
         self.loadingLabel.hide()
 
         self.loadingTimer = QTimer(self)
@@ -184,8 +180,8 @@ class MainWindow(QMainWindow):
         # ============================================================
         # 4. INTERNAL STATE
         # ============================================================
-        self.resume_text = ""
-        self.job_text = ""
+        self.resume_text   = ""
+        self.job_text      = ""
         self.tailored_text = ""
 
         self.tailor = ResumeTailor()
@@ -313,11 +309,9 @@ class MainWindow(QMainWindow):
         # Reflect current theme state
         try:
             import services.theme_manager as tm_module
-
             self.theme_action.setChecked(
                 tm_module.theme_manager.is_dark_mode()
-                if tm_module.theme_manager
-                else True
+                if tm_module.theme_manager else True
             )
         except Exception:
             self.theme_action.setChecked(True)
@@ -396,7 +390,6 @@ class MainWindow(QMainWindow):
         """Returns the right menu label for the current theme."""
         try:
             import services.theme_manager as tm_module
-
             if tm_module.theme_manager and tm_module.theme_manager.is_dark_mode():
                 return "Switch to Light Mode"
         except Exception:
@@ -407,7 +400,6 @@ class MainWindow(QMainWindow):
         """Toggle light/dark and update menu label + checkmark."""
         try:
             import services.theme_manager as tm_module
-
             if tm_module.theme_manager:
                 tm_module.theme_manager.toggle_theme()
                 is_dark = tm_module.theme_manager.is_dark_mode()
@@ -505,9 +497,7 @@ class MainWindow(QMainWindow):
         """Load the previously used resume."""
         path = self._load_last_resume_path()
         if not path:
-            QMessageBox.information(
-                self, "No Last Resume", "No previously used resume found."
-            )
+            QMessageBox.information(self, "No Last Resume", "No previously used resume found.")
             return
         self.ui.resumePicker.setPath(path)
         self.load_resume_from_picker(path)
@@ -569,13 +559,40 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Error", "Paste or fetch a job description.")
             return
 
+        # Disable button while generating questions
+        self.ui.btnTailor.setEnabled(False)
+
+        # Show toast while OpenAI generates personalized questions
+        toast = ToastNotification(
+            "Personalizing your questions...", parent=self, style="info", duration=6000
+        )
+        toast.show_toast()
+
+        # Fire async question generation
+        self._question_worker = ContextQuestionWorker(
+            self.resume_text, self.job_text
+        )
+        self._question_worker.finished.connect(self._on_questions_ready)
+        self._question_worker.start()
+
+    def _on_questions_ready(self, questions: list):
+        """Called when OpenAI returns personalized questions — show dialog."""
+        self.ui.btnTailor.setEnabled(True)
+
+        dialog = TailorContextDialog(questions, parent=self)
+        result = dialog.exec()
+
+        if result != QDialog.DialogCode.Accepted:
+            return  # User dismissed — do nothing
+
+        context  = dialog.get_context()
         settings = self.ui.settingsPanel.to_dict()
 
         self._set_loading_visible(True)
         self.ui.btnTailor.setEnabled(False)
 
         self.worker = TailorWorker(
-            self.tailor, self.resume_text, self.job_text, settings
+            self.tailor, self.resume_text, self.job_text, settings, context=context
         )
         self.worker.finished.connect(self._on_tailor_done)
         self.worker.error.connect(self._on_tailor_error)
@@ -616,12 +633,9 @@ class MainWindow(QMainWindow):
     def _save_pdf_and_build_entry(self) -> dict:
         """Save tailored resume as local PDF, return a partial history entry."""
         import uuid
-
         os.makedirs(HISTORY_RESUMES_DIR, exist_ok=True)
 
-        filename = (
-            f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}.pdf"
-        )
+        filename  = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}.pdf"
         local_pdf = os.path.join(HISTORY_RESUMES_DIR, filename)
 
         try:
@@ -631,13 +645,13 @@ class MainWindow(QMainWindow):
             local_pdf = ""
 
         return {
-            "company": "Unknown",  # filled in by meta worker
-            "role": "Unknown",  # filled in by meta worker
-            "job_url": self.ui.inputJobURL.text().strip(),
-            "resume_url": local_pdf,  # local path; overwritten if Supabase succeeds
-            "local_pdf": local_pdf,  # always kept as fallback
-            "timestamp": datetime.now().isoformat(),
-            "ats_result": None,  # filled in when keyword_analyzer finishes
+            "company":    "Unknown",          # filled in by meta worker
+            "role":       "Unknown",          # filled in by meta worker
+            "job_url":    self.ui.inputJobURL.text().strip(),
+            "resume_url": local_pdf,          # local path; overwritten if Supabase succeeds
+            "local_pdf":  local_pdf,          # always kept as fallback
+            "timestamp":  datetime.now().isoformat(),
+            "ats_result": None,               # filled in when keyword_analyzer finishes
         }
 
     def _start_meta_extraction(self):
@@ -653,7 +667,7 @@ class MainWindow(QMainWindow):
 
         entry = self._pending_history_entry
         entry["company"] = meta.get("company", "Unknown")
-        entry["role"] = meta.get("role", "Unknown")
+        entry["role"]    = meta.get("role",    "Unknown")
 
         # Try Supabase upload (non-blocking — if it fails, local_pdf is the fallback)
         local_pdf = entry.get("local_pdf", "")
@@ -707,9 +721,7 @@ class MainWindow(QMainWindow):
             return
 
         path, _ = QFileDialog.getSaveFileName(
-            self,
-            "Save Tailored Resume",
-            "Tailored_Resume.docx",
+            self, "Save Tailored Resume", "Tailored_Resume.docx",
             "Word Document (*.docx)",
         )
         if path:
@@ -725,9 +737,7 @@ class MainWindow(QMainWindow):
             return
 
         path, _ = QFileDialog.getSaveFileName(
-            self,
-            "Save Tailored Resume",
-            "Tailored_Resume.pdf",
+            self, "Save Tailored Resume", "Tailored_Resume.pdf",
             "PDF Files (*.pdf)",
         )
         if path:
@@ -754,8 +764,8 @@ class MainWindow(QMainWindow):
         if confirm != QMessageBox.StandardButton.Yes:
             return
 
-        self.resume_text = ""
-        self.job_text = ""
+        self.resume_text   = ""
+        self.job_text      = ""
         self.tailored_text = ""
         self.ui.resumePreview.clear()
         self.ui.jobPreview.clear()
@@ -800,7 +810,7 @@ class MainWindow(QMainWindow):
             if not history:
                 return
 
-            history[-1]["ats_result"] = ats_result
+            history[-1]["ats_result"]   = ats_result
             history[-1]["last_updated"] = datetime.now().isoformat()
 
             with open(HISTORY_FILE, "w", encoding="utf-8") as f:
@@ -894,10 +904,7 @@ class MainWindow(QMainWindow):
 
         # Apply theme if different from current
         cloud_theme = prefs.get("theme", "dark")
-        if (
-            tm_module.theme_manager
-            and cloud_theme != tm_module.theme_manager.current_theme
-        ):
+        if tm_module.theme_manager and cloud_theme != tm_module.theme_manager.current_theme:
             tm_module.theme_manager.apply_theme(cloud_theme)
             print(f"[SYNC] Applied cloud theme: {cloud_theme}")
 
@@ -920,16 +927,10 @@ class MainWindow(QMainWindow):
         if cloud_settings and hasattr(self.ui, "tabSettings"):
             ts = self.ui.tabSettings
             try:
-                ts.chk_default_keywords.setChecked(
-                    cloud_settings.get("focus_keywords", False)
-                )
+                ts.chk_default_keywords.setChecked(cloud_settings.get("focus_keywords", False))
                 ts.chk_default_ats.setChecked(cloud_settings.get("ats_friendly", True))
-                ts.chk_default_keep_len.setChecked(
-                    cloud_settings.get("keep_length", False)
-                )
-                ts.chk_default_one_page.setChecked(
-                    cloud_settings.get("limit_one", False)
-                )
+                ts.chk_default_keep_len.setChecked(cloud_settings.get("keep_length", False))
+                ts.chk_default_one_page.setChecked(cloud_settings.get("limit_one", False))
             except Exception as e:
                 print(f"[SYNC] Failed to mirror prefs to Settings tab: {e}")
 
@@ -937,7 +938,6 @@ class MainWindow(QMainWindow):
         if hasattr(self.ui, "tabSettings"):
             try:
                 import services.theme_manager as tm_module
-
                 if tm_module.theme_manager:
                     is_dark = tm_module.theme_manager.is_dark_mode()
                     self.ui.tabSettings.btn_toggle_theme.setText(
@@ -978,7 +978,6 @@ class MainWindow(QMainWindow):
     def _push_current_prefs(self):
         """Push current local theme + settings to Supabase."""
         import services.theme_manager as tm_module
-
         theme = "dark"
         if tm_module.theme_manager:
             theme = "dark" if tm_module.theme_manager.is_dark_mode() else "light"

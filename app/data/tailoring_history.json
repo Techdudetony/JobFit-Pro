@@ -1,6 +1,246 @@
 [
     {
         "ats_result": {
+            "ats_score": 56,
+            "error": null,
+            "fabrication_warnings": [],
+            "matched_keywords": [
+                {
+                    "context": "Summary and Skills list SQL; mentions ad-hoc queries and data extracts.",
+                    "keyword": "SQL"
+                },
+                {
+                    "context": "Skills: 'data extracts'; Summary: 'supporting enterprise operations through data extracts'.",
+                    "keyword": "data extracts"
+                },
+                {
+                    "context": "Summary and Skills explicitly list requirements gathering; experience references translating findings into recommendations.",
+                    "keyword": "requirements gathering"
+                },
+                {
+                    "context": "Summary mentions documentation; Skills: 'Documentation & reporting'.",
+                    "keyword": "documentation"
+                },
+                {
+                    "context": "Summary and Skills mention reporting; CarMax role: delivered recurring reporting to leadership.",
+                    "keyword": "reporting"
+                },
+                {
+                    "context": "Skills list troubleshooting; Bindery Mechanic role emphasizes diagnosing issues and corrective actions.",
+                    "keyword": "troubleshooting"
+                },
+                {
+                    "context": "Summary references supporting enterprise operations.",
+                    "keyword": "enterprise"
+                },
+                {
+                    "context": "Summary: 'translating end-user needs into clear reporting and process improvements'.",
+                    "keyword": "end-user needs"
+                },
+                {
+                    "context": "Summary mentions process improvements; CarMax role includes recommending process changes.",
+                    "keyword": "process improvements"
+                },
+                {
+                    "context": "Summary and Skills list Python.",
+                    "keyword": "Python"
+                },
+                {
+                    "context": "Skills: 'REST APIs/FastAPI'.",
+                    "keyword": "REST APIs"
+                },
+                {
+                    "context": "Skills list Git/GitHub.",
+                    "keyword": "Git/GitHub"
+                }
+            ],
+            "section_scores": {
+                "Education": 55,
+                "Experience": 45,
+                "Projects": null,
+                "Skills": 68,
+                "Summary": 72
+            },
+            "suggested_additions": [
+                {
+                    "confidence": "medium",
+                    "keyword": "SQL Server (T-SQL)",
+                    "reason": "Role emphasizes SQL extracts/workflows/reports; candidate already lists SQL and reporting, so specifying a common enterprise DB platform would strengthen alignment if true."
+                },
+                {
+                    "confidence": "medium",
+                    "keyword": "SSRS or Power BI",
+                    "reason": "Candidate already does recurring reporting and data visualization; naming a reporting/BI tool commonly used in government/enterprise environments would improve ATS match if applicable."
+                },
+                {
+                    "confidence": "medium",
+                    "keyword": "ServiceNow/Jira (ticketing)",
+                    "reason": "Job is end-user support and issue resolution; candidate has QA/compliance support experience and troubleshooting\u2014ticketing system exposure is plausible and often expected."
+                },
+                {
+                    "confidence": "high",
+                    "keyword": "UAT (User Acceptance Testing)",
+                    "reason": "Candidate has QA background and requirements gathering; UAT is a natural, credible bridge to enterprise system module support."
+                },
+                {
+                    "confidence": "high",
+                    "keyword": "SOPs / knowledge base articles",
+                    "reason": "Job stresses guidance on system capabilities and documentation; candidate already highlights documentation/reporting, so SOP/KB deliverables are plausible."
+                },
+                {
+                    "confidence": "high",
+                    "keyword": "Data quality validation",
+                    "reason": "Developing extracts/reports typically requires validation; candidate\u2019s QA/compliance analytics background makes this a credible addition."
+                },
+                {
+                    "confidence": "low",
+                    "keyword": "Basic systems administration (configuration, environment promotion)",
+                    "reason": "Job includes creating/testing configurations and migrating changes across environments; candidate could credibly add exposure if they have done controlled changes in QA/reporting systems."
+                },
+                {
+                    "confidence": "low",
+                    "keyword": "GIS fundamentals",
+                    "reason": "Cityworks is GIS-centric; adding basic GIS familiarity is plausible if gained through coursework or self-study, but should only be included if true."
+                }
+            ],
+            "summary": "The resume aligns well with the job\u2019s SQL/data extract, reporting, documentation, troubleshooting, and requirements-gathering needs, but it lacks direct enterprise system module support and COTS implementation/configuration evidence. Adding concrete examples of end-user support workflows (tickets, UAT, environment changes) and any exposure to GIS-centric or asset/work order systems would materially improve ATS alignment for the Cityworks-focused role."
+        },
+        "company": "County of Henrico Department of Information Technology",
+        "job_url": "https://ebiz.henrico.gov/OA_HTML/OA.jsp?page=/oracle/apps/irc/candidateSelfService/webui/VisVacDispPG&OAHP=IRC_EXT_SITE_VISITOR_APPL&OASF=IRC_VIS_VAC_DISPLAY&akRegionApplicationId=821&transactionid=1272290238&retainAM=N&addBreadCrumb=RP&p_svid=199791&p_spid=9282212&oapc=15&oas=AIva5lwgkCEVxkH07Q7QUw..",
+        "last_updated": "2026-03-14T11:57:03.187414",
+        "local_pdf": "D:\\JobFit_Pro\\app\\data\\history_resumes\\20260314_115629_b2a4808d.pdf",
+        "resume_url": "https://cgfbvsdtaliuxdamsbzt.supabase.co/storage/v1/object/sign/resumes/users/0b9c1760-55af-457e-934d-363e91f4b05e/c31b8b7b-e071-40fc-b825-a8b097b23bc9.pdf?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8yMWVlNDE3My02OTdmLTQ3NjYtYTRkMS03ZjFmZjQ0ZWFjNDIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyZXN1bWVzL3VzZXJzLzBiOWMxNzYwLTU1YWYtNDU3ZS05MzRkLTM2M2U5MWY0YjA1ZS9jMzFiOGI3Yi1lMDcxLTQwZmMtYjgyNS1hOGIwOTdiMjNiYzkucGRmIiwiaWF0IjoxNzczNTAzODEyLCJleHAiOjE3NzQxMDg2MTJ9.BPmUi85ajgXAXAQ_EYaNKWnoaTh2vnXI1_BwxAgP6_Y",
+        "role": "IT Systems Developer",
+        "timestamp": "2026-03-14T11:56:47.691916"
+    },
+    {
+        "ats_result": {
+            "ats_score": 52,
+            "error": null,
+            "fabrication_warnings": [
+                {
+                    "item": "5+ years of professional fullstack web development experience",
+                    "reason": "Summary claims 5+ years delivering software outcomes, but listed experience is primarily QA consulting and a non-software mechanical role; no explicit professional software engineering/full-stack development role is shown."
+                },
+                {
+                    "item": "End-to-end ownership of user-ready solutions",
+                    "reason": "Claimed in summary, but experience bullets focus on audit programs, reporting, and coaching rather than building/shipping web applications or features."
+                }
+            ],
+            "matched_keywords": [
+                {
+                    "context": "Headline: \"Software Developer (Full-Stack Focus: React/TypeScript, Data)\"",
+                    "keyword": "Full-Stack"
+                },
+                {
+                    "context": "Skills: \"React\"",
+                    "keyword": "React"
+                },
+                {
+                    "context": "Skills: \"TypeScript\" and headline mentions React/TypeScript",
+                    "keyword": "TypeScript"
+                },
+                {
+                    "context": "Summary: \"JavaScript/TypeScript\"; Skills: \"JavaScript\"",
+                    "keyword": "JavaScript"
+                },
+                {
+                    "context": "Skills: \"DOM\" (aligns with browser JavaScript/DOM requirement)",
+                    "keyword": "DOM"
+                },
+                {
+                    "context": "Skills: \"HTML\"",
+                    "keyword": "HTML"
+                },
+                {
+                    "context": "Skills: \"CSS\"",
+                    "keyword": "CSS"
+                },
+                {
+                    "context": "Skills: \"Next.js\" (relevant to web app development)",
+                    "keyword": "Next.js"
+                },
+                {
+                    "context": "Summary: \"REST APIs\"; Skills: \"REST APIs\"",
+                    "keyword": "REST APIs"
+                },
+                {
+                    "context": "Summary: \"SQL\"; Skills: \"SQL\"",
+                    "keyword": "SQL"
+                },
+                {
+                    "context": "Skills: \"Git\"",
+                    "keyword": "Git"
+                },
+                {
+                    "context": "Summary: \"high standards for code quality, documentation\"",
+                    "keyword": "Documentation"
+                },
+                {
+                    "context": "Summary: \"high standards for code quality\"",
+                    "keyword": "Code quality"
+                },
+                {
+                    "context": "Summary: \"end-to-end ownership\"",
+                    "keyword": "End-to-end ownership"
+                }
+            ],
+            "section_scores": {
+                "Education": 55,
+                "Experience": 35,
+                "Projects": null,
+                "Skills": 70,
+                "Summary": 60
+            },
+            "suggested_additions": [
+                {
+                    "confidence": "medium",
+                    "keyword": "PostgreSQL",
+                    "reason": "Job explicitly uses Postgres; candidate lists SQL but not a specific RDBMS. A full-stack/dev-with-data background commonly includes Postgres exposure."
+                },
+                {
+                    "confidence": "medium",
+                    "keyword": "Testing (unit/integration) with Jest/React Testing Library",
+                    "reason": "Role emphasizes remarkable quality; candidate has QA background and code quality focus, making software testing tools a plausible addition if used."
+                },
+                {
+                    "confidence": "medium",
+                    "keyword": "CI/CD (GitHub Actions)",
+                    "reason": "Candidate lists Git/GitHub; CI is a common adjacent practice for full-stack work and supports code quality/automation themes."
+                },
+                {
+                    "confidence": "medium",
+                    "keyword": "Browser APIs (Fetch, Storage, Performance, Accessibility APIs)",
+                    "reason": "Job calls out deep browser JavaScript/platform APIs; candidate lists DOM, so naming specific platform APIs would strengthen alignment if applicable."
+                },
+                {
+                    "confidence": "medium",
+                    "keyword": "UX collaboration / UI implementation details",
+                    "reason": "Role expects contributing to UX and designing beautiful UI; candidate lists Tailwind and frontend stack but no explicit UX/UI collaboration outcomes."
+                },
+                {
+                    "confidence": "high",
+                    "keyword": "AI-assisted development workflows (e.g., using AI tools for productivity)",
+                    "reason": "Job emphasizes AI enthusiasm; candidate has an AI concentration but does not mention leveraging AI in day-to-day development."
+                },
+                {
+                    "confidence": "low",
+                    "keyword": "Agile/Scrum",
+                    "reason": "Planning/estimating work is part of the role; candidate\u2019s professional environment likely involved structured delivery processes, but it\u2019s not stated."
+                }
+            ],
+            "summary": "The resume matches several core frontend keywords (React, TypeScript, DOM, Next.js) and general API/SQL requirements, but it lacks demonstrated professional full-stack product delivery in the Experience section. The biggest gap versus the role is evidence of shipping web app features across the stack (database to UI), plus alignment to the stated stack (Golang, Postgres, Electron, Google Cloud) and AI/product collaboration. Adding concrete software projects and reframing QA work to include any engineering contributions would materially improve ATS alignment."
+        },
+        "company": "Superhuman",
+        "job_url": "https://explore.skillup.org/all/open-jobs/43f34ab8f1383000e7ab2971c1de6f9b3be615e3?displayOrder=1",
+        "last_updated": "2026-03-14T11:15:07.345748",
+        "local_pdf": "D:\\JobFit_Pro\\app\\data\\history_resumes\\20260314_111441_45e13e86.pdf",
+        "resume_url": "https://cgfbvsdtaliuxdamsbzt.supabase.co/storage/v1/object/sign/resumes/users/0b9c1760-55af-457e-934d-363e91f4b05e/b53acf64-f514-4b14-9e23-1285fdb9c454.pdf?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8yMWVlNDE3My02OTdmLTQ3NjYtYTRkMS03ZjFmZjQ0ZWFjNDIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyZXN1bWVzL3VzZXJzLzBiOWMxNzYwLTU1YWYtNDU3ZS05MzRkLTM2M2U5MWY0YjA1ZS9iNTNhY2Y2NC1mNTE0LTRiMTQtOWUyMy0xMjg1ZmRiOWM0NTQucGRmIiwiaWF0IjoxNzczNTAxMjkzLCJleHAiOjE3NzQxMDYwOTN9.yYLevQFwYiSSeTZzLdyJ5iEy-F7MDpL6lFffDvoGBuM",
+        "role": "Software Engineer, Full-Stack",
+        "timestamp": "2026-03-14T11:14:49.204950"
+    },
+    {
+        "ats_result": {
             "ats_score": 86,
             "error": null,
             "fabrication_warnings": [
@@ -753,5 +993,152 @@
         "role": "Registered Client Service Assistant/ 401(k) Client Service Assistant (Richmond, Suffolk or Virginia Beach)",
         "timestamp": "2025-12-11T22:56:58.280842",
         "user_id": "0b9c1760-55af-457e-934d-363e91f4b05e"
+    },
+    {
+        "company": "CarMax",
+        "role": "Strategy Analyst",
+        "job_url": "https://careers.carmax.com/strategy-analyst/job/3A30F16F0913E55704DE1D0E99B466A1?source=Direct_Traffic&utm_source=Direct_Traffic",
+        "resume_url": "https://cgfbvsdtaliuxdamsbzt.supabase.co/storage/v1/object/sign/resumes/users/0b9c1760-55af-457e-934d-363e91f4b05e/1fbc1477-610e-41ac-8b34-495dfb01df5d.pdf?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8yMWVlNDE3My02OTdmLTQ3NjYtYTRkMS03ZjFmZjQ0ZWFjNDIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyZXN1bWVzL3VzZXJzLzBiOWMxNzYwLTU1YWYtNDU3ZS05MzRkLTM2M2U5MWY0YjA1ZS8xZmJjMTQ3Ny02MTBlLTQxYWMtOGIzNC00OTVkZmIwMWRmNWQucGRmIiwiaWF0IjoxNzczNTA1ODAwLCJleHAiOjE3NzQxMTA2MDB9.Big_z3ovj9nfuMYMfK-7zCvp_jroS5_eZIWlgydmHX0",
+        "local_pdf": "D:\\JobFit_Pro\\app\\data\\history_resumes\\20260314_122952_cdb99667.pdf",
+        "timestamp": "2026-03-14T12:29:56.767345",
+        "ats_result": {
+            "ats_score": 78,
+            "matched_keywords": [
+                {
+                    "keyword": "Strategy",
+                    "context": "Headline and Summary: \"Strategy and analytics professional\"; role alignment to Strategy Analyst."
+                },
+                {
+                    "keyword": "Analytics",
+                    "context": "Summary and Skills: analytics focus; experience analyzing compliance/audit results and performance data."
+                },
+                {
+                    "keyword": "Insights",
+                    "context": "Summary: \"turning ... data into insights\"; Experience: trend reports and recommendations to leaders."
+                },
+                {
+                    "keyword": "Trend reporting",
+                    "context": "Summary and Skills explicitly list \"Trend Reporting\"; Experience mentions building trend reports."
+                },
+                {
+                    "keyword": "Data visualization",
+                    "context": "Skills: \"Data Visualization\"; Experience: \"visualizations\" delivered via BI tools."
+                },
+                {
+                    "keyword": "Tableau",
+                    "context": "Summary and Experience: dashboards/visualizations using Tableau."
+                },
+                {
+                    "keyword": "Power BI",
+                    "context": "Summary and Experience: dashboards/visualizations using Power BI."
+                },
+                {
+                    "keyword": "Qlik",
+                    "context": "Summary and Experience: dashboards/visualizations using Qlik."
+                },
+                {
+                    "keyword": "Excel",
+                    "context": "Skills and Experience: Excel-based analysis; pivots/formulas/charts; reporting."
+                },
+                {
+                    "keyword": "SQL",
+                    "context": "Summary: \"SQL/Python foundations\"; Skills list SQL."
+                },
+                {
+                    "keyword": "Python",
+                    "context": "Summary: \"SQL/Python foundations\"; Skills list Python."
+                },
+                {
+                    "keyword": "Partner with leaders",
+                    "context": "Experience: \"delivering targeted recommendations to leaders\"; collaboration implied with Compliance Services."
+                },
+                {
+                    "keyword": "Presentation and communication skills",
+                    "context": "Experience implies communicating findings via reports/visualizations and recommendations to leaders."
+                },
+                {
+                    "keyword": "Operational",
+                    "context": "Summary: \"operational and compliance data\"; Experience: performance/coaching/process changes."
+                },
+                {
+                    "keyword": "CarMax",
+                    "context": "Current/previous employer is CarMax; Summary states experience at CarMax."
+                },
+                {
+                    "keyword": "Customer experience",
+                    "context": "Experience: \"improving customer experience outcomes\"."
+                },
+                {
+                    "keyword": "Process improvement",
+                    "context": "Experience: \"process changes\" and standardizing audit methodology."
+                },
+                {
+                    "keyword": "Critical thinking / problem-solving",
+                    "context": "Demonstrated through quantified improvements (23% reduction; 9% increase) and program design/implementation."
+                }
+            ],
+            "suggested_additions": [
+                {
+                    "keyword": "Storytelling with data",
+                    "reason": "Job emphasizes communication/storytelling; candidate already produces leadership-ready recommendations and visualizations, so explicitly naming this is plausible.",
+                    "confidence": "high"
+                },
+                {
+                    "keyword": "Stakeholder management",
+                    "reason": "Role requires partnering across Product/Tech/Ops; candidate already worked with leaders and Compliance Services\u2014adding the term improves ATS alignment.",
+                    "confidence": "high"
+                },
+                {
+                    "keyword": "Cross-functional collaboration",
+                    "reason": "CarMax Strategy role stresses partnering across the organization; experience shows collaboration but the phrase is not explicit.",
+                    "confidence": "high"
+                },
+                {
+                    "keyword": "KPI development / metric definition",
+                    "reason": "Candidate built an audit program and trend reporting; likely defined/standardized metrics and success measures even if not stated.",
+                    "confidence": "medium"
+                },
+                {
+                    "keyword": "Root cause analysis",
+                    "reason": "Reducing compliance opportunities and improving QA scores typically involves diagnosing drivers; adding this is plausible given the work described.",
+                    "confidence": "medium"
+                },
+                {
+                    "keyword": "Forecasting / predictive analysis (basic)",
+                    "reason": "With SQL/Python foundations and trend reporting, basic forecasting is a plausible adjacent capability; only add if actually done in reporting.",
+                    "confidence": "low"
+                },
+                {
+                    "keyword": "Operations analytics",
+                    "reason": "Job is heavily operations/supply-chain/retail analytics; candidate\u2019s work is operational/compliance analytics\u2014labeling it as operations analytics improves fit.",
+                    "confidence": "high"
+                },
+                {
+                    "keyword": "Executive-ready presentations (PowerPoint/Google Slides)",
+                    "reason": "Role stresses presenting findings; candidate references leadership-ready recommendations but does not list presentation tools/deliverables.",
+                    "confidence": "medium"
+                }
+            ],
+            "fabrication_warnings": [
+                {
+                    "item": "Quality Assurance Consultant (Oct 2020 - Nov 2025) with \"0\u20132 years\" experience",
+                    "reason": "The experience dates indicate ~5 years, which conflicts with the Summary claiming \"0\u20132 years\"; also the end date is in the future relative to typical resume conventions."
+                },
+                {
+                    "item": "Designed and implemented the official CEC Audit Program",
+                    "reason": "High-impact, organization-wide phrasing (\"official\") could be accurate but may be questioned without scope details (team size, governance, rollout, artifacts) to substantiate."
+                }
+            ],
+            "section_scores": {
+                "Summary": 82,
+                "Experience": 80,
+                "Skills": 75,
+                "Education": 55,
+                "Projects": null
+            },
+            "summary": "The resume aligns well with CarMax\u2019s Strategy Analyst role through direct CarMax experience, quantified analytics impact, and strong BI/reporting tooling (Excel, Tableau, Power BI, Qlik) plus SQL/Python foundations. Biggest gaps are limited explicit language around cross-functional strategy work (Product/Tech/Ops), storytelling/presentations, and broader business problem framing beyond compliance/QA. Fixing the experience-duration inconsistency and adding a few strategy-analytics keywords (stakeholder management, KPI definition, root cause analysis) would improve ATS match and credibility.",
+            "error": null
+        },
+        "last_updated": "2026-03-14T12:30:20.394778"
     }
 ]

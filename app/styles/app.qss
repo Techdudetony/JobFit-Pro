@@ -1,155 +1,187 @@
 /* ===========================================================
-   JOBFIT PRO – NEW THEME (PRIMARY: #54AED5, WHITE UI)
+   GLOBAL APPLICATION STYLING — JOBFIT PRO
    =========================================================== */
 
 QMainWindow {
-    background-color: #0C1117;
-    color: #FFFFFF;
+    background-color: #020617;
+    color: #E5E7EB;
     font-family: "Segoe UI", sans-serif;
     font-size: 10pt;
 }
 
 QLabel {
-    color: #FFFFFF;
+    color: #E5E7EB;
 }
 
-/* Panel Headers */
+/* Panel titles */
 QLabel[panelTitle="true"] {
     font-weight: 600;
     font-size: 11pt;
-    color: #54AED5;
 }
 
 /* ===========================================================
    TEXT INPUTS
    =========================================================== */
-
 QLineEdit,
 QPlainTextEdit {
-    background-color: #11171F;
-    border: 1px solid #2A313C;
+    background-color: #020617;
+    border: 1px solid #1F2937;
     border-radius: 6px;
     padding: 6px;
-    color: #FFFFFF;
-}
-
-QLineEdit:hover,
-QPlainTextEdit:hover {
-    border: 1px solid #54AED5;
+    color: #E5E7EB;
 }
 
 QLineEdit:focus,
 QPlainTextEdit:focus {
-    border: 2px solid #54AED5;
+    border-color: 2px solid #22C55E;
 }
 
 /* ===========================================================
-   PRIMARY BUTTONS
+   BUTTONS
    =========================================================== */
-
 QPushButton {
-    background-color: #54AED5;
-    color: #0C1117;
+    background-color: #22C55E;
+    color: #020617;
     border-radius: 6px;
+    border: none;
     padding: 6px 14px;
     font-weight: 600;
 }
 
 QPushButton:hover {
-    background-color: #3D93BB;
-}
-
-QPushButton:pressed {
-    background-color: #2C7392;
+    background-color: #16A34A;
 }
 
 QPushButton:disabled {
-    background-color: #2A313C;
-    color: #D7DDA8;
-}
-
-/* Variant buttons (panel buttons) */
-QPushButton[panelButton="true"] {
-    background-color: #11171F;
-    color: #FFFFFF;
-    border: 1px solid #2A313C;
-}
-
-QPushButton[panelButton="true"]:hover {
-    border-color: #54AED5;
+    background-color: #4B5563;
+    color: #9CA3AF;
 }
 
 /* ===========================================================
    GROUP BOXES
    =========================================================== */
-
 QGroupBox {
-    border: 1px solid #2A313C;
+    border: 1px solid #1F2937;
     border-radius: 8px;
     margin-top: 10px;
-    padding-top: 18px;
 }
 
 QGroupBox::title {
     subcontrol-origin: margin;
     left: 10px;
     padding: 0 4px;
-    color: #D7DDA8;
+    color: #9CA3AF;
 }
 
-/* GroupBox Checkboxes */
+/* GroupBox-contained checkboxes */
 QGroupBox QCheckBox {
-    color: #FFFFFF;
+    color: #F9FAFB;
     font-weight: 500;
 }
 
-QGroupBox QCheckBox::indicator,
+/* Checkbox indicator INSIDE group box */
+QGroupBox QCheckBox::indicator {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 1px solid #4B5563;
+    background-color: #020617;
+}
+
+QGroupBox QCheckBox::indicator:hover {
+    border-color: #22C55E;
+}
+
+QGroupBox QCheckBox::indicator:checked {
+    background-color: #22C55E;
+    border-color: #22C55E;
+}
+
+/* ===========================================================
+   GLOBAL CHECKBOXES (outside group boxes)
+   =========================================================== */
+QCheckBox {
+    color: #E5E7EB;
+    spacing: 8px;
+}
+
 QCheckBox::indicator {
     width: 16px;
     height: 16px;
     border-radius: 4px;
-    border: 1px solid #2A313C;
-    background-color: #11171F;
+    border: 1px solid #4B5563;
+    background-color: #020617;
 }
 
-QGroupBox QCheckBox::indicator:hover,
 QCheckBox::indicator:hover {
-    border-color: #54AED5;
+    border-color: #22C55E;
 }
 
-QGroupBox QCheckBox::indicator:checked,
 QCheckBox::indicator:checked {
-    background-color: #54AED5;
-    border-color: #54AED5;
+    background-color: #22C55E;
+    border-color: #22C55E;
+}
+
+/* ===========================================================
+   MESSAGE BOXES
+   =========================================================== */
+QMessageBox {
+    background-color: #020617;
+    color: #E5E7EB;
+}
+
+QMessageBox QLabel {
+    color: #E5E7EB;
+    font-size: 10pt;
+}
+
+QMessageBox QLabel#qt_msgbox_label {
+    padding-right: 8px;
+}
+
+QMessageBox QPushButton {
+    background-color: #22C55E;
+    color: #020617;
+    border-radius: 6px;
+    padding: 4px 14px;
+    font-weight: 600;
+}
+
+QMessageBox QPushButton:hover {
+    background-color: #16A34A;
 }
 
 /* ===========================================================
    MENU BAR
    =========================================================== */
-
 QMenuBar {
-    background-color: #11171F;
-    color: #FFFFFF;
+    background-color: #1E293B;
+    color: #E2E8F0;
     padding: 4px 8px;
     font-size: 12pt;
 }
 
 QMenuBar::item {
+    background: transparent;
     padding: 6px 12px;
     margin: 2px;
-    color: #FFFFFF;
+    color: #E2E8F0;
 }
 
 QMenuBar::item:selected {
-    background-color: #2A313C;
+    background-color: #334155;
     border-radius: 6px;
 }
 
-/* Menu dropdowns */
+QMenuBar::item:pressed {
+    background-color: #475569;
+}
+
+/* Dropdown menus */
 QMenu {
-    background-color: #11171F;
-    color: #FFFFFF;
-    border: 1px solid #2A313C;
+    background-color: #1E293B;
+    color: #E2E8F0;
+    border: 1px solid #334155;
     padding: 6px;
 }
 
@@ -158,134 +190,236 @@ QMenu::item {
 }
 
 QMenu::item:selected {
-    background-color: #2A313C;
+    background-color: #334155;
     border-radius: 4px;
-}
-
-/* ===========================================================
-   FILE PICKER
-   =========================================================== */
-
-QLineEdit[filePicker="true"] {
-    background-color: #11171F;
-    border: 1px solid #2A313C;
 }
 
 /* ===========================================================
    AUTH MODAL
    =========================================================== */
-
 QDialog#AuthModal {
-    background-color: #11171F;
+    background-color: #0F172A;
     border-radius: 16px;
 }
 
+/* Title */
 QLabel#auth-title {
-    color: #FFFFFF;
+    color: #F1F5F9;
     font-size: 22px;
     font-weight: 600;
 }
 
-/* Auth Fields */
+/* Auth fields */
 QLineEdit[authField="true"] {
-    background-color: #0C1117;
-    border: 1px solid #2A313C;
+    background-color: #1E293B;
+    border: 1px solid #334155;
     border-radius: 8px;
     padding: 10px;
-    color: #FFFFFF;
-}
-
-QLineEdit[authField="true"]:focus {
-    border: 2px solid #54AED5;
-}
-
-/* Auth Buttons */
-QPushButton[authPrimary="true"] {
-    background-color: #54AED5;
-    color: #0C1117;
-    border-radius: 8px;
-    padding: 10px 16px;
+    color: #F8FAFC;
     font-size: 15px;
 }
 
-QPushButton[authPrimary="true"]:hover {
-    background-color: #3D93BB;
+QLineEdit[authField="true"]:focus {
+    border-color: 2px solid #4F46E5;
 }
 
+/* Auth primary button */
+QPushButton[authPrimary="true"] {
+    background-color: #4F46E5;
+    color: #FFFFFF;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+QPushButton[authPrimary="true"]:hover {
+    background-color: #6366F1;
+}
+
+/* Auth link button */
 QPushButton[authLink="true"] {
     background: transparent;
-    color: #EFA8B8;
+    color: #93C5FD;
+    font-size: 14px;
 }
 
 QPushButton[authLink="true"]:hover {
-    color: #FFFFFF;
+    color: #BFDBFE;
     text-decoration: underline;
 }
 
+/* Auth reveal/hide icon buttons */
 QPushButton[authIcon="true"] {
-    background-color: #54AED5;
+    background-color: #4F46E5;
     border-radius: 6px;
     padding: 6px;
 }
 
 QPushButton[authIcon="true"]:hover {
-    background-color: #3D93BB;
-}
-
-QTableWidget#historyTable {
-    background-color: #11171F;
-    alternate-background-color: #0C1117;
-    color: #FFFFFF;
-    border: 1px solid #2A313C;
-    gridline-color: #2A313C;
-}
-
-QTableWidget#historyTable::item:selected {
-    background-color: #2A313C;
-}
-
-QMessageBox {
-    background-color: #0F172A;
-}
-
-QMessageBox QLabel {
-    color: #FFFFFF;        /* BRIGHT text */
-    background: transparent;
-}
-
-QMessageBox QPushButton {
-    background-color: #54AED5;
-    color: #000000;
-}
-
-QMessageBox QPushButton:hover {
-    background-color: #3A93B6;
+    background-color: #6366F1;
 }
 
 /* ===========================================================
-   REMEMBER ME CHECKBOX (AUTH MODAL)
+   TAILOR CONTEXT DIALOG — DARK
    =========================================================== */
 
-QCheckBox#rememberMeCheckbox {
-    color: #FFFFFF;
-    font-size: 11pt;
-    font-weight: 500;
+QDialog#TailorContextDialog {
+    background-color: #0F172A;
+}
+
+QDialog#TailorContextDialog QLabel[panelTitle="true"] {
+    color: #22C55E;
+    font-size: 13pt;
+    font-weight: 700;
+}
+
+QDialog#TailorContextDialog QLabel[subtitleLabel="true"] {
+    color: #64748B;
+    font-size: 9pt;
+}
+
+QDialog#TailorContextDialog QLabel[questionLabel="true"] {
+    color: #E5E7EB;
+    font-size: 10pt;
+    font-weight: 600;
+}
+
+QDialog#TailorContextDialog QFrame#dialogDivider {
+    color: #1F2937;
+}
+
+QDialog#TailorContextDialog QTextEdit[contextField="true"] {
+    background-color: #020617;
+    border: 1px solid #1F2937;
+    border-radius: 6px;
+    padding: 6px;
+    color: #E5E7EB;
+    font-size: 10pt;
+}
+
+QDialog#TailorContextDialog QTextEdit[contextField="true"]:focus {
+    border: 2px solid #22C55E;
+}
+
+/* ===========================================================
+   TAILOR CONTEXT DIALOG — DARK (UPDATED)
+   =========================================================== */
+
+QDialog#TailorContextDialog {
+    background-color: #0F172A;
+}
+
+QDialog#TailorContextDialog QLabel[panelTitle="true"] {
+    color: #22C55E;
+    font-size: 13pt;
+    font-weight: 700;
+}
+
+QDialog#TailorContextDialog QLabel[subtitleLabel="true"] {
+    color: #64748B;
+    font-size: 9pt;
+}
+
+QDialog#TailorContextDialog QLabel[questionLabel="true"] {
+    color: #E5E7EB;
+    font-size: 10pt;
+    font-weight: 600;
+}
+
+QDialog#TailorContextDialog QFrame#dialogDivider {
+    color: #1F2937;
+}
+
+QDialog#TailorContextDialog QFrame#questionSeparator {
+    color: #1F2937;
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+/* Scroll area — transparent so dialog bg shows through */
+QDialog#TailorContextDialog QScrollArea#contextScroll {
+    background: transparent;
+    border: none;
+}
+
+QDialog#TailorContextDialog QWidget#contextScrollContent {
+    background-color: #0F172A;
+}
+
+/* Radio buttons */
+QDialog#TailorContextDialog QRadioButton[contextOption="true"] {
+    color: #E5E7EB;
+    font-size: 10pt;
     spacing: 8px;
 }
 
-QCheckBox#rememberMeCheckbox::indicator {
-    width: 18px;
-    height: 18px;
+QDialog#TailorContextDialog QRadioButton[contextOption="true"]::indicator {
+    width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    border: 2px solid #4B5563;
+    background-color: #020617;
+}
+
+QDialog#TailorContextDialog QRadioButton[contextOption="true"]::indicator:hover {
+    border-color: #22C55E;
+}
+
+QDialog#TailorContextDialog QRadioButton[contextOption="true"]::indicator:checked {
+    background-color: #22C55E;
+    border-color: #22C55E;
+}
+
+/* Checkboxes */
+QDialog#TailorContextDialog QCheckBox[contextOption="true"] {
+    color: #E5E7EB;
+    font-size: 10pt;
+    spacing: 8px;
+}
+
+QDialog#TailorContextDialog QCheckBox[contextOption="true"]::indicator {
+    width: 16px;
+    height: 16px;
     border-radius: 4px;
-    border: 2px solid #2A313C;
-    background-color: #11171F;
+    border: 2px solid #4B5563;
+    background-color: #020617;
 }
 
-QCheckBox#rememberMeCheckbox::indicator:hover {
-    border-color: #54AED5;
+QDialog#TailorContextDialog QCheckBox[contextOption="true"]::indicator:hover {
+    border-color: #22C55E;
 }
 
-QCheckBox#rememberMeCheckbox::indicator:checked {
-    background-color: #54AED5;
-    border-color: #54AED5;
+QDialog#TailorContextDialog QCheckBox[contextOption="true"]::indicator:checked {
+    background-color: #22C55E;
+    border-color: #22C55E;
+}
+
+/* Text inputs */
+QDialog#TailorContextDialog QTextEdit[contextField="true"] {
+    background-color: #020617;
+    border: 1px solid #1F2937;
+    border-radius: 6px;
+    padding: 6px;
+    color: #E5E7EB;
+    font-size: 10pt;
+}
+
+QDialog#TailorContextDialog QTextEdit[contextField="true"]:focus {
+    border: 2px solid #22C55E;
+}
+
+/* Clarification toggle link — dark */
+QDialog#TailorContextDialog QPushButton[clarifyToggle="true"] {
+    background: transparent;
+    color: #4B5563;
+    font-size: 9pt;
+    font-weight: 400;
+    border: none;
+    padding: 0px;
+    text-align: left;
+}
+
+QDialog#TailorContextDialog QPushButton[clarifyToggle="true"]:hover {
+    color: #22C55E;
 }
