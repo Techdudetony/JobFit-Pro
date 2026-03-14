@@ -51,6 +51,7 @@ from core.extractor.job_parser import fetch_job_description
 
 from core.uploader.supabase_uploader import upload_resume
 from core.exporter.docx_builder import export_to_docx
+from core.exporter.resume_style_engine import ResumeStyleEngine
 from core.exporter.pdf_exporter import export_to_pdf
 from core.processor.tailor_engine import ResumeTailor
 from core.processor.keyword_matcher import keyword_overlap
@@ -724,7 +725,26 @@ class MainWindow(QMainWindow):
             self, "Save Tailored Resume", "Tailored_Resume.docx",
             "Word Document (*.docx)",
         )
-        if path:
+        if not path:
+            return
+
+        # Use selected style from Settings tab if available
+        style = "prestige"
+        if hasattr(self.ui, "tabSettings"):
+            try:
+                style = self.ui.tabSettings.get_selected_style()
+            except Exception:
+                pass
+
+        try:
+            engine = ResumeStyleEngine()
+            engine.export(self.tailored_text, style=style, output_path=path)
+            QMessageBox.information(
+                self, "Exported",
+                f"Resume exported successfully!\nStyle: {style.replace('_', ' ').title()}"
+            )
+        except Exception as e:
+            print(f"[EXPORT] Style engine failed, falling back: {e}")
             export_to_docx(self.tailored_text, path)
             QMessageBox.information(self, "Success", "Resume exported successfully!")
 
@@ -740,7 +760,34 @@ class MainWindow(QMainWindow):
             self, "Save Tailored Resume", "Tailored_Resume.pdf",
             "PDF Files (*.pdf)",
         )
-        if path:
+        if not path:
+            return
+
+        style = "prestige"
+        if hasattr(self.ui, "tabSettings"):
+            try:
+                style = self.ui.tabSettings.get_selected_style()
+            except Exception:
+                pass
+
+        try:
+            import tempfile, os
+            from docx2pdf import convert
+            engine = ResumeStyleEngine()
+            with tempfile.NamedTemporaryFile(suffix=".docx", delete=False) as tmp:
+                tmp_path = tmp.name
+            engine.export(self.tailored_text, style=style, output_path=tmp_path)
+            convert(tmp_path, path)
+            try:
+                os.unlink(tmp_path)
+            except Exception:
+                pass
+            QMessageBox.information(
+                self, "Exported",
+                f"PDF exported successfully!\nStyle: {style.replace('_', ' ').title()}"
+            )
+        except Exception as e:
+            print(f"[EXPORT] Style PDF failed, falling back: {e}")
             export_to_pdf(self.tailored_text, path)
             QMessageBox.information(self, "Success", "PDF exported successfully!")
 
@@ -934,7 +981,7 @@ class MainWindow(QMainWindow):
             except Exception as e:
                 print(f"[SYNC] Failed to mirror prefs to Settings tab: {e}")
 
-        # Update Settings tab theme button label
+        # Update Settings tab theme button label + restore style
         if hasattr(self.ui, "tabSettings"):
             try:
                 import services.theme_manager as tm_module
@@ -943,6 +990,10 @@ class MainWindow(QMainWindow):
                     self.ui.tabSettings.btn_toggle_theme.setText(
                         "Switch to Light Mode" if is_dark else "Switch to Dark Mode"
                     )
+                # Restore resume style from cloud prefs if present
+                cloud_style = cloud_settings.get("resume_style")
+                if cloud_style:
+                    self.ui.tabSettings.style_picker.set_selected(cloud_style)
             except Exception:
                 pass
 

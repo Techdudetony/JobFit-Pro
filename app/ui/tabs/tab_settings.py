@@ -16,30 +16,18 @@ import json
 from datetime import datetime
 
 from PyQt6.QtWidgets import (
-    QWidget,
-    QVBoxLayout,
-    QHBoxLayout,
-    QFormLayout,
-    QLabel,
-    QLineEdit,
-    QPushButton,
-    QComboBox,
-    QGroupBox,
-    QCheckBox,
-    QSpacerItem,
-    QSizePolicy,
-    QMessageBox,
+    QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
+    QLabel, QLineEdit, QPushButton, QComboBox,
+    QGroupBox, QCheckBox, QSpacerItem, QSizePolicy,
+    QMessageBox, QButtonGroup, QRadioButton, QScrollArea
 )
-from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtCore import Qt, QTimer, QThread, pyqtSignal
 from PyQt6.QtGui import QIcon
+from app.components.style_picker_widget import StylePickerWidget
 
 ICONS_DIR = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
-    "..",
-    "..",
-    "..",
-    "assets",
-    "icons",
+    "..", "..", "..", "assets", "icons",
 )
 
 CONFIG_FILE = os.path.join(os.path.expanduser("~"), ".jobfitpro", "config.json")
@@ -64,6 +52,31 @@ def _save_config(data: dict):
         print(f"[SETTINGS] Failed to save config: {e}")
 
 
+class _ApiConnectionWorker(QThread):
+    """Pings OpenAI in the background to verify the API key is valid."""
+    result = pyqtSignal(bool, str)   # (ok, message)
+
+    def run(self):
+        try:
+            import os
+            from openai import OpenAI
+            key = os.getenv("OPENAI_API_KEY", "")
+            if not key:
+                self.result.emit(False, "No API key found in environment")
+                return
+            client = OpenAI(api_key=key)
+            client.models.list()   # lightweight call — just verifies auth
+            self.result.emit(True, "API Connected  ✓")
+        except Exception as e:
+            msg = str(e)
+            if "401" in msg or "Incorrect API key" in msg or "Authentication" in msg:
+                self.result.emit(False, "Invalid API key")
+            elif "connect" in msg.lower() or "network" in msg.lower():
+                self.result.emit(False, "No internet connection")
+            else:
+                self.result.emit(False, f"Connection error")
+
+
 class SettingsTab(QWidget):
     def __init__(self, settings_panel=None, parent=None):
         super().__init__(parent)
@@ -72,7 +85,23 @@ class SettingsTab(QWidget):
         self._load_current_values()
 
     def _build_ui(self):
-        root = QVBoxLayout(self)
+        # Outer layout holds just the scroll area
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(0, 0, 0, 0)
+        outer.setSpacing(0)
+
+        scroll = QScrollArea(self)
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QScrollArea.Shape.NoFrame)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        outer.addWidget(scroll)
+
+        # Inner widget holds all the actual settings content
+        inner = QWidget()
+        inner.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        scroll.setWidget(inner)
+
+        root = QVBoxLayout(inner)
         root.setContentsMargins(24, 24, 24, 24)
         root.setSpacing(20)
 
@@ -82,50 +111,52 @@ class SettingsTab(QWidget):
 
         # ── API Configuration ─────────────────────────────────────
         api_group = QGroupBox("API Configuration")
-        api_form = QFormLayout(api_group)
+        api_form  = QFormLayout(api_group)
         api_form.setSpacing(12)
 
-        # API Key row
-        key_row = QHBoxLayout()
-        self.input_api_key = QLineEdit()
-        self.input_api_key.setPlaceholderText("sk-...")
-        self.input_api_key.setEchoMode(QLineEdit.EchoMode.Password)
-        self.input_api_key.setObjectName("authField")
+        # Status row
+        status_row = QHBoxLayout()
+        status_row.setSpacing(8)
 
-        self.btn_toggle_key = QPushButton()
-        not_vis = os.path.join(ICONS_DIR, "not_visible.svg")
-        self.btn_toggle_key.setIcon(QIcon(not_vis))
-        self.btn_toggle_key.setFixedSize(32, 32)
-        self.btn_toggle_key.setProperty("panelButton", True)
-        self.btn_toggle_key.clicked.connect(self._toggle_api_key_visibility)
+        self.lbl_api_dot = QLabel("●")
+        self.lbl_api_dot.setFixedWidth(16)
+        self.lbl_api_dot.setProperty("apiDot", "checking")
 
-        key_row.addWidget(self.input_api_key)
-        key_row.addWidget(self.btn_toggle_key)
-        api_form.addRow("OpenAI API Key:", key_row)
+        self.lbl_api_status = QLabel("Checking connection...")
+        self.lbl_api_status.setProperty("apiStatus", True)
+
+        self.btn_api_recheck = QPushButton("Re-check")
+        self.btn_api_recheck.setProperty("panelButton", True)
+        self.btn_api_recheck.setFixedWidth(80)
+        self.btn_api_recheck.clicked.connect(self._check_api_connection)
+
+        status_row.addWidget(self.lbl_api_dot)
+        status_row.addWidget(self.lbl_api_status)
+        status_row.addStretch()
+        status_row.addWidget(self.btn_api_recheck)
+        api_form.addRow("Status:", status_row)
 
         # Model selector
         self.combo_model = QComboBox()
-        self.combo_model.addItems(
-            [
-                "gpt-4.1",
-                "gpt-4.1-mini",
-                "gpt-4o",
-                "gpt-4o-mini",
-                "gpt-4-turbo",
-                "gpt-3.5-turbo",
-            ]
-        )
+        self.combo_model.addItems([
+            "gpt-4.1",
+            "gpt-4.1-mini",
+            "gpt-4o",
+            "gpt-4o-mini",
+            "gpt-4-turbo",
+            "gpt-3.5-turbo",
+        ])
         api_form.addRow("Model:", self.combo_model)
 
-        self.btn_save_api = QPushButton("Save API Settings")
-        self.btn_save_api.clicked.connect(self._save_api_settings)
+        self.btn_save_api = QPushButton("Save Model Preference")
+        self.btn_save_api.clicked.connect(self._save_model_preference)
         api_form.addRow("", self.btn_save_api)
 
         root.addWidget(api_group)
 
         # ── Appearance ────────────────────────────────────────────
         appear_group = QGroupBox("Appearance")
-        appear_form = QFormLayout(appear_group)
+        appear_form  = QFormLayout(appear_group)
         appear_form.setSpacing(12)
 
         self.btn_toggle_theme = QPushButton("Switch to Light Mode")
@@ -136,14 +167,14 @@ class SettingsTab(QWidget):
 
         # ── Default Tailoring Preferences ────────────────────────
         pref_group = QGroupBox("Default Tailoring Preferences")
-        pref_form = QFormLayout(pref_group)
+        pref_form  = QFormLayout(pref_group)
         pref_form.setSpacing(12)
 
-        self.chk_default_keywords = QCheckBox("Emphasize job keywords")
-        self.chk_default_ats = QCheckBox("ATS-friendly formatting")
+        self.chk_default_keywords  = QCheckBox("Emphasize job keywords")
+        self.chk_default_ats       = QCheckBox("ATS-friendly formatting")
         self.chk_default_ats.setChecked(True)
-        self.chk_default_keep_len = QCheckBox("Keep similar length")
-        self.chk_default_one_page = QCheckBox("Limit to 1 page")
+        self.chk_default_keep_len  = QCheckBox("Keep similar length")
+        self.chk_default_one_page  = QCheckBox("Limit to 1 page")
 
         pref_form.addRow(self.chk_default_keywords)
         pref_form.addRow(self.chk_default_ats)
@@ -155,6 +186,7 @@ class SettingsTab(QWidget):
         pref_form.addRow("", self.btn_save_prefs)
 
         root.addWidget(pref_group)
+
 
         # ── Cloud Sync ────────────────────────────────────────────
         sync_group = QGroupBox("Cloud Sync")
@@ -174,9 +206,7 @@ class SettingsTab(QWidget):
         self.btn_push_cloud.clicked.connect(self._push_all_to_cloud)
 
         self.btn_pull_cloud = QPushButton("⬇  Pull from Cloud")
-        self.btn_pull_cloud.setToolTip(
-            "Download cloud history and merge with local history"
-        )
+        self.btn_pull_cloud.setToolTip("Download cloud history and merge with local history")
         self.btn_pull_cloud.setProperty("panelButton", True)
         self.btn_pull_cloud.clicked.connect(self._pull_from_cloud)
 
@@ -186,23 +216,88 @@ class SettingsTab(QWidget):
 
         root.addWidget(sync_group)
 
+
+        # ── Resume Style ──────────────────────────────────────────
+        style_group = QGroupBox("Default Resume Style")
+        style_layout = QVBoxLayout(style_group)
+        style_layout.setSpacing(10)
+
+        style_desc = QLabel(
+            "Choose the default visual style applied when exporting tailored resumes."
+        )
+        style_desc.setWordWrap(True)
+        style_desc.setProperty("subtitleLabel", True)
+        style_layout.addWidget(style_desc)
+
+        self.style_picker = StylePickerWidget(self)
+        self.style_picker.styleSelected.connect(self._on_style_selected)
+        style_layout.addWidget(self.style_picker)
+
+        self.btn_save_style = QPushButton("Save Style Preference")
+        self.btn_save_style.clicked.connect(self._save_style)
+        style_layout.addWidget(self.btn_save_style)
+
+        root.addWidget(style_group)
+
         root.addSpacerItem(
             QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
         )
 
     # ----------------------------------------------------------
-    def _toggle_api_key_visibility(self):
-        hidden = self.input_api_key.echoMode() == QLineEdit.EchoMode.Password
-        self.input_api_key.setEchoMode(
-            QLineEdit.EchoMode.Normal if hidden else QLineEdit.EchoMode.Password
-        )
-        icon_name = "visible.svg" if hidden else "not_visible.svg"
-        self.btn_toggle_key.setIcon(QIcon(os.path.join(ICONS_DIR, icon_name)))
+    def _set_api_status(self, state: str, message: str):
+        """Update status dot and label. state: 'checking'|'connected'|'error'"""
+        self.lbl_api_dot.setProperty("apiDot", state)
+        self.lbl_api_status.setText(message)
+        self.lbl_api_dot.style().unpolish(self.lbl_api_dot)
+        self.lbl_api_dot.style().polish(self.lbl_api_dot)
+
+    def _check_api_connection(self):
+        """Fire a background ping to verify the OpenAI key works."""
+        self._set_api_status("checking", "Checking connection...")
+        self.btn_api_recheck.setEnabled(False)
+        self._api_checker = _ApiConnectionWorker()
+        self._api_checker.result.connect(self._on_api_check_result)
+        self._api_checker.start()
+
+    def _on_api_check_result(self, ok: bool, message: str):
+        self.btn_api_recheck.setEnabled(True)
+        if ok:
+            self._set_api_status("connected", message)
+        else:
+            self._set_api_status("error", message)
+
+    def _save_model_preference(self):
+        """Save selected model to .env without touching the API key."""
+        model = self.combo_model.currentText()
+        env_path = os.path.normpath(os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            "..", "..", "..", ".env"
+        ))
+        try:
+            lines = []
+            if os.path.exists(env_path):
+                with open(env_path, "r") as f:
+                    lines = f.readlines()
+            updated = False
+            for i, line in enumerate(lines):
+                if line.startswith("OPENAI_MODEL_NAME="):
+                    lines[i] = f"OPENAI_MODEL_NAME={model}\n"
+                    updated = True
+                    break
+            if not updated:
+                lines.append(f"OPENAI_MODEL_NAME={model}\n")
+            with open(env_path, "w") as f:
+                f.writelines(lines)
+            QMessageBox.information(
+                self, "Saved",
+                f"Model preference saved: {model}\nRestart the app for changes to take effect."
+            )
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Could not save model preference:\n{e}")
 
     def _toggle_theme(self):
         try:
             import services.theme_manager as tm
-
             if tm.theme_manager:
                 tm.theme_manager.toggle_theme()
                 is_dark = tm.theme_manager.is_dark_mode()
@@ -212,56 +307,15 @@ class SettingsTab(QWidget):
         except Exception as e:
             print(f"[SETTINGS] Theme toggle failed: {e}")
 
-    def _save_api_settings(self):
-        """Write API key + model to .env file."""
-        from PyQt6.QtWidgets import QMessageBox
-
-        key = self.input_api_key.text().strip()
-        model = self.combo_model.currentText()
-
-        env_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", ".env"
-        )
-        env_path = os.path.normpath(env_path)
-
-        try:
-            lines = []
-            if os.path.exists(env_path):
-                with open(env_path, "r") as f:
-                    lines = f.readlines()
-
-            def set_env(lines, key_name, value):
-                for i, line in enumerate(lines):
-                    if line.startswith(f"{key_name}="):
-                        lines[i] = f"{key_name}={value}\n"
-                        return lines
-                lines.append(f"{key_name}={value}\n")
-                return lines
-
-            if key:
-                lines = set_env(lines, "OPENAI_API_KEY", key)
-            lines = set_env(lines, "OPENAI_MODEL_NAME", model)
-
-            with open(env_path, "w") as f:
-                f.writelines(lines)
-
-            QMessageBox.information(
-                self,
-                "Saved",
-                "API settings saved.\nRestart the app for changes to take effect.",
-            )
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Could not save settings:\n{e}")
-
     def _save_preferences(self):
         from PyQt6.QtWidgets import QMessageBox
         import json
 
         prefs = {
             "focus_keywords": self.chk_default_keywords.isChecked(),
-            "ats_friendly": self.chk_default_ats.isChecked(),
-            "keep_length": self.chk_default_keep_len.isChecked(),
-            "limit_one": self.chk_default_one_page.isChecked(),
+            "ats_friendly":   self.chk_default_ats.isChecked(),
+            "keep_length":    self.chk_default_keep_len.isChecked(),
+            "limit_one":      self.chk_default_one_page.isChecked(),
         }
 
         cfg = _load_config()
@@ -271,9 +325,7 @@ class SettingsTab(QWidget):
         # Apply to Tailor tab's settingsPanel immediately via direct reference
         if self._settings_panel:
             try:
-                self._settings_panel.chk_focus_keywords.setChecked(
-                    prefs["focus_keywords"]
-                )
+                self._settings_panel.chk_focus_keywords.setChecked(prefs["focus_keywords"])
                 self._settings_panel.chk_ats_friendly.setChecked(prefs["ats_friendly"])
                 self._settings_panel.chk_keep_length.setChecked(prefs["keep_length"])
                 self._settings_panel.chk_limit_one.setChecked(prefs["limit_one"])
@@ -284,7 +336,6 @@ class SettingsTab(QWidget):
         try:
             from services.sync_manager import sync_manager
             import services.theme_manager as tm
-
             theme = "dark"
             if tm.theme_manager:
                 theme = "dark" if tm.theme_manager.is_dark_mode() else "light"
@@ -295,32 +346,27 @@ class SettingsTab(QWidget):
         QMessageBox.information(self, "Saved", "Default preferences saved and applied.")
 
     def _load_current_values(self):
-        """Pre-fill fields with current .env values."""
+        """Load saved preferences into UI controls."""
         try:
             from dotenv import dotenv_values
-
-            env_path = os.path.normpath(
-                os.path.join(
-                    os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", ".env"
-                )
-            )
+            env_path = os.path.normpath(os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                "..", "..", "..", ".env"
+            ))
             vals = dotenv_values(env_path)
-
-            key = vals.get("OPENAI_API_KEY", "")
-            if key:
-                self.input_api_key.setText(key)
-
             model = vals.get("OPENAI_MODEL_NAME", "gpt-4.1")
-            idx = self.combo_model.findText(model)
+            idx   = self.combo_model.findText(model)
             if idx >= 0:
                 self.combo_model.setCurrentIndex(idx)
         except Exception:
             pass
 
+        # Kick off API connection check after short delay
+        QTimer.singleShot(300, self._check_api_connection)
+
         # Sync theme button label
         try:
             import services.theme_manager as tm
-
             if tm.theme_manager:
                 is_dark = tm.theme_manager.is_dark_mode()
                 self.btn_toggle_theme.setText(
@@ -341,6 +387,10 @@ class SettingsTab(QWidget):
         last_synced = _load_config().get("last_synced", "never")
         self.lbl_sync_status.setText(f"Last synced: {last_synced}")
 
+        # Load saved resume style
+        saved_style = _load_config().get("resume_style", "prestige")
+        self.style_picker.set_selected(saved_style)
+
     # ----------------------------------------------------------
     # Sync: Push ALL local history to Supabase
     # ----------------------------------------------------------
@@ -349,24 +399,19 @@ class SettingsTab(QWidget):
         from services.auth_manager import auth
 
         if not auth.get_user():
-            QMessageBox.warning(self, "Not Signed In", "You must be signed in to sync.")
+            QMessageBox.warning(self, "Not Signed In",
+                                "You must be signed in to sync.")
             return
 
-        history_path = os.path.normpath(
-            os.path.join(
-                os.path.dirname(os.path.abspath(__file__)),
-                "..",
-                "..",
-                "data",
-                "tailoring_history.json",
-            )
-        )
+        history_path = os.path.normpath(os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            "..", "..", "data", "tailoring_history.json"
+        ))
 
         try:
             if not os.path.exists(history_path):
-                QMessageBox.information(
-                    self, "Nothing to Sync", "No local history found."
-                )
+                QMessageBox.information(self, "Nothing to Sync",
+                                        "No local history found.")
                 return
             with open(history_path, "r", encoding="utf-8") as f:
                 history = json.load(f)
@@ -375,17 +420,16 @@ class SettingsTab(QWidget):
             return
 
         if not history:
-            QMessageBox.information(
-                self, "Nothing to Sync", "Your local history is empty."
-            )
+            QMessageBox.information(self, "Nothing to Sync",
+                                    "Your local history is empty.")
             return
 
         self.btn_push_cloud.setEnabled(False)
         self.btn_pull_cloud.setEnabled(False)
         self.btn_push_cloud.setText("Pushing…")
 
-        self._push_total = len(history)
-        self._push_done = 0
+        self._push_total  = len(history)
+        self._push_done   = 0
         self._push_errors = 0
 
         def _on_one_done(_id=""):
@@ -393,15 +437,15 @@ class SettingsTab(QWidget):
             self._check_push_complete()
 
         def _on_one_error(msg):
-            self._push_done += 1
+            self._push_done  += 1
             self._push_errors += 1
             print(f"[SYNC] push error: {msg}")
             self._check_push_complete()
 
         for entry in history:
-            sync_manager.push_history_entry(
-                entry, on_done=_on_one_done, on_error=_on_one_error
-            )
+            sync_manager.push_history_entry(entry,
+                                            on_done=_on_one_done,
+                                            on_error=_on_one_error)
 
     def _check_push_complete(self):
         if self._push_done < self._push_total:
@@ -413,17 +457,15 @@ class SettingsTab(QWidget):
         if self._push_errors == 0:
             self._set_synced_now()
             QMessageBox.information(
-                self,
-                "Sync Complete",
+                self, "Sync Complete",
                 f"✅ {self._push_total} "
-                f"entr{'y' if self._push_total == 1 else 'ies'} pushed successfully.",
+                f"entr{'y' if self._push_total == 1 else 'ies'} pushed successfully."
             )
         else:
             QMessageBox.warning(
-                self,
-                "Sync Partial",
+                self, "Sync Partial",
                 f"{self._push_total - self._push_errors} pushed, "
-                f"{self._push_errors} failed. Check console for details.",
+                f"{self._push_errors} failed. Check console for details."
             )
 
     # ----------------------------------------------------------
@@ -434,29 +476,22 @@ class SettingsTab(QWidget):
         from services.auth_manager import auth
 
         if not auth.get_user():
-            QMessageBox.warning(self, "Not Signed In", "You must be signed in to sync.")
+            QMessageBox.warning(self, "Not Signed In",
+                                "You must be signed in to sync.")
             return
 
         self.btn_push_cloud.setEnabled(False)
         self.btn_pull_cloud.setEnabled(False)
         self.btn_pull_cloud.setText("Pulling…")
 
-        history_path = os.path.normpath(
-            os.path.join(
-                os.path.dirname(os.path.abspath(__file__)),
-                "..",
-                "..",
-                "data",
-                "tailoring_history.json",
-            )
-        )
+        history_path = os.path.normpath(os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            "..", "..", "data", "tailoring_history.json"
+        ))
 
         try:
-            local = (
-                json.load(open(history_path, "r", encoding="utf-8"))
-                if os.path.exists(history_path)
-                else []
-            )
+            local = json.load(open(history_path, "r", encoding="utf-8")) \
+                if os.path.exists(history_path) else []
         except Exception:
             local = []
 
@@ -482,26 +517,62 @@ class SettingsTab(QWidget):
                 pass
 
             QMessageBox.information(
-                self,
-                "Pull Complete",
+                self, "Pull Complete",
                 f"✅ {len(merged)} "
                 f"entr{'y' if len(merged) == 1 else 'ies'} after merge. "
-                f"History tab refreshed.",
+                f"History tab refreshed."
             )
 
         def _on_pull_error(msg):
             self.btn_pull_cloud.setEnabled(True)
             self.btn_push_cloud.setEnabled(True)
             self.btn_pull_cloud.setText("⬇  Pull from Cloud")
-            QMessageBox.critical(
-                self, "Pull Failed", f"Could not pull from Supabase:\n{msg}"
-            )
+            QMessageBox.critical(self, "Pull Failed",
+                                 f"Could not pull from Supabase:\n{msg}")
 
-        sync_manager.pull_and_merge_history(
-            local, on_done=_on_pulled, on_error=_on_pull_error
-        )
+        sync_manager.pull_and_merge_history(local,
+                                            on_done=_on_pulled,
+                                            on_error=_on_pull_error)
 
     # ----------------------------------------------------------
+    # Resume Style
+    # ----------------------------------------------------------
+    def _on_style_selected(self, key: str):
+        """Called on card click — persist immediately."""
+        cfg = _load_config()
+        cfg["resume_style"] = key
+        _save_config(cfg)
+        try:
+            from services.sync_manager import sync_manager
+            import services.theme_manager as tm
+            theme = "dark" if tm.theme_manager and tm.theme_manager.is_dark_mode() else "light"
+            prefs = cfg.get("default_prefs", {})
+            prefs["resume_style"] = key
+            sync_manager.push_preferences(theme, prefs)
+        except Exception as e:
+            print(f"[SETTINGS] Failed to push style to cloud: {e}")
+
+    def _save_style(self):
+        """Explicit Save button — confirms and pushes current selection."""
+        key = self.style_picker.selected_key()
+        cfg = _load_config()
+        cfg["resume_style"] = key
+        _save_config(cfg)
+        try:
+            from services.sync_manager import sync_manager
+            import services.theme_manager as tm
+            theme = "dark" if tm.theme_manager and tm.theme_manager.is_dark_mode() else "light"
+            prefs = cfg.get("default_prefs", {})
+            prefs["resume_style"] = key
+            sync_manager.push_preferences(theme, prefs)
+        except Exception as e:
+            print(f"[SETTINGS] Failed to push style to cloud: {e}")
+        QMessageBox.information(self, "Saved", "Style preference saved.")
+
+    def get_selected_style(self) -> str:
+        """Return the currently selected style key (for export logic)."""
+        return self.style_picker.selected_key()
+
     def _set_synced_now(self):
 
         now = datetime.now().strftime("%Y-%m-%d %H:%M")

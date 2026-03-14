@@ -21,27 +21,13 @@ import re
 from collections import Counter
 
 from PyQt6.QtWidgets import (
-    QWidget,
-    QVBoxLayout,
-    QHBoxLayout,
-    QScrollArea,
-    QLabel,
-    QPushButton,
-    QFrame,
-    QSizePolicy,
-    QProgressBar,
-    QGridLayout,
-    QApplication,
+    QWidget, QVBoxLayout, QHBoxLayout, QScrollArea,
+    QLabel, QPushButton, QFrame, QSizePolicy,
+    QProgressBar, QGridLayout, QApplication,
 )
 from PyQt6.QtCore import (
-    Qt,
-    QPropertyAnimation,
-    QEasingCurve,
-    QRect,
-    QSize,
-    QThread,
-    pyqtSignal,
-    QByteArray,
+    Qt, QPropertyAnimation, QEasingCurve,
+    QRect, QSize, QThread, pyqtSignal, QByteArray,
 )
 from PyQt6.QtGui import QPainter, QColor, QPen, QFont, QBrush, QPainterPath
 
@@ -49,9 +35,10 @@ from core.processor.keyword_analyzer import analyze_keywords
 from core.processor.ai_detector import heuristic_score, deep_analysis
 
 
+
 PANEL_WIDTH_RATIO = 0.75
-PULL_TAB_WIDTH = 22
-ANIM_DURATION = 280
+PULL_TAB_WIDTH    = 22
+ANIM_DURATION     = 280
 
 
 # ==================================================================
@@ -59,13 +46,12 @@ ANIM_DURATION = 280
 # ==================================================================
 class KeywordAnalysisWorker(QThread):
     """Runs OpenAI keyword analysis in background so panel opens instantly."""
-
     finished = pyqtSignal(dict)
-    error = pyqtSignal(str)
+    error    = pyqtSignal(str)
 
     def __init__(self, job_text: str, resume_text: str):
         super().__init__()
-        self.job_text = job_text
+        self.job_text    = job_text
         self.resume_text = resume_text
 
     def run(self):
@@ -81,7 +67,7 @@ class KeywordAnalysisWorker(QThread):
 # ==================================================================
 class DeepAnalysisWorker(QThread):
     finished = pyqtSignal(dict)
-    error = pyqtSignal(str)
+    error    = pyqtSignal(str)
 
     def __init__(self, text: str):
         super().__init__()
@@ -100,7 +86,6 @@ class DeepAnalysisWorker(QThread):
 # ==================================================================
 class DrawerPullTab(QWidget):
     """Floating vertical pill that sits just outside the panel's left edge."""
-
     clicked = pyqtSignal()
 
     PILL_W = PULL_TAB_WIDTH
@@ -129,15 +114,8 @@ class DrawerPullTab(QWidget):
         p.fillPath(path, QColor("#54AED5"))
 
         # Chevron arrow
-        p.setPen(
-            QPen(
-                QColor("#0C1117"),
-                2,
-                Qt.PenStyle.SolidLine,
-                Qt.PenCapStyle.RoundCap,
-                Qt.PenJoinStyle.RoundJoin,
-            )
-        )
+        p.setPen(QPen(QColor("#0C1117"), 2, Qt.PenStyle.SolidLine,
+                      Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
         cx = w // 2
         cy = h // 2
         arm = 6
@@ -167,7 +145,7 @@ class ScoreGauge(QWidget):
         super().__init__(parent)
         self._score = 0
         self._label = label
-        self._size = size
+        self._size  = size
         self.setFixedSize(size, size)
 
     def set_score(self, score: int):
@@ -183,9 +161,8 @@ class ScoreGauge(QWidget):
         rect = QRect(margin, margin, s - margin * 2, s - margin * 2)
 
         # Track arc
-        p.setPen(
-            QPen(QColor("#1E293B"), 10, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap)
-        )
+        p.setPen(QPen(QColor("#1E293B"), 10, Qt.PenStyle.SolidLine,
+                      Qt.PenCapStyle.RoundCap))
         p.setBrush(Qt.BrushStyle.NoBrush)
         p.drawArc(rect, 225 * 16, -270 * 16)
 
@@ -199,7 +176,8 @@ class ScoreGauge(QWidget):
 
         # Score arc
         span = int(-270 * 16 * self._score / 100)
-        p.setPen(QPen(color, 10, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
+        p.setPen(QPen(color, 10, Qt.PenStyle.SolidLine,
+                      Qt.PenCapStyle.RoundCap))
         p.drawArc(rect, 225 * 16, span)
 
         # Score text
@@ -224,8 +202,7 @@ class ScoreGauge(QWidget):
 # ==================================================================
 def _chip(text: str, color: str, bg: str) -> QLabel:
     lbl = QLabel(text)
-    lbl.setStyleSheet(
-        f"""
+    lbl.setStyleSheet(f"""
         QLabel {{
             background-color: {bg};
             color: {color};
@@ -243,8 +220,7 @@ def _chip(text: str, color: str, bg: str) -> QLabel:
             font-size: 9pt;
             font-weight: 400;
         }}
-    """
-    )
+    """)
     lbl.setFixedHeight(22)
     return lbl
 
@@ -255,8 +231,8 @@ def _chip(text: str, color: str, bg: str) -> QLabel:
 class FreqBar(QWidget):
     def __init__(self, word: str, count: int, max_count: int, parent=None):
         super().__init__(parent)
-        self._word = word
-        self._count = count
+        self._word      = word
+        self._count     = count
         self._max_count = max(max_count, 1)
         self.setFixedHeight(24)
 
@@ -267,17 +243,15 @@ class FreqBar(QWidget):
 
         label_w = 200
         count_w = 32
-        bar_w = max(w - label_w - count_w - 8, 40)
-        fill = int(bar_w * self._count / self._max_count)
+        bar_w   = max(w - label_w - count_w - 8, 40)
+        fill    = int(bar_w * self._count / self._max_count)
 
         # Word label
         p.setPen(QPen(QColor("#CBD5E1")))
         p.setFont(QFont("Segoe UI", 9))
-        p.drawText(
-            QRect(0, 0, label_w, 24),
-            Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft,
-            self._word,
-        )
+        p.drawText(QRect(0, 0, label_w, 24),
+                   Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft,
+                   self._word)
 
         # Bar background
         p.fillRect(label_w + 4, 6, bar_w, 12, QColor("#1E293B"))
@@ -307,20 +281,19 @@ class ATSPanel(QWidget):
     Sliding right-side drawer overlay.
     Parent must be the TailorTab (or any full-size content widget).
     """
-
     # Emits (ats_score: int) when OpenAI analysis completes
     analysisReady = pyqtSignal(int)
 
     def __init__(self, parent: QWidget):
         super().__init__(parent)
-        self._is_open = False
+        self._is_open       = False
         self._tailored_text = ""
-        self._job_text = ""
-        self._deep_worker = None
-        self._kw_worker = None
+        self._job_text      = ""
+        self._deep_worker   = None
+        self._kw_worker     = None
 
         self._build_ui()
-        self._create_pull_tab()  # pull tab parented to parent widget, must come before _build_animation
+        self._create_pull_tab()   # pull tab parented to parent widget, must come before _build_animation
         self._build_animation()
 
         # Start fully hidden — only becomes visible after load() is called
@@ -332,8 +305,7 @@ class ATSPanel(QWidget):
     def _build_ui(self):
         self.setObjectName("atsPanel")
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
-        self.setStyleSheet(
-            """
+        self.setStyleSheet("""
             QWidget#atsPanel {
                 background-color: #0F172A;
                 border-left: 1px solid #1E293B;
@@ -346,8 +318,7 @@ class ATSPanel(QWidget):
                 padding: 6px 10px;
                 font-size: 9pt;
             }
-        """
-        )
+        """)
 
         # Root: scrollable content only (pull tab is a separate sibling widget)
         root = QHBoxLayout(self)
@@ -375,21 +346,21 @@ class ATSPanel(QWidget):
         # ── Header ────────────────────────────────────────────
         header = QHBoxLayout()
         title = QLabel("ATS Score Breakdown")
-        title.setStyleSheet("color: #FFFFFF; font-size: 14pt; font-weight: 700;")
+        title.setStyleSheet(
+            "color: #FFFFFF; font-size: 14pt; font-weight: 700;"
+        )
         header.addWidget(title)
         header.addStretch()
 
         btn_close = QPushButton("✕")
         btn_close.setFixedSize(28, 28)
-        btn_close.setStyleSheet(
-            """
+        btn_close.setStyleSheet("""
             QPushButton {
                 background: #1E293B; color: #FFFFFF;
                 border-radius: 14px; font-size: 10pt;
             }
             QPushButton:hover { background: #334155; }
-        """
-        )
+        """)
         btn_close.clicked.connect(self.close_panel)
         header.addWidget(btn_close)
         self._content_layout.addLayout(header)
@@ -399,7 +370,7 @@ class ATSPanel(QWidget):
         gauges_row.setSpacing(32)
 
         self.gauge_ats = ScoreGauge("ATS Match", 130)
-        self.gauge_ai = ScoreGauge("AI Detection", 130)
+        self.gauge_ai  = ScoreGauge("AI Detection", 130)
 
         ats_col = QVBoxLayout()
         ats_col.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -418,8 +389,7 @@ class ATSPanel(QWidget):
         ai_col.addWidget(self.lbl_ai_verdict)
 
         self.btn_deep = QPushButton("🔍 Run Deep AI Analysis")
-        self.btn_deep.setStyleSheet(
-            """
+        self.btn_deep.setStyleSheet("""
             QPushButton {
                 background-color: #1E293B;
                 color: #54AED5;
@@ -430,8 +400,7 @@ class ATSPanel(QWidget):
             }
             QPushButton:hover { background-color: #273549; }
             QPushButton:disabled { color: #334155; border-color: #334155; }
-        """
-        )
+        """)
         self.btn_deep.clicked.connect(self._run_deep_analysis)
         ai_col.addWidget(self.btn_deep, alignment=Qt.AlignmentFlag.AlignCenter)
 
@@ -515,19 +484,19 @@ class ATSPanel(QWidget):
         """Create pull tab as sibling of panel on the parent widget."""
         self.pull_tab = DrawerPullTab(self.parent())
         self.pull_tab.clicked.connect(self.toggle)
-        self.pull_tab.hide()  # hidden until first load()
+        self.pull_tab.hide()   # hidden until first load()
 
     def _panel_rect_open(self) -> QRect:
         pw = self.parent().width()
         ph = self.parent().height()
-        w = int(pw * PANEL_WIDTH_RATIO)
+        w  = int(pw * PANEL_WIDTH_RATIO)
         return QRect(pw - w, 0, w, ph)
 
     def _panel_rect_closed(self) -> QRect:
         """Panel slides fully off the right edge."""
         pw = self.parent().width()
         ph = self.parent().height()
-        w = int(pw * PANEL_WIDTH_RATIO)
+        w  = int(pw * PANEL_WIDTH_RATIO)
         return QRect(pw, 0, w, ph)
 
     def _pull_tab_rect_open(self) -> QRect:
@@ -552,8 +521,8 @@ class ATSPanel(QWidget):
     # ----------------------------------------------------------
     def load(self, job_text: str, tailored_text: str):
         """Open panel immediately with AI detection results, then load keyword analysis async."""
-        self._job_text = job_text
-        self._tailored_text = tailored_text
+        self._job_text       = job_text
+        self._tailored_text  = tailored_text
 
         # Run heuristic AI detection instantly (no network call)
         ai = heuristic_score(tailored_text)
@@ -642,9 +611,7 @@ class ATSPanel(QWidget):
         else:
             verdict, color = "Likely AI-Generated 🤖", "#F87171"
         self.lbl_ai_verdict.setText(verdict)
-        self.lbl_ai_verdict.setStyleSheet(
-            f"color: {color}; font-size: 9pt; font-weight: 600;"
-        )
+        self.lbl_ai_verdict.setStyleSheet(f"color: {color}; font-size: 9pt; font-weight: 600;")
 
         self._clear_layout(self._ai_signals_container)
         for sig in ai.get("signals", []):
@@ -668,10 +635,8 @@ class ATSPanel(QWidget):
         self._section_grid.addWidget(loading_lbl, 0, 0, 1, 3)
 
         for container in (
-            self._matched_container,
-            self._missing_container,
-            self._freq_container,
-            self._suggestions_container,
+            self._matched_container, self._missing_container,
+            self._freq_container, self._suggestions_container,
             self._fabrication_container,
         ):
             self._clear_layout(container)
@@ -708,7 +673,8 @@ class ATSPanel(QWidget):
                 flow.addWidget(chip)
             self._matched_container.addWidget(wrap)
         else:
-            self._matched_container.addWidget(QLabel("No matched keywords found."))
+            self._matched_container.addWidget(
+                QLabel("No matched keywords found.") )
 
         # Suggested additions
         self._clear_layout(self._missing_container)
@@ -717,32 +683,23 @@ class ATSPanel(QWidget):
             wrap = QWidget()
             flow = _FlowLayout(wrap)
             for item in suggestions:
-                kw = item.get("keyword", "") if isinstance(item, dict) else str(item)
+                kw     = item.get("keyword", "") if isinstance(item, dict) else str(item)
                 reason = item.get("reason", "") if isinstance(item, dict) else ""
-                conf = (
-                    item.get("confidence", "medium")
-                    if isinstance(item, dict)
-                    else "medium"
-                )
-                bg = {"high": "#7C2D12", "medium": "#7F1D1D", "low": "#450A0A"}.get(
-                    conf, "#7F1D1D"
-                )
+                conf   = item.get("confidence", "medium") if isinstance(item, dict) else "medium"
+                bg = {"high": "#7C2D12", "medium": "#7F1D1D", "low": "#450A0A"}.get(conf, "#7F1D1D")
                 chip = _chip(kw, "#FFFFFF", bg)
                 if reason:
                     chip.setToolTip(f"{reason}\nConfidence: {conf}")
                 flow.addWidget(chip)
             self._missing_container.addWidget(wrap)
 
-            note = QLabel(
-                "💡 Hover a chip to see why it's suggested. Only add skills you genuinely have."
-            )
+            note = QLabel("💡 Hover a chip to see why it's suggested. Only add skills you genuinely have.")
             note.setStyleSheet("color: #64748B; font-size: 8pt; font-style: italic;")
             note.setWordWrap(True)
             self._missing_container.addWidget(note)
         else:
             self._missing_container.addWidget(
-                QLabel("No additional keywords suggested — great coverage!")
-            )
+                QLabel("No additional keywords suggested — great coverage!"))
 
         # Fabrication warnings
         self._clear_layout(self._fabrication_container)
@@ -750,7 +707,7 @@ class ATSPanel(QWidget):
         if warnings:
             for w in warnings:
                 item_text = w.get("item", "") if isinstance(w, dict) else str(w)
-                reason = w.get("reason", "") if isinstance(w, dict) else ""
+                reason    = w.get("reason", "") if isinstance(w, dict) else ""
                 lbl = QLabel(f"⚠️ {item_text}")
                 lbl.setStyleSheet("color: #F87171; font-size: 9pt; font-weight: 600;")
                 lbl.setWordWrap(True)
@@ -778,11 +735,8 @@ class ATSPanel(QWidget):
 
         # Actionable suggestions
         self._clear_layout(self._suggestions_container)
-        ai_result = {
-            "score": self.gauge_ai._score,
-            "ai_phrases_found": [],
-            "passive_voice_count": 0,
-        }
+        ai_result = {"score": self.gauge_ai._score,
+                     "ai_phrases_found": [], "passive_voice_count": 0}
         self._build_suggestions_from_ai(result, ai_result)
 
         # Store full result so history tab can replay it later
@@ -818,8 +772,8 @@ class ATSPanel(QWidget):
 
     def _show_analysis_error(self, error: str):
         for container in (
-            self._matched_container,
-            self._missing_container,
+            self._matched_container, self._missing_container,
+            self._freq_container, self._fabrication_container,
             self._suggestions_container,
         ):
             self._clear_layout(container)
@@ -827,6 +781,12 @@ class ATSPanel(QWidget):
         lbl.setStyleSheet("color: #F87171; font-size: 9pt;")
         lbl.setWordWrap(True)
         self._suggestions_container.addWidget(lbl)
+
+        # Also clear the section grid loading state
+        while self._section_grid.count():
+            item = self._section_grid.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
 
     def _populate_sections_from_ai(self, section_scores: dict):
         """Render section score bars from OpenAI-provided scores."""
@@ -838,7 +798,7 @@ class ATSPanel(QWidget):
         row = 0
         for section, score in section_scores.items():
             if score is None:
-                continue  # section absent — skip
+                continue   # section absent — skip
 
             name_lbl = QLabel(section)
             name_lbl.setStyleSheet("color: #CBD5E1; font-size: 9pt;")
@@ -848,25 +808,19 @@ class ATSPanel(QWidget):
             bar.setValue(int(score))
             bar.setTextVisible(False)
             bar.setFixedHeight(10)
-            color = (
-                "#34D399" if score >= 70 else "#FBBF24" if score >= 40 else "#F87171"
-            )
-            bar.setStyleSheet(
-                f"""
+            color = "#34D399" if score >= 70 else "#FBBF24" if score >= 40 else "#F87171"
+            bar.setStyleSheet(f"""
                 QProgressBar {{ background-color: #1E293B; border-radius: 5px; }}
                 QProgressBar::chunk {{ background-color: {color}; border-radius: 5px; }}
-            """
-            )
+            """)
 
             score_lbl = QLabel(f"{int(score)}%")
-            score_lbl.setStyleSheet(
-                f"color: {color}; font-size: 9pt; font-weight: 600;"
-            )
+            score_lbl.setStyleSheet(f"color: {color}; font-size: 9pt; font-weight: 600;")
             score_lbl.setFixedWidth(36)
 
-            self._section_grid.addWidget(name_lbl, row, 0)
-            self._section_grid.addWidget(bar, row, 1)
-            self._section_grid.addWidget(score_lbl, row, 2)
+            self._section_grid.addWidget(name_lbl,  row, 0)
+            self._section_grid.addWidget(bar,        row, 1)
+            self._section_grid.addWidget(score_lbl,  row, 2)
             row += 1
 
         self._section_grid.setColumnStretch(1, 1)

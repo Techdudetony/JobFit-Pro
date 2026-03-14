@@ -20,16 +20,17 @@ from textwrap import dedent
 from services.openai_client import OpenAIClient
 
 
-ANALYSIS_PROMPT = dedent(
-    """
+ANALYSIS_PROMPT = dedent("""
 You are an expert ATS (Applicant Tracking System) analyst and resume coach.
 
 You will be given:
 1. A JOB DESCRIPTION
 2. A TAILORED RESUME
 
-Your task is to analyze the resume against the job description and return a JSON object
-with the following structure. Return ONLY valid JSON — no markdown, no explanation.
+CRITICAL: Your response must be ONLY a valid JSON object. No markdown. No code fences.
+No preamble. No explanation. Start your response with {{ and end with }}.
+
+Analyze the resume against the job description and return this exact JSON structure:
 
 {{
   "ats_score": <integer 0-100, overall keyword/relevance match>,
@@ -74,8 +75,7 @@ JOB DESCRIPTION:
 
 TAILORED RESUME:
 {resume_text}
-"""
-)
+""")
 
 
 def analyze_keywords(job_text: str, resume_text: str) -> dict:
@@ -91,7 +91,7 @@ def analyze_keywords(job_text: str, resume_text: str) -> dict:
     )
 
     try:
-        raw = client.generate(prompt, temperature=0.1, max_tokens=1500)
+        raw = client.generate(prompt, temperature=0.1, max_tokens=2000)
         return _parse_response(raw)
     except Exception as e:
         print(f"[KEYWORD ANALYZER] Error: {e}")
@@ -100,43 +100,58 @@ def analyze_keywords(job_text: str, resume_text: str) -> dict:
 
 def _parse_response(raw: str) -> dict:
     """Extract and parse the JSON block from the model response."""
-    # Strip markdown code fences if present
     raw = raw.strip()
-    raw = re.sub(r"^```(?:json)?\s*", "", raw)
-    raw = re.sub(r"\s*```$", "", raw)
 
+    # Strip markdown code fences
+    raw = re.sub(r"^```(?:json)?\s*", "", raw, flags=re.MULTILINE)
+    raw = re.sub(r"\s*```\s*$", "", raw, flags=re.MULTILINE)
+    raw = raw.strip()
+
+    # Try direct parse first
     try:
         data = json.loads(raw)
     except json.JSONDecodeError:
-        # Try to extract just the JSON object
-        match = re.search(r"\{[\s\S]+\}", raw)
-        if match:
+        # Find the outermost JSON object — use greedy match from first { to last }
+        start = raw.find("{")
+        end   = raw.rfind("}")
+        if start != -1 and end != -1 and end > start:
             try:
-                data = json.loads(match.group())
+                data = json.loads(raw[start:end + 1])
             except Exception:
-                return _fallback("Could not parse model response as JSON.")
+                # Last resort: try to repair truncated JSON by closing open structures
+                candidate = raw[start:end + 1]
+                try:
+                    # Count unclosed braces/brackets and close them
+                    open_b = candidate.count("{") - candidate.count("}")
+                    open_br = candidate.count("[") - candidate.count("]")
+                    repaired = candidate + ("]" * max(open_br, 0)) + ("}" * max(open_b, 0))
+                    data = json.loads(repaired)
+                except Exception:
+                    print(f"[KEYWORD ANALYZER] Raw response: {raw[:300]}")
+                    return _fallback("Could not parse model response as JSON.")
         else:
+            print(f"[KEYWORD ANALYZER] No JSON object found in: {raw[:300]}")
             return _fallback("No JSON found in model response.")
 
     # Normalize / fill missing keys safely
     return {
-        "ats_score": int(data.get("ats_score", 0)),
-        "matched_keywords": data.get("matched_keywords", []),
+        "ats_score":           int(data.get("ats_score", 0)),
+        "matched_keywords":    data.get("matched_keywords", []),
         "suggested_additions": data.get("suggested_additions", []),
         "fabrication_warnings": data.get("fabrication_warnings", []),
-        "section_scores": data.get("section_scores", {}),
-        "summary": data.get("summary", ""),
-        "error": None,
+        "section_scores":      data.get("section_scores", {}),
+        "summary":             data.get("summary", ""),
+        "error":               None,
     }
 
 
 def _fallback(error_msg: str) -> dict:
     return {
-        "ats_score": 0,
-        "matched_keywords": [],
+        "ats_score":           0,
+        "matched_keywords":    [],
         "suggested_additions": [],
         "fabrication_warnings": [],
-        "section_scores": {},
-        "summary": "",
-        "error": error_msg,
+        "section_scores":      {},
+        "summary":             "",
+        "error":               error_msg,
     }

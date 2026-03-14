@@ -15,33 +15,26 @@ import json
 from datetime import datetime
 
 from PyQt6.QtWidgets import (
-    QWidget,
-    QVBoxLayout,
-    QHBoxLayout,
-    QTableWidget,
-    QTableWidgetItem,
-    QPushButton,
-    QMessageBox,
-    QLabel,
+    QWidget, QVBoxLayout, QHBoxLayout,
+    QTableWidget, QTableWidgetItem,
+    QPushButton, QMessageBox, QLabel,
 )
 from PyQt6.QtCore import Qt, QUrl
 from PyQt6.QtGui import QDesktopServices, QColor, QIcon
 
-DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "data")
+DATA_DIR     = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "data")
 HISTORY_FILE = os.path.join(DATA_DIR, "tailoring_history.json")
-ASSETS = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "assets", "icons"
-)
+ASSETS = os.path.join(os.getcwd(), "assets", "icons")
 
 os.makedirs(DATA_DIR, exist_ok=True)
 
 COL_COMPANY = 0
-COL_ROLE = 1
-COL_FILE = 2
+COL_ROLE    = 1
+COL_FILE    = 2
 COL_CREATED = 3
-COL_ATS = 4
-COL_COVER = 5
-COL_DELETE = 6
+COL_ATS     = 4
+COL_COVER   = 5
+COL_DELETE  = 6
 
 
 def _fmt_timestamp(raw: str) -> str:
@@ -79,7 +72,7 @@ class HistoryTab(QWidget):
         header.addWidget(lbl)
         header.addStretch()
         self.btn_refresh = QPushButton("Refresh")
-        self.btn_delete = QPushButton("Delete Selected")
+        self.btn_delete  = QPushButton("Delete Selected")
         header.addWidget(self.btn_refresh)
         header.addWidget(self.btn_delete)
         root.addLayout(header)
@@ -89,16 +82,26 @@ class HistoryTab(QWidget):
         self.table.setHorizontalHeaderLabels(
             ["Company", "Role", "Resume", "Created", "ATS", "Cover Letter", ""]
         )
+        vh = self.table.verticalHeader()
+        vh.setFixedWidth(30)
+        vh.setDefaultSectionSize(36)
+        vh.setStyleSheet(
+            "QHeaderView::section {"
+            "  background-color: transparent;"
+            "  color: #4B5563;"
+            "  border: none;"
+            "  border-bottom: 1px solid #1F2937;"
+            "  font-size: 8pt;"
+            "}"
+        )
         self.table.setColumnWidth(COL_COMPANY, 170)
-        self.table.setColumnWidth(COL_ROLE, 200)
-        self.table.setColumnWidth(COL_FILE, 100)
+        self.table.setColumnWidth(COL_ROLE,    200)
+        self.table.setColumnWidth(COL_FILE,    100)
         self.table.setColumnWidth(COL_CREATED, 155)
-        self.table.setColumnWidth(COL_ATS, 80)
-        self.table.setColumnWidth(COL_COVER, 100)
-        self.table.setColumnWidth(COL_DELETE, 44)
-        self.table.setSortingEnabled(
-            False
-        )  # sorting during/after edit was overwriting changes
+        self.table.setColumnWidth(COL_ATS,      95)
+        self.table.setColumnWidth(COL_COVER,   110)
+        self.table.setColumnWidth(COL_DELETE,   44)
+        self.table.setSortingEnabled(False)   # sorting during/after edit was overwriting changes
         self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.table.setSelectionMode(QTableWidget.SelectionMode.ExtendedSelection)
         self.table.cellClicked.connect(self._handle_cell_click)
@@ -119,12 +122,10 @@ class HistoryTab(QWidget):
         row = self.table.rowCount()
         self.table.insertRow(row)
 
-        company = entry.get("company", "")
-        role = entry.get("role", "")
-        file_link = (
-            entry.get("resume_url") or entry.get("local_pdf") or entry.get("file") or ""
-        )
-        created = _fmt_timestamp(entry.get("timestamp", ""))
+        company   = entry.get("company", "")
+        role      = entry.get("role", "")
+        file_link = entry.get("resume_url") or entry.get("local_pdf") or entry.get("file") or ""
+        created   = _fmt_timestamp(entry.get("timestamp", ""))
         ats_result = entry.get("ats_result")
 
         # Company (editable)
@@ -155,17 +156,12 @@ class HistoryTab(QWidget):
         if ats_result:
             btn_ats = QPushButton("View ATS")
             btn_ats.setFixedHeight(26)
-            btn_ats.setStyleSheet(
-                "QPushButton{background:#1E3A5F;color:#54AED5;border:1px solid #54AED5;"
-                "border-radius:4px;font-size:8pt;font-weight:600;padding:2px 6px;}"
-                "QPushButton:hover{background:#2A4E78;}"
-            )
+            btn_ats.setProperty("historyBtn", "ats")
             btn_ats.clicked.connect(lambda _, r=ats_result: self._open_ats(r))
             wrap_ats = QWidget()
+            wrap_ats.setObjectName("cellWrapper")
             wl = QHBoxLayout(wrap_ats)
-            wl.addStretch()
-            wl.addWidget(btn_ats)
-            wl.addStretch()
+            wl.addStretch(); wl.addWidget(btn_ats); wl.addStretch()
             wl.setContentsMargins(2, 2, 2, 2)
             self.table.setCellWidget(row, COL_ATS, wrap_ats)
         else:
@@ -180,19 +176,12 @@ class HistoryTab(QWidget):
         if cover_letter:
             btn_cover = QPushButton("View")
             btn_cover.setFixedHeight(26)
-            btn_cover.setStyleSheet(
-                "QPushButton{background:#1A3A2A;color:#34D399;border:1px solid #34D399;"
-                "border-radius:4px;font-size:8pt;font-weight:600;padding:2px 6px;}"
-                "QPushButton:hover{background:#22543D;}"
-            )
-            btn_cover.clicked.connect(
-                lambda _, cl=cover_letter: self._open_cover_letter(cl)
-            )
+            btn_cover.setProperty("historyBtn", "cover")
+            btn_cover.clicked.connect(lambda _, cl=cover_letter: self._open_cover_letter(cl))
             wrap_cv = QWidget()
+            wrap_cv.setObjectName("cellWrapper")
             wl_cv = QHBoxLayout(wrap_cv)
-            wl_cv.addStretch()
-            wl_cv.addWidget(btn_cover)
-            wl_cv.addStretch()
+            wl_cv.addStretch(); wl_cv.addWidget(btn_cover); wl_cv.addStretch()
             wl_cv.setContentsMargins(2, 2, 2, 2)
             self.table.setCellWidget(row, COL_COVER, wrap_cv)
         else:
@@ -203,19 +192,40 @@ class HistoryTab(QWidget):
             self.table.setItem(row, COL_COVER, item_cv)
 
         # Delete button
-        trash_path = os.path.join(ASSETS, "trash.svg")
+        trash_path = os.path.join(os.getcwd(), "assets", "icons", "trash.png")
         btn_del = QPushButton()
+        btn_del.setProperty("deleteBtn", True)
         if os.path.exists(trash_path):
+            from PyQt6.QtGui import QIcon
             btn_del.setIcon(QIcon(trash_path))
+            btn_del.setIconSize(btn_del.sizeHint())
         else:
             btn_del.setText("✕")
         btn_del.setFixedSize(28, 28)
+        if os.path.exists(trash_path):
+            from PyQt6.QtGui import QPixmap, QPainter
+            from PyQt6.QtCore import QSize
+            pixmap = QPixmap(trash_path).scaled(
+                14, 14,
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation,
+            )
+            # Tint to light grey so it's visible on dark backgrounds
+            tinted = QPixmap(pixmap.size())
+            tinted.fill(QColor(0, 0, 0, 0))
+            painter = QPainter(tinted)
+            painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Source)
+            painter.drawPixmap(0, 0, pixmap)
+            painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
+            painter.fillRect(tinted.rect(), QColor("#9CA3AF"))
+            painter.end()
+            btn_del.setIcon(QIcon(tinted))
+            btn_del.setIconSize(QSize(14, 14))
         btn_del.clicked.connect(lambda _, ji=json_index: self._delete_row(ji))
         wrap_del = QWidget()
+        wrap_del.setObjectName("cellWrapper")
         wl2 = QHBoxLayout(wrap_del)
-        wl2.addStretch()
-        wl2.addWidget(btn_del)
-        wl2.addStretch()
+        wl2.addStretch(); wl2.addWidget(btn_del); wl2.addStretch()
         wl2.setContentsMargins(0, 0, 0, 0)
         self.table.setCellWidget(row, COL_DELETE, wrap_del)
 
@@ -233,16 +243,13 @@ class HistoryTab(QWidget):
         elif os.path.exists(link):
             QDesktopServices.openUrl(QUrl.fromLocalFile(link))
         else:
-            QMessageBox.warning(
-                self, "File Missing", "The resume PDF could not be found."
-            )
+            QMessageBox.warning(self, "File Missing", "The resume PDF could not be found.")
 
     def _open_ats(self, result: dict):
         if not self._ats_panel_ref:
             QMessageBox.information(
-                self,
-                "ATS Panel",
-                "Switch to the Tailor tab first, then click View ATS.",
+                self, "ATS Panel",
+                "Switch to the Tailor tab first, then click View ATS."
             )
             return
         main = self.window()
@@ -252,32 +259,20 @@ class HistoryTab(QWidget):
 
     def _open_cover_letter(self, text: str):
         """Show the saved cover letter in a simple read-only dialog."""
-        from PyQt6.QtWidgets import (
-            QDialog,
-            QVBoxLayout,
-            QTextEdit,
-            QPushButton,
-            QHBoxLayout,
-            QApplication,
-        )
-
+        from PyQt6.QtWidgets import QDialog, QVBoxLayout, QTextEdit, QPushButton, QHBoxLayout, QApplication
         dlg = QDialog(self)
         dlg.setWindowTitle("Saved Cover Letter")
         dlg.setMinimumSize(640, 520)
         layout = QVBoxLayout(dlg)
 
         editor = QTextEdit(dlg)
-        editor.setFont(
-            __import__("PyQt6.QtGui", fromlist=["QFont"]).QFont("Calibri", 11)
-        )
+        editor.setFont(__import__("PyQt6.QtGui", fromlist=["QFont"]).QFont("Calibri", 11))
         editor.setPlainText(text)
         layout.addWidget(editor)
 
         btn_row = QHBoxLayout()
         btn_copy = QPushButton("Copy", dlg)
-        btn_copy.clicked.connect(
-            lambda: QApplication.clipboard().setText(editor.toPlainText())
-        )
+        btn_copy.clicked.connect(lambda: QApplication.clipboard().setText(editor.toPlainText()))
         btn_close = QPushButton("Close", dlg)
         btn_close.clicked.connect(dlg.accept)
         btn_row.addStretch()
@@ -313,9 +308,7 @@ class HistoryTab(QWidget):
 
     def _delete_row(self, json_index: int):
         reply = QMessageBox.question(
-            self,
-            "Delete Entry",
-            "Delete this history entry?",
+            self, "Delete Entry", "Delete this history entry?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
         if reply != QMessageBox.StandardButton.Yes:
@@ -342,8 +335,7 @@ class HistoryTab(QWidget):
         if not json_indices:
             return
         reply = QMessageBox.question(
-            self,
-            "Delete Selected",
+            self, "Delete Selected",
             f"Delete {len(json_indices)} entr{'y' if len(json_indices)==1 else 'ies'}?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )

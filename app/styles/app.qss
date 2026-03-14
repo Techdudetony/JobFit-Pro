@@ -423,3 +423,157 @@ QDialog#TailorContextDialog QPushButton[clarifyToggle="true"] {
 QDialog#TailorContextDialog QPushButton[clarifyToggle="true"]:hover {
     color: #22C55E;
 }
+
+/* Resume Style radio buttons — dark */
+QRadioButton[styleOption="true"] {
+    color: #E5E7EB;
+    font-size: 10pt;
+    spacing: 8px;
+    padding: 2px 0px;
+}
+
+QRadioButton[styleOption="true"]::indicator {
+    width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    border: 2px solid #4B5563;
+    background-color: #020617;
+}
+
+QRadioButton[styleOption="true"]::indicator:hover {
+    border-color: #22C55E;
+}
+
+QRadioButton[styleOption="true"]::indicator:checked {
+    background-color: #22C55E;
+    border-color: #22C55E;
+}
+
+/* API connection status dot — dark */
+QLabel[apiDot="checking"] { color: #FBBF24; font-size: 14pt; }
+QLabel[apiDot="connected"] { color: #22C55E; font-size: 14pt; }
+QLabel[apiDot="error"]     { color: #F87171; font-size: 14pt; }
+QLabel[apiStatus="true"]   { color: #E5E7EB; font-size: 10pt; }
+
+/* ── Resume Style Cards — dark ── */
+QWidget#styleCard {
+    background-color: #11171F;
+    border: 2px solid #2A313C;
+    border-radius: 8px;
+}
+
+QWidget#styleCard:hover {
+    border-color: #3D4F63;
+}
+
+QWidget#styleCard[selected="true"] {
+    border-color: #22C55E;
+    background-color: #0C1A0E;
+}
+
+QLabel[styleCardName="true"] {
+    color: #E5E7EB;
+    font-size: 10pt;
+    font-weight: 600;
+}
+
+QLabel[styleCardDesc="true"] {
+    color: #64748B;
+    font-size: 8pt;
+}
+
+/* ── History tab inline buttons — dark ── */
+QPushButton[historyBtn="ats"] {
+    background-color: #0F2035;
+    color: #54AED5;
+    border: 1px solid #54AED5;
+    border-radius: 4px;
+    font-size: 8pt;
+    font-weight: 600;
+    padding: 2px 6px;
+}
+QPushButton[historyBtn="ats"]:hover {
+    background-color: #1A3A5C;
+}
+
+QPushButton[historyBtn="cover"] {
+    background-color: #0F2A1E;
+    color: #34D399;
+    border: 1px solid #34D399;
+    border-radius: 4px;
+    font-size: 8pt;
+    font-weight: 600;
+    padding: 2px 6px;
+}
+QPushButton[historyBtn="cover"]:hover {
+    background-color: #1A4A35;
+}
+
+/* ── Settings scroll area — dark ── */
+QScrollArea {
+    background: transparent;
+    border: none;
+}
+QScrollArea > QWidget > QWidget {
+    background: transparent;
+}
+
+/* ── History table background fix — dark ── */
+QTableWidget#historyTable {
+    background-color: #0C1117;
+    alternate-background-color: #11171F;
+    color: #E5E7EB;
+    border: 1px solid #1F2937;
+    gridline-color: #1F2937;
+}
+
+QTableWidget#historyTable QHeaderView::section {
+    background-color: #11171F;
+    color: #9CA3AF;
+    border: none;
+    border-bottom: 1px solid #1F2937;
+    padding: 6px 8px;
+    font-weight: 600;
+    font-size: 9pt;
+}
+
+QTableWidget#historyTable::item {
+    background-color: transparent;
+    color: #E5E7EB;
+    padding: 4px 8px;
+}
+
+QTableWidget#historyTable::item:selected {
+    background-color: #1F2937;
+    color: #FFFFFF;
+}
+
+/* Cell wrapper widgets inside table must be transparent */
+QWidget#cellWrapper {
+    background-color: transparent;
+}
+
+/* Delete button */
+QPushButton[deleteBtn="true"] {
+    background-color: transparent;
+    border: 1px solid #374151;
+    border-radius: 4px;
+    color: #9CA3AF;
+}
+
+QPushButton[deleteBtn="true"]:hover {
+    background-color: #2A0A0A;
+    border-color: #F87171;
+    color: #F87171;
+}
+
+/* ── History table vertical header (row numbers) — dark ── */
+QTableWidget#historyTable QHeaderView::section:vertical {
+    background-color: #0C1117;
+    color: #4B5563;
+    border: none;
+    border-bottom: 1px solid #1F2937;
+    border-right: 1px solid #1F2937;
+    font-size: 8pt;
+    padding: 0px 4px;
+}

@@ -1,5 +1,161 @@
 [
     {
+        "ats_result": null,
+        "company": "CarMax",
+        "job_url": "https://careers.carmax.com/strategy-analyst/job/3A30F16F0913E55704DE1D0E99B466A1?source=Direct_Traffic&utm_source=Direct_Traffic",
+        "local_pdf": "D:\\JobFit_Pro\\app\\data\\history_resumes\\20260314_135640_b0b20a12.pdf",
+        "resume_url": "https://cgfbvsdtaliuxdamsbzt.supabase.co/storage/v1/object/sign/resumes/users/0b9c1760-55af-457e-934d-363e91f4b05e/9a8c2382-28f0-4fec-b4c7-c9e37aac1648.pdf?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8yMWVlNDE3My02OTdmLTQ3NjYtYTRkMS03ZjFmZjQ0ZWFjNDIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyZXN1bWVzL3VzZXJzLzBiOWMxNzYwLTU1YWYtNDU3ZS05MzRkLTM2M2U5MWY0YjA1ZS85YThjMjM4Mi0yOGYwLTRmZWMtYjRjNy1jOWUzN2FhYzE2NDgucGRmIiwiaWF0IjoxNzczNTExMDIwLCJleHAiOjE3NzQxMTU4MjB9.Z3ZF-gG-1Cmv40rtw7qwk8NF0r6hLdAlsc4kn2K3FZc",
+        "role": "Strategy Analyst",
+        "timestamp": "2026-03-14T13:56:55.665784"
+    },
+    {
+        "ats_result": {
+            "ats_score": 78,
+            "error": null,
+            "fabrication_warnings": [
+                {
+                    "item": "Quality Assurance Consultant (Oct 2020 - Nov 2025) with \"0\u20132 years\" experience",
+                    "reason": "The experience dates indicate ~5 years, which conflicts with the Summary claiming \"0\u20132 years\"; also the end date is in the future relative to typical resume conventions."
+                },
+                {
+                    "item": "Designed and implemented the official CEC Audit Program",
+                    "reason": "High-impact, organization-wide phrasing (\"official\") could be accurate but may be questioned without scope details (team size, governance, rollout, artifacts) to substantiate."
+                }
+            ],
+            "matched_keywords": [
+                {
+                    "context": "Headline and Summary: \"Strategy and analytics professional\"; role alignment to Strategy Analyst.",
+                    "keyword": "Strategy"
+                },
+                {
+                    "context": "Summary and Skills: analytics focus; experience analyzing compliance/audit results and performance data.",
+                    "keyword": "Analytics"
+                },
+                {
+                    "context": "Summary: \"turning ... data into insights\"; Experience: trend reports and recommendations to leaders.",
+                    "keyword": "Insights"
+                },
+                {
+                    "context": "Summary and Skills explicitly list \"Trend Reporting\"; Experience mentions building trend reports.",
+                    "keyword": "Trend reporting"
+                },
+                {
+                    "context": "Skills: \"Data Visualization\"; Experience: \"visualizations\" delivered via BI tools.",
+                    "keyword": "Data visualization"
+                },
+                {
+                    "context": "Summary and Experience: dashboards/visualizations using Tableau.",
+                    "keyword": "Tableau"
+                },
+                {
+                    "context": "Summary and Experience: dashboards/visualizations using Power BI.",
+                    "keyword": "Power BI"
+                },
+                {
+                    "context": "Summary and Experience: dashboards/visualizations using Qlik.",
+                    "keyword": "Qlik"
+                },
+                {
+                    "context": "Skills and Experience: Excel-based analysis; pivots/formulas/charts; reporting.",
+                    "keyword": "Excel"
+                },
+                {
+                    "context": "Summary: \"SQL/Python foundations\"; Skills list SQL.",
+                    "keyword": "SQL"
+                },
+                {
+                    "context": "Summary: \"SQL/Python foundations\"; Skills list Python.",
+                    "keyword": "Python"
+                },
+                {
+                    "context": "Experience: \"delivering targeted recommendations to leaders\"; collaboration implied with Compliance Services.",
+                    "keyword": "Partner with leaders"
+                },
+                {
+                    "context": "Experience implies communicating findings via reports/visualizations and recommendations to leaders.",
+                    "keyword": "Presentation and communication skills"
+                },
+                {
+                    "context": "Summary: \"operational and compliance data\"; Experience: performance/coaching/process changes.",
+                    "keyword": "Operational"
+                },
+                {
+                    "context": "Current/previous employer is CarMax; Summary states experience at CarMax.",
+                    "keyword": "CarMax"
+                },
+                {
+                    "context": "Experience: \"improving customer experience outcomes\".",
+                    "keyword": "Customer experience"
+                },
+                {
+                    "context": "Experience: \"process changes\" and standardizing audit methodology.",
+                    "keyword": "Process improvement"
+                },
+                {
+                    "context": "Demonstrated through quantified improvements (23% reduction; 9% increase) and program design/implementation.",
+                    "keyword": "Critical thinking / problem-solving"
+                }
+            ],
+            "section_scores": {
+                "Education": 55,
+                "Experience": 80,
+                "Projects": null,
+                "Skills": 75,
+                "Summary": 82
+            },
+            "suggested_additions": [
+                {
+                    "confidence": "high",
+                    "keyword": "Storytelling with data",
+                    "reason": "Job emphasizes communication/storytelling; candidate already produces leadership-ready recommendations and visualizations, so explicitly naming this is plausible."
+                },
+                {
+                    "confidence": "high",
+                    "keyword": "Stakeholder management",
+                    "reason": "Role requires partnering across Product/Tech/Ops; candidate already worked with leaders and Compliance Services\u2014adding the term improves ATS alignment."
+                },
+                {
+                    "confidence": "high",
+                    "keyword": "Cross-functional collaboration",
+                    "reason": "CarMax Strategy role stresses partnering across the organization; experience shows collaboration but the phrase is not explicit."
+                },
+                {
+                    "confidence": "medium",
+                    "keyword": "KPI development / metric definition",
+                    "reason": "Candidate built an audit program and trend reporting; likely defined/standardized metrics and success measures even if not stated."
+                },
+                {
+                    "confidence": "medium",
+                    "keyword": "Root cause analysis",
+                    "reason": "Reducing compliance opportunities and improving QA scores typically involves diagnosing drivers; adding this is plausible given the work described."
+                },
+                {
+                    "confidence": "low",
+                    "keyword": "Forecasting / predictive analysis (basic)",
+                    "reason": "With SQL/Python foundations and trend reporting, basic forecasting is a plausible adjacent capability; only add if actually done in reporting."
+                },
+                {
+                    "confidence": "high",
+                    "keyword": "Operations analytics",
+                    "reason": "Job is heavily operations/supply-chain/retail analytics; candidate\u2019s work is operational/compliance analytics\u2014labeling it as operations analytics improves fit."
+                },
+                {
+                    "confidence": "medium",
+                    "keyword": "Executive-ready presentations (PowerPoint/Google Slides)",
+                    "reason": "Role stresses presenting findings; candidate references leadership-ready recommendations but does not list presentation tools/deliverables."
+                }
+            ],
+            "summary": "The resume aligns well with CarMax\u2019s Strategy Analyst role through direct CarMax experience, quantified analytics impact, and strong BI/reporting tooling (Excel, Tableau, Power BI, Qlik) plus SQL/Python foundations. Biggest gaps are limited explicit language around cross-functional strategy work (Product/Tech/Ops), storytelling/presentations, and broader business problem framing beyond compliance/QA. Fixing the experience-duration inconsistency and adding a few strategy-analytics keywords (stakeholder management, KPI definition, root cause analysis) would improve ATS match and credibility."
+        },
+        "company": "CarMax",
+        "job_url": "https://careers.carmax.com/strategy-analyst/job/3A30F16F0913E55704DE1D0E99B466A1?source=Direct_Traffic&utm_source=Direct_Traffic",
+        "last_updated": "2026-03-14T12:30:20.394778",
+        "local_pdf": "D:\\JobFit_Pro\\app\\data\\history_resumes\\20260314_122952_cdb99667.pdf",
+        "resume_url": "https://cgfbvsdtaliuxdamsbzt.supabase.co/storage/v1/object/sign/resumes/users/0b9c1760-55af-457e-934d-363e91f4b05e/1fbc1477-610e-41ac-8b34-495dfb01df5d.pdf?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8yMWVlNDE3My02OTdmLTQ3NjYtYTRkMS03ZjFmZjQ0ZWFjNDIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyZXN1bWVzL3VzZXJzLzBiOWMxNzYwLTU1YWYtNDU3ZS05MzRkLTM2M2U5MWY0YjA1ZS8xZmJjMTQ3Ny02MTBlLTQxYWMtOGIzNC00OTVkZmIwMWRmNWQucGRmIiwiaWF0IjoxNzczNTA1ODAwLCJleHAiOjE3NzQxMTA2MDB9.Big_z3ovj9nfuMYMfK-7zCvp_jroS5_eZIWlgydmHX0",
+        "role": "Strategy Analyst",
+        "timestamp": "2026-03-14T12:29:56.767345"
+    },
+    {
         "ats_result": {
             "ats_score": 56,
             "error": null,
@@ -993,152 +1149,5 @@
         "role": "Registered Client Service Assistant/ 401(k) Client Service Assistant (Richmond, Suffolk or Virginia Beach)",
         "timestamp": "2025-12-11T22:56:58.280842",
         "user_id": "0b9c1760-55af-457e-934d-363e91f4b05e"
-    },
-    {
-        "company": "CarMax",
-        "role": "Strategy Analyst",
-        "job_url": "https://careers.carmax.com/strategy-analyst/job/3A30F16F0913E55704DE1D0E99B466A1?source=Direct_Traffic&utm_source=Direct_Traffic",
-        "resume_url": "https://cgfbvsdtaliuxdamsbzt.supabase.co/storage/v1/object/sign/resumes/users/0b9c1760-55af-457e-934d-363e91f4b05e/1fbc1477-610e-41ac-8b34-495dfb01df5d.pdf?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8yMWVlNDE3My02OTdmLTQ3NjYtYTRkMS03ZjFmZjQ0ZWFjNDIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyZXN1bWVzL3VzZXJzLzBiOWMxNzYwLTU1YWYtNDU3ZS05MzRkLTM2M2U5MWY0YjA1ZS8xZmJjMTQ3Ny02MTBlLTQxYWMtOGIzNC00OTVkZmIwMWRmNWQucGRmIiwiaWF0IjoxNzczNTA1ODAwLCJleHAiOjE3NzQxMTA2MDB9.Big_z3ovj9nfuMYMfK-7zCvp_jroS5_eZIWlgydmHX0",
-        "local_pdf": "D:\\JobFit_Pro\\app\\data\\history_resumes\\20260314_122952_cdb99667.pdf",
-        "timestamp": "2026-03-14T12:29:56.767345",
-        "ats_result": {
-            "ats_score": 78,
-            "matched_keywords": [
-                {
-                    "keyword": "Strategy",
-                    "context": "Headline and Summary: \"Strategy and analytics professional\"; role alignment to Strategy Analyst."
-                },
-                {
-                    "keyword": "Analytics",
-                    "context": "Summary and Skills: analytics focus; experience analyzing compliance/audit results and performance data."
-                },
-                {
-                    "keyword": "Insights",
-                    "context": "Summary: \"turning ... data into insights\"; Experience: trend reports and recommendations to leaders."
-                },
-                {
-                    "keyword": "Trend reporting",
-                    "context": "Summary and Skills explicitly list \"Trend Reporting\"; Experience mentions building trend reports."
-                },
-                {
-                    "keyword": "Data visualization",
-                    "context": "Skills: \"Data Visualization\"; Experience: \"visualizations\" delivered via BI tools."
-                },
-                {
-                    "keyword": "Tableau",
-                    "context": "Summary and Experience: dashboards/visualizations using Tableau."
-                },
-                {
-                    "keyword": "Power BI",
-                    "context": "Summary and Experience: dashboards/visualizations using Power BI."
-                },
-                {
-                    "keyword": "Qlik",
-                    "context": "Summary and Experience: dashboards/visualizations using Qlik."
-                },
-                {
-                    "keyword": "Excel",
-                    "context": "Skills and Experience: Excel-based analysis; pivots/formulas/charts; reporting."
-                },
-                {
-                    "keyword": "SQL",
-                    "context": "Summary: \"SQL/Python foundations\"; Skills list SQL."
-                },
-                {
-                    "keyword": "Python",
-                    "context": "Summary: \"SQL/Python foundations\"; Skills list Python."
-                },
-                {
-                    "keyword": "Partner with leaders",
-                    "context": "Experience: \"delivering targeted recommendations to leaders\"; collaboration implied with Compliance Services."
-                },
-                {
-                    "keyword": "Presentation and communication skills",
-                    "context": "Experience implies communicating findings via reports/visualizations and recommendations to leaders."
-                },
-                {
-                    "keyword": "Operational",
-                    "context": "Summary: \"operational and compliance data\"; Experience: performance/coaching/process changes."
-                },
-                {
-                    "keyword": "CarMax",
-                    "context": "Current/previous employer is CarMax; Summary states experience at CarMax."
-                },
-                {
-                    "keyword": "Customer experience",
-                    "context": "Experience: \"improving customer experience outcomes\"."
-                },
-                {
-                    "keyword": "Process improvement",
-                    "context": "Experience: \"process changes\" and standardizing audit methodology."
-                },
-                {
-                    "keyword": "Critical thinking / problem-solving",
-                    "context": "Demonstrated through quantified improvements (23% reduction; 9% increase) and program design/implementation."
-                }
-            ],
-            "suggested_additions": [
-                {
-                    "keyword": "Storytelling with data",
-                    "reason": "Job emphasizes communication/storytelling; candidate already produces leadership-ready recommendations and visualizations, so explicitly naming this is plausible.",
-                    "confidence": "high"
-                },
-                {
-                    "keyword": "Stakeholder management",
-                    "reason": "Role requires partnering across Product/Tech/Ops; candidate already worked with leaders and Compliance Services\u2014adding the term improves ATS alignment.",
-                    "confidence": "high"
-                },
-                {
-                    "keyword": "Cross-functional collaboration",
-                    "reason": "CarMax Strategy role stresses partnering across the organization; experience shows collaboration but the phrase is not explicit.",
-                    "confidence": "high"
-                },
-                {
-                    "keyword": "KPI development / metric definition",
-                    "reason": "Candidate built an audit program and trend reporting; likely defined/standardized metrics and success measures even if not stated.",
-                    "confidence": "medium"
-                },
-                {
-                    "keyword": "Root cause analysis",
-                    "reason": "Reducing compliance opportunities and improving QA scores typically involves diagnosing drivers; adding this is plausible given the work described.",
-                    "confidence": "medium"
-                },
-                {
-                    "keyword": "Forecasting / predictive analysis (basic)",
-                    "reason": "With SQL/Python foundations and trend reporting, basic forecasting is a plausible adjacent capability; only add if actually done in reporting.",
-                    "confidence": "low"
-                },
-                {
-                    "keyword": "Operations analytics",
-                    "reason": "Job is heavily operations/supply-chain/retail analytics; candidate\u2019s work is operational/compliance analytics\u2014labeling it as operations analytics improves fit.",
-                    "confidence": "high"
-                },
-                {
-                    "keyword": "Executive-ready presentations (PowerPoint/Google Slides)",
-                    "reason": "Role stresses presenting findings; candidate references leadership-ready recommendations but does not list presentation tools/deliverables.",
-                    "confidence": "medium"
-                }
-            ],
-            "fabrication_warnings": [
-                {
-                    "item": "Quality Assurance Consultant (Oct 2020 - Nov 2025) with \"0\u20132 years\" experience",
-                    "reason": "The experience dates indicate ~5 years, which conflicts with the Summary claiming \"0\u20132 years\"; also the end date is in the future relative to typical resume conventions."
-                },
-                {
-                    "item": "Designed and implemented the official CEC Audit Program",
-                    "reason": "High-impact, organization-wide phrasing (\"official\") could be accurate but may be questioned without scope details (team size, governance, rollout, artifacts) to substantiate."
-                }
-            ],
-            "section_scores": {
-                "Summary": 82,
-                "Experience": 80,
-                "Skills": 75,
-                "Education": 55,
-                "Projects": null
-            },
-            "summary": "The resume aligns well with CarMax\u2019s Strategy Analyst role through direct CarMax experience, quantified analytics impact, and strong BI/reporting tooling (Excel, Tableau, Power BI, Qlik) plus SQL/Python foundations. Biggest gaps are limited explicit language around cross-functional strategy work (Product/Tech/Ops), storytelling/presentations, and broader business problem framing beyond compliance/QA. Fixing the experience-duration inconsistency and adding a few strategy-analytics keywords (stakeholder management, KPI definition, root cause analysis) would improve ATS match and credibility.",
-            "error": null
-        },
-        "last_updated": "2026-03-14T12:30:20.394778"
     }
 ]
